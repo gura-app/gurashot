@@ -1,0 +1,12 @@
+#!/usr/bin/gura
+fileName = 'resource.gura'
+open(fileName, 'w') {|fd|
+	fd.addcr(false)
+	path.glob('*.png').filter(&{!($fileName in ['_0047_ID.png'])}) {|fileName|
+		[baseName, extName] = path.splitext(fileName)
+		fd.printf("%s_png:public = bR'''\n", baseName)
+		stream.copy(fileName, fd.base64writer())
+		fd.println("'''")
+	}
+}
+println(fileName, ' was created')
