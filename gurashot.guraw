@@ -404,7 +404,7 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 		cr.show_text(text)
 	}
 	bgColor = `gray
-	[wdDummy, htDummy] = [imgPhoto.width / 2, imgPhoto.height / 2]
+	[wdDummy, htDummy] = int([imgPhoto.width / 2, imgPhoto.height / 2])
 	imgSrc = image(`rgba, imgPhoto.width + wdDummy * 2, imgPhoto.height + htDummy * 2, bgColor)
 	// +----+----+----+
 	// | NW | N  | NE |
