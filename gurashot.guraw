@@ -1158,7 +1158,7 @@ Frame = class(wx.Frame) {
 	OnMenu_OutputPDF(event:wx.CommandEvent) = {
 		filter = 'PDF file (*.pdf)|*.pdf|All files (*.*)|*.*'$
 		dlg = wx.FileDialog(this, 'Specify a PDF file to output'$,
-								'', '', filter, wx.FD_SAVE)
+							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNamePDF = dlg.GetPath()
 			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)

@@ -4,7 +4,7 @@ import(helper.setup)
 helper.setup.execute(
 	launcherName	=> 'Gura Shot'
 	version			=> '1.0.0'
-	dirNameDst		=> path.join(sys.appdir, 'gurashot')
+	shortName		=> 'gurashot'
 	fileNameScript	=> 'gurashot.guraw'
 	fileNameIcon	=> 'gurashot.ico'
 	fileNamesExtra	=> ['resource.gura', 'translate.gura']
