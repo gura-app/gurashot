@@ -617,6 +617,7 @@ Extractor = class(wx.Panel) {
 		this.Bind(wx.EVT_PAINT) {|event| this.OnPaint(event)}
 		this.Bind(wx.EVT_LEFT_DOWN) {|event| this.OnLeftDown(event)}
 		this.Bind(wx.EVT_LEFT_UP) {|event| this.OnLeftUp(event)}
+		this.Bind(wx.EVT_MOUSE_CAPTURE_LOST) {|event| this.OnMouseCaptureLost(event)}
 		this.Bind(wx.EVT_MOTION) {|event| this.OnMotion(event)}
 		this.Bind(wx.EVT_DROP_FILES) {|event| this.OnDropFiles(event)}
 	}
@@ -736,6 +737,11 @@ Extractor = class(wx.Panel) {
 				this.productViewer.UpdateContent(true)
 				this.productViewer.UpdateContent()
 			}
+		}
+	}
+	OnMouseCaptureLost(event:wx.MouseCaptureLost) = {
+		if (this.grabTgt) {
+			this.grabTgt = nil
 		}
 	}
 	OnMotion(event:wx.MouseEvent) = {
