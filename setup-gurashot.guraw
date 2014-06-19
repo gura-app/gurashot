@@ -8,4 +8,5 @@ helper.setup.execute(
 	fileNameScript	=> 'gurashot.guraw'
 	fileNameIcon	=> 'gurashot.ico'
 	fileNamesExtra	=> ['resource.gura', 'translate.gura']
+	fileNamesClean	=> [path.join(sys.cfgdir, 'gurashot.yml')]
 )
