@@ -77,6 +77,8 @@ transDicts = %{
 'A3'									=> 'A3'
 'Mutsugiri'								=> '六切り'
 'Yotsugiri'								=> '四切り'
+'No images to show on the list'			=> '一覧に表示するイメージがありません'
+'Information'							=> '情報'
 'Are you sure to close the current image?' => '現在表示している画像を閉じますか?'
 R'''
 Are you sure to remove the image from the list?

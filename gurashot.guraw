@@ -18,7 +18,7 @@ import(mswin)
 import(units)
 import(translate)
 
-Version = '1.0.0'
+Version = '1.0.1'
 
 //-----------------------------------------------------------------------------
 // Control ID
@@ -939,7 +939,7 @@ Frame = class(wx.Frame) {
 			ctrl.InsertColumn(0.., ['Size'$, 'Purpose'$])
 			ctrl.Bind(wx.EVT_SIZE) {|event|
 				size = event.GetSize()
-				width = size.GetWidth() - 22
+				width = size.GetWidth() - 25
 				wdColumn = 150
 				ctrl.SetColumnWidth(0, wdColumn)
 				width -= wdColumn
@@ -1134,6 +1134,13 @@ Frame = class(wx.Frame) {
 		}
 	}
 	OnMenu_ShowList(event:wx.CommandEvent) = {
+		if (g.imgInfos.isempty()) {
+			wx.MessageDialog(this, 'No images to show on the list'$,
+							'Information'$, wx.OK | wx.ICON_INFORMATION | wx.CENTRE) {|dlg|
+				dlg.ShowModal()
+			}
+			return
+		}
 		dlg = ImageListDialog(this, g.imgInfos, g.imgInfos.find(g.imgInfoCur):index)
 		dlg.ShowModal()
 		g.imgInfos = dlg.GetImageInfos()
@@ -1510,11 +1517,8 @@ AboutDialog = class(wx.Dialog) {
 		vbox.AddStretchSpacer(1)
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 			vbox.Add(hbox, wx.SizerFlags().Centre())
-			wx.StaticText(this, wx.ID_ANY, 'Powered by') {|ctrl|
-				hbox.Add(ctrl, wx.SizerFlags())
-			}
-			wx.HyperlinkCtrl(this, wx.ID_ANY,
-					'Gura Programming Language', 'http://www.gura-lang.org') {|ctrl|
+			url = 'http://app.gura-lang.org/gurashot/'
+			wx.HyperlinkCtrl(this, wx.ID_ANY, url, url) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4))
 			}
 		}
