@@ -18,7 +18,7 @@ import(mswin)
 import(units)
 import(translate)
 
-Version = '1.0.1'
+Version = '1.0.2'
 
 //-----------------------------------------------------------------------------
 // Control ID
@@ -287,8 +287,6 @@ LoadConfig() = {
 	}
 }
 
-LoadConfig()
-
 SaveConfig() = {
 	g.cfg['xFrame']				= g.xFrame
 	g.cfg['yFrame']				= g.yFrame
@@ -323,8 +321,6 @@ UpdateImagePhoto() = {
 	g.imgPhotoHighRes = g.imgPhotoRaw.rotate(g.imgInfoCur.rotate)
 	g.imgPhotoLowRes = g.imgPhotoHighRes.thumbnail(1000):box
 }
-
-UpdateImagePhoto()
 
 //-----------------------------------------------------------------------------
 // SetBlankImage
@@ -1539,15 +1535,12 @@ AboutDialog = class(wx.Dialog) {
 //-----------------------------------------------------------------------------
 App = class(wx.App) {
 	OnInit() = {
-		if (true) {
-			frame = Frame('Gura Shot'$)
-			frame.Show()
-			g.frame = frame
-			true
-		} else {
-			ImageListDialog(nil, g.imgInfos, 0).ShowModal()
-			false
-		}
+		LoadConfig()
+		UpdateImagePhoto()
+		frame = Frame('Gura Shot'$)
+		frame.Show()
+		g.frame = frame
+		true
 	}
 	OnExit() = {
 		SaveConfig()
