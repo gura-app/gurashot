@@ -197,23 +197,23 @@ g = module {
 		{ 'Mutsugiri'$,		254, 203 }
 		{ 'Yotsugiri'$,		305, 254 }
 	}
-	paperSizeCur:public		= paperSizeTbl[0]
-	orientation:public		= `auto	// `auto, `horizontal, `vertical
 	cfg:public				= %{}
-	imgInfos:public			= []
-	imgInfoCur:public		= nil
 	imgPhotoRaw:public		= imgBlank
 	imgPhotoHighRes:public	= nil
 	imgPhotoLowRes:public	= nil
 	frame:public			= nil
 	xFrame:public			= -1
 	yFrame:public			= -1
-	wdFrame:public			= -1
-	htFrame:public			= -1
-	wdSashLeft:public		= -1
-	htSashTop:public		= -1
+	wdFrame:public			= 800
+	htFrame:public			= 730
+	wdSashLeft:public		= 320
+	htSashTop:public		= 300
 	frostFrameFlag:public	= false
 	centerGuideFlag:public	= false
+	orientation:public		= `auto	// `auto, `horizontal, `vertical
+	paperSizeCur:public		= paperSizeTbl[0]
+	imgInfos:public			= []
+	imgInfoCur:public		= nil
 	wdMgn:public			= 2
 	htMgn:public			= 2
 	wdGuide:public			= 2
@@ -227,47 +227,31 @@ g = module {
 LoadConfig() = {
 	try {
 		g.cfg = yaml.read(g.fileNameCfg)
+		g.xFrame:number			= g.cfg['xFrame']
+		g.yFrame:number			= g.cfg['yFrame']
+		g.wdFrame:number		= g.cfg['wdFrame']
+		g.htFrame:number		= g.cfg['htFrame']
+		g.wdSashLeft:number		= g.cfg['wdSashLeft']
+		g.htSashTop:number		= g.cfg['htSashTop']
+		g.frostFrameFlag		= (g.cfg['frostFrameFlag'] == 'true')
+		g.centerGuideFlag		= (g.cfg['centerGuideFlag'] == 'true')
+		g.orientation			= [`horizontal, `vertical, `auto].\
+							find(g.cfg['orientation'].tosymbol()) || `auto
+		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
+		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
+		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
+			imgInfo = ImageInfo()
+			imgInfo.label			= dict['label']
+			imgInfo.fileName		= dict['fileName']
+			imgInfo.rotate:number	= dict['rotate']
+			imgInfo.xrateTop:number	= dict['xrateTop']
+			imgInfo.xrateBtm:number	= dict['xrateBtm']
+			imgInfo.yrateTop:number	= dict['yrateTop']
+			imgInfo.yrateBtm:number	= dict['yrateBtm']
+			imgInfo.tiltAdjFlag		= (dict['tiltAdjFlag'] == 'true')
+			imgInfo
+		}
 	} catch {}
-	g.cfg.store():default {
-		'xFrame'			=> '-1'
-		'yFrame'			=> '-1'
-		'wdFrame'			=> '800'
-		'htFrame'			=> '730'
-		'wdSashLeft'		=> '320'
-		'htSashTop'			=> '300'
-		'frostFrameFlag'	=> 'false'
-		'centerGuideFlag'	=> 'false'
-		'orientation'		=> 'auto'
-		'idxPaperSizeCur'	=> '0'
-		'idxImgInfoCur'		=> '-1'
-		'imgInfos'			=> []
-	}
-	g.xFrame			= g.cfg['xFrame'].tonumber()
-	g.yFrame			= g.cfg['yFrame'].tonumber()
-	g.wdFrame			= g.cfg['wdFrame'].tonumber()
-	g.htFrame			= g.cfg['htFrame'].tonumber()
-	g.wdSashLeft		= g.cfg['wdSashLeft'].tonumber()
-	g.htSashTop			= g.cfg['htSashTop'].tonumber()
-	g.frostFrameFlag	= (g.cfg['frostFrameFlag'] == 'true')
-	g.centerGuideFlag	= (g.cfg['centerGuideFlag'] == 'true')
-	g.orientation		= [`horizontal, `vertical, `auto].\
-						find(g.cfg['orientation'].tosymbol()) || `auto
-	idxPaperSizeCur		= g.cfg['idxPaperSizeCur'].tonumber()
-	g.paperSizeCur		= g.paperSizeTbl[idxPaperSizeCur]
-	g.cfg['imgInfos'].each {|dict|
-		imgInfo = ImageInfo()
-		try {
-			imgInfo.label		= dict['label']
-			imgInfo.fileName	= dict['fileName']
-			imgInfo.rotate		= dict['rotate'].tonumber()
-			imgInfo.xrateTop	= dict['xrateTop'].tonumber()
-			imgInfo.xrateBtm	= dict['xrateBtm'].tonumber()
-			imgInfo.yrateTop	= dict['yrateTop'].tonumber()
-			imgInfo.yrateBtm	= dict['yrateBtm'].tonumber()
-			imgInfo.tiltAdjFlag	= (dict['tiltAdjFlag'] == 'true')
-			g.imgInfos.add(imgInfo)
-		} catch {}
-	}
 	if (g.imgInfos.isempty()) {
 		g.imgInfoCur = ImageInfo()
 	} else {
