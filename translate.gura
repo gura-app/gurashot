@@ -75,6 +75,7 @@ transDicts = %{
 '2L'									=> '2L版'
 'A4'									=> 'A4'
 'A3'									=> 'A3'
+'Hagaki'								=> 'はがき'
 'Mutsugiri'								=> '六切り'
 'Yotsugiri'								=> '四切り'
 'Information'							=> '情報'
