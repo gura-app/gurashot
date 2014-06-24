@@ -22,7 +22,7 @@ Windows が動作している PC を用意してください。Windows 7 で動作確認しています。
 
 このアプリケーションを実行するには [Gura プログラミング言語](http://www.gura-lang.org/)
 の環境が必要です。[ダウンロードページ](http://www.gura-lang.org/Download.html) から
-Windows Installer (`gura-x.x.x-win32.msi`) をダウンロードし、インストールしてください。
+Windows Installer `gura-x.x.x-win32.msi` をダウンロードし、インストールしてください。
 
 また、Adobe Reader など PDF を閲覧できるソフトをインストールしておいてください。
 
