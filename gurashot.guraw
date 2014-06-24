@@ -1010,6 +1010,9 @@ Frame = class(wx.Frame) {
 		this.Bind(wx.EVT_UPDATE_UI,	ID_RenameLabel) {|event|
 			event.Enable(!g.imgInfoCur.fileName.isempty())
 		}
+		this.Bind(wx.EVT_UPDATE_UI,	ID_ShowList) {|event|
+			event.Enable(!g.imgInfos.isempty())
+		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_Prev) {|event|
 			idx = g.imgInfos.find(g.imgInfoCur):index
 			event.Enable(idx && idx > 0)
@@ -1114,13 +1117,7 @@ Frame = class(wx.Frame) {
 		}
 	}
 	OnMenu_ShowList(event:wx.CommandEvent) = {
-		if (g.imgInfos.isempty()) {
-			wx.MessageDialog(this, 'No images to show on the list'$,
-							'Information'$, wx.OK | wx.ICON_INFORMATION | wx.CENTRE) {|dlg|
-				dlg.ShowModal()
-			}
-			return
-		}
+		g.imgInfos.isempty() && return
 		dlg = ImageListDialog(this, g.imgInfos, g.imgInfos.find(g.imgInfoCur):index)
 		dlg.ShowModal()
 		g.imgInfos = dlg.GetImageInfos()
