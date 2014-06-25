@@ -27,7 +27,7 @@ Version = '1.0.3'
 	ID_Open, ID_Close, ID_ShowList, ID_Prev, ID_Next,
 	ID_OutputPDF, ID_LaunchPDFViewer,
 	ID_RotateL, ID_RotateR, ID_TiltAdj,
-	ID_FrostFrame, ID_CenterGuide, ID_CopyToClipboard,
+	ID_FrostFrame, ID_CenterGuide, ID_CopyExtractedImage, ID_SaveExtractedImage,
 	ID_Label, ID_Remove, ID_RenameLabel,
 	ID_OrientVert, ID_OrientHorz, ID_OrientAuto,
 ] = wx.ID_HIGHEST..
@@ -846,7 +846,8 @@ Frame = class(wx.Frame) {
 			m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
 			m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
 			m.AppendSeparator()
-			m.Append(ID_CopyToClipboard,		'&Copy to Clipboard\tCtrl-C'$)
+			m.Append(ID_CopyExtractedImage,		'&Copy Extracted Image\tCtrl-C'$)
+			m.Append(ID_SaveExtractedImage,		'&Save Extracted Image'$)
 		}
 		wx.Menu {|m|
 			menuBar.Append(m, '&Output'$)
@@ -971,7 +972,8 @@ Frame = class(wx.Frame) {
 		this.Bind(wx.EVT_MENU, ID_TiltAdj)			{|event| this.OnMenu_TiltAdj(event)}
 		this.Bind(wx.EVT_MENU, ID_FrostFrame)		{|event| this.OnMenu_FrostFrame(event)}
 		this.Bind(wx.EVT_MENU, ID_CenterGuide)		{|event| this.OnMenu_CenterGuide(event)}
-		this.Bind(wx.EVT_MENU, ID_CopyToClipboard)	{|event| this.OnMenu_CopyToClipboard(event)}
+		this.Bind(wx.EVT_MENU, ID_CopyExtractedImage) {|event| this.OnMenu_CopyExtractedImage(event)}
+		this.Bind(wx.EVT_MENU, ID_SaveExtractedImage) {|event| this.OnMenu_SaveExtractedImage(event)}
 		this.Bind(wx.EVT_MENU, ID_OrientVert)		{|event| this.OnMenu_OrientVert(event)}
 		this.Bind(wx.EVT_MENU, ID_OrientHorz)		{|event| this.OnMenu_OrientHorz(event)}
 		this.Bind(wx.EVT_MENU, ID_OrientAuto)		{|event| this.OnMenu_OrientAuto(event)}
@@ -1086,7 +1088,8 @@ Frame = class(wx.Frame) {
 			m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
 			m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
 			m.AppendSeparator()
-			m.Append(ID_CopyToClipboard,		'&Copy to Clipboard\tCtrl-C'$)
+			m.Append(ID_CopyExtractedImage,		'&Copy Extracted Image\tCtrl-C'$)
+			m.Append(ID_SaveExtractedImage,		'&Save Extracted Image'$)
 			this.PopupMenu(m)
 		}
 	}
@@ -1224,11 +1227,30 @@ Frame = class(wx.Frame) {
 		g.centerGuideFlag = event.IsChecked()
 		this.extractor.Refresh()
 	}
-	OnMenu_CopyToClipboard(event:wx.CommandEvent) = {
+	OnMenu_CopyExtractedImage(event:wx.CommandEvent) = {
 		imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutCur, 0, 0)
 		if (wx.TheClipboard.Open()) {
 			wx.TheClipboard.SetData(wx.BitmapDataObject(imgExtract))
 			wx.TheClipboard.Close()
+		}
+	}
+	OnMenu_SaveExtractedImage(event:wx.CommandEvent) = {
+		filter = 'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif'$
+		dlg = wx.FileDialog(this, 'Specify an image file to save'$,
+							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+		if (dlg.ShowModal() == wx.ID_OK) {
+			fileName = dlg.GetPath()
+			imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutCur, 0, 0)
+			try {
+				wx.BusyCursor {
+					imgExtract.write(fileName)
+				}
+			} catch {
+				wx.MessageDialog(this, 'Failed to save an image file'$,
+								'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
+					dlg.ShowModal()
+				}
+			}
 		}
 	}
 	OnMenu_OrientVert(event:wx.CommandEvent) = {

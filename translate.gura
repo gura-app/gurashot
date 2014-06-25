@@ -26,7 +26,8 @@ transDicts = %{
 '&Tilt Adjust&t\tCtrl-T'				=> '傾き調整(&T)\tCtrl-T'
 '&Frost Frame'							=> 'フレーム表示(&F)'
 'C&enter Guide'							=> '中心ガイド(&E)'
-'&Copy to Clipboard\tCtrl-C'			=> 'クリップボードにコピー(&C)\tCtrl-C'
+'&Copy Extracted Image\tCtrl-C'			=> '抽出画像をコピー(&C)\tCtrl-C'
+'&Save Extracted Image'					=> '抽出画像を保存(&S)'
 '&Output'								=> '出力(&O)'
 'Orientation V&ertical'					=> '用紙縦方向(&E)'
 'Orientation &Horizontal'				=> '用紙横方向(&H)'
@@ -53,14 +54,18 @@ transDicts = %{
 'Size'									=> 'サイズ'
 'Purpose'								=> '目的'
 'Specify a PDF file to output'			=> '出力する PDF ファイルを指定'
+'Specify an image file to save'			=> '保存するイメージファイルを指定'
 'PDF file (*.pdf)|*.pdf|All files (*.*)|*.*' => \
 	'PDF ファイル (*.pdf)|*.pdf|すべてのファイル (*.*)|*.*'
 'Failed to launch PDF viewer'			=> 'PDF ビューアを起動できませんでした'
 'Error'									=> 'エラー'
 'Choose an image file'					=> '画像ファイルを選択'
-'Image files (*.jpg;*.png;*.gif)|*.jpg;*.png;*.gif|All files (*.*)|*.*' => \
-	'イメージファイル (*.jpg;*.png;*.gif)|*.jpg;*.png;*.gif|すべてのファイル (*.*)|*.*'
+'Image files (*.jpg;*.png;*.gif;*.bmp)|*.jpg;*.png;*.gif;*.bmp|All files (*.*)|*.*' => \
+	'イメージファイル (*.jpg;*.png;*.gif;*.bmp)|*.jpg;*.png;*.gif;*.bmp|すべてのファイル (*.*)|*.*'
+'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif' => \
+	'JPEG ファイル (*.jpg)|*.jpg|PNG ファイル (*.png)|*.png|BMP ファイル (*.bmp)|*.bmp|GIF ファイル (*.gif)|*.gif'
 'Failed to read the image file'			=> '画像ファイルの読み込み中にエラーが発生しました'
+'Failed to save an image file'			=> '画像ファイルの保存中にエラーが発生しました'
 '&Rename Label'							=> 'ラベル名を変更(&R)'
 'R&emove'								=> '削除(&E)'
 'OK'									=> 'OK'
