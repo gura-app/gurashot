@@ -434,7 +434,7 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 		cr.set_source_rgb(.2, .2, 1)
 		cr.set_font_size(3.0)
 		cr.move_to(0, htCanvas - 1)
-		text = format('[%dmm x %dmm] %s', layout.htImg, layout.wdImg, g.imgInfoCur.label)
+		text = format('[%d x %dmm] %s', layout.htImg, layout.wdImg, g.imgInfoCur.label)
 		if (!layout.purpose.isempty()) {
 			text += format(' for %s', layout.purpose)
 		}
