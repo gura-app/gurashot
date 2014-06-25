@@ -18,7 +18,7 @@ import(mswin)
 import(units)
 import(translate)
 
-Version = '1.0.2'
+Version = '1.0.3'
 
 //-----------------------------------------------------------------------------
 // Control ID
@@ -27,7 +27,7 @@ Version = '1.0.2'
 	ID_Open, ID_Close, ID_ShowList, ID_Prev, ID_Next,
 	ID_OutputPDF, ID_LaunchPDFViewer,
 	ID_RotateL, ID_RotateR, ID_TiltAdj,
-	ID_FrostFrame, ID_CenterGuide,
+	ID_FrostFrame, ID_CenterGuide, ID_CopyToClipboard,
 	ID_Label, ID_Remove, ID_RenameLabel,
 	ID_OrientVert, ID_OrientHorz, ID_OrientAuto,
 ] = wx.ID_HIGHEST..
@@ -367,23 +367,9 @@ OpenWithApp(fileName:string) = {
 }
 
 //-----------------------------------------------------------------------------
-// ComposeProduct
+// ExtractImage
 //-----------------------------------------------------------------------------
-ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
-								paperSize:PaperSize, orientation:symbol) = {
-	fontName = 'Sans'
-	[wdCanvas, htCanvas] = [paperSize.GetCanvasWidth(orientation), paperSize.GetCanvasHeight(orientation)]
-	scope {
-		cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
-		cr.set_source_rgb(.2, .2, 1)
-		cr.set_font_size(3.0)
-		cr.move_to(0, htCanvas - 1)
-		text = format('[%dmm x %dmm] %s', layout.htImg, layout.wdImg, g.imgInfoCur.label)
-		if (!layout.purpose.isempty()) {
-			text += format(' for %s', layout.purpose)
-		}
-		cr.show_text(text)
-	}
+ExtractImage(imgPhoto:image, layout:Layout, wdMgn:number, htMgn:number) = {
 	bgColor = `gray
 	[wdDummy, htDummy] = int([imgPhoto.width / 2, imgPhoto.height / 2])
 	imgSrc = image(`rgba, imgPhoto.width + wdDummy * 2, imgPhoto.height + htDummy * 2, bgColor)
@@ -420,7 +406,7 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 	imgSrc.paste(wdDummy + imgPhoto.width, htDummy + imgPhoto.height,
 		imgPhoto.crop(imgPhoto.width - wdDummy, imgPhoto.height - htDummy, wdDummy, htDummy).rotate(180))
 	f = g.imgInfoCur.CalcFrameCoord(wx.Rect(wdDummy, htDummy, imgPhoto.width, imgPhoto.height), layout)
-	[wdDotMgn, htDotMgn] = f.height * [g.wdMgn, g.htMgn] / layout.htImg
+	[wdDotMgn, htDotMgn] = f.height * [wdMgn, htMgn] / layout.htImg
 	if (g.imgInfoCur.tiltAdjFlag) {
 		angleAdj = math.atan2(f.xBtm - f.xTop, f.yBtm - f.yTop):deg
 		[xCenter, yCenter] = [imgSrc.width / 2, imgSrc.height / 2]
@@ -433,7 +419,28 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 	}
 	[xCrop, yCrop] = [xPivot - f.width / 2 - wdDotMgn, yPivot - htDotMgn]
 	[wdCrop, htCrop] = [f.width + wdDotMgn * 2, f.height + htDotMgn * 2]
-	imgExtract = imgSrc.crop(xCrop, yCrop, wdCrop, htCrop).thumbnail(1000):box
+	imgSrc.crop(xCrop, yCrop, wdCrop, htCrop)
+}
+
+//-----------------------------------------------------------------------------
+// ComposeProduct
+//-----------------------------------------------------------------------------
+ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
+								paperSize:PaperSize, orientation:symbol) = {
+	fontName = 'Sans'
+	[wdCanvas, htCanvas] = [paperSize.GetCanvasWidth(orientation), paperSize.GetCanvasHeight(orientation)]
+	scope {
+		cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+		cr.set_source_rgb(.2, .2, 1)
+		cr.set_font_size(3.0)
+		cr.move_to(0, htCanvas - 1)
+		text = format('[%dmm x %dmm] %s', layout.htImg, layout.wdImg, g.imgInfoCur.label)
+		if (!layout.purpose.isempty()) {
+			text += format(' for %s', layout.purpose)
+		}
+		cr.show_text(text)
+	}
+	imgExtract = ExtractImage(imgPhoto, layout, g.wdMgn, g.htMgn).thumbnail(1000):box
 	cairo.pattern.create_for_surface(imgExtract) {|pattern|
 		cr.set_line_width(.1)
 		cr.set_source_rgb(.2, .2, 1)
@@ -837,7 +844,9 @@ Frame = class(wx.Frame) {
 			m.AppendSeparator()
 			m.AppendCheckItem(ID_TiltAdj,		'&Tilt Adjust&t\tCtrl-T'$)
 			m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
-			m.AppendCheckItem(ID_CenterGuide,	'&Center Guide'$)
+			m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
+			m.AppendSeparator()
+			m.Append(ID_CopyToClipboard,		'&Copy to Clipboard\tCtrl-C'$)
 		}
 		wx.Menu {|m|
 			menuBar.Append(m, '&Output'$)
@@ -962,6 +971,7 @@ Frame = class(wx.Frame) {
 		this.Bind(wx.EVT_MENU, ID_TiltAdj)			{|event| this.OnMenu_TiltAdj(event)}
 		this.Bind(wx.EVT_MENU, ID_FrostFrame)		{|event| this.OnMenu_FrostFrame(event)}
 		this.Bind(wx.EVT_MENU, ID_CenterGuide)		{|event| this.OnMenu_CenterGuide(event)}
+		this.Bind(wx.EVT_MENU, ID_CopyToClipboard)	{|event| this.OnMenu_CopyToClipboard(event)}
 		this.Bind(wx.EVT_MENU, ID_OrientVert)		{|event| this.OnMenu_OrientVert(event)}
 		this.Bind(wx.EVT_MENU, ID_OrientHorz)		{|event| this.OnMenu_OrientHorz(event)}
 		this.Bind(wx.EVT_MENU, ID_OrientAuto)		{|event| this.OnMenu_OrientAuto(event)}
@@ -1074,7 +1084,9 @@ Frame = class(wx.Frame) {
 			m.AppendSeparator()
 			m.AppendCheckItem(ID_TiltAdj,		'&Tilt Adjust&t\tCtrl-T'$)
 			m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
-			m.AppendCheckItem(ID_CenterGuide,	'&Center Guide'$)
+			m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
+			m.AppendSeparator()
+			m.Append(ID_CopyToClipboard,		'&Copy to Clipboard\tCtrl-C'$)
 			this.PopupMenu(m)
 		}
 	}
@@ -1086,7 +1098,7 @@ Frame = class(wx.Frame) {
 		}
 	}
 	OnMenu_Open(event:wx.CommandEvent) = {
-		filter = 'Image files (*.jpg;*.png;*.gif)|*.jpg;*.png;*.gif|All files (*.*)|*.*'$
+		filter = 'Image files (*.jpg;*.png;*.gif;*.bmp)|*.jpg;*.png;*.gif;*.bmp|All files (*.*)|*.*'$
 		dlg = wx.FileDialog(this, 'Choose an image file'$,
 								'', g.imgInfoCur.fileName, filter, wx.FD_OPEN)
 		if (dlg.ShowModal() == wx.ID_OK) {
@@ -1211,6 +1223,13 @@ Frame = class(wx.Frame) {
 	OnMenu_CenterGuide(event:wx.CommandEvent) = {
 		g.centerGuideFlag = event.IsChecked()
 		this.extractor.Refresh()
+	}
+	OnMenu_CopyToClipboard(event:wx.CommandEvent) = {
+		imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutCur, 0, 0)
+		if (wx.TheClipboard.Open()) {
+			wx.TheClipboard.SetData(wx.BitmapDataObject(imgExtract))
+			wx.TheClipboard.Close()
+		}
 	}
 	OnMenu_OrientVert(event:wx.CommandEvent) = {
 		g.orientation = `vertical

@@ -3,7 +3,7 @@ import(helper.setup)
 
 helper.setup.execute(
 	launcherName	=> 'Gura Shot'
-	version			=> '1.0.2'
+	version			=> '1.0.3'
 	shortName		=> 'gurashot'
 	fileNameScript	=> 'gurashot.guraw'
 	fileNameIcon	=> 'gurashot.ico'
