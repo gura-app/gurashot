@@ -1525,6 +1525,12 @@ ColorAdjustDialog = class(wx.Dialog) {
 				size => wx.Size(560, 300)|
 		this.extractor = extractor
 		this.imgInfo = imgInfo
+		this.colorTone_init		= this.imgInfo.colorTone
+		this.brightness_init	= this.imgInfo.brightness
+		this.contrast_init		= this.imgInfo.contrast
+		this.redness_init		= this.imgInfo.redness
+		this.greenness_init		= this.imgInfo.greenness
+		this.blueness_init		= this.imgInfo.blueness
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
@@ -1541,12 +1547,27 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Color'$, style => wx.RB_GROUP) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
+					ctrl.SetValue(this.imgInfo.colorTone == `color)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						this.imgInfo.colorTone = `color
+						this.UpdateImage()
+					}
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Monochrome'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 12))
+					ctrl.SetValue(this.imgInfo.colorTone == `mono)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						this.imgInfo.colorTone = `mono
+						this.UpdateImage()
+					}
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Sepia'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 12))
+					ctrl.SetValue(this.imgInfo.colorTone == `sepia)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						this.imgInfo.colorTone = `sepia
+						this.UpdateImage()
+					}
 				}
 			}
 		}
@@ -1565,13 +1586,28 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.Slider(this, wx.ID_ANY, this.imgInfo.brightness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
+					this.sldrBrightness = ctrl
+					ctrl.Bind(wx.EVT_SCROLL) {|event|
+						pos = event.GetPosition()
+						this.imgInfo.brightness = pos
+						this.textBrightness.SetValue(pos)
+						this.UpdateImage()
+					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.brightness,
 							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
+					this.textBrightness = ctrl
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
+					ctrl.Bind(wx.EVT_BUTTON) {
+						pos = 0
+						this.imgInfo.brightness = this.brightness_init
+						this.sldrBrightness.SetValue(pos)
+						this.textBrightness.SetValue(pos)
+						this.UpdateImage()
+					}
 				}
 			}
 			vbox.AddSpacer(8)
@@ -1582,10 +1618,12 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.Slider(this, wx.ID_ANY, this.imgInfo.contrast, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
+					this.sldrContrast = ctrl
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.contrast,
 							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
+					this.textContrast = ctrl
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
@@ -1607,10 +1645,12 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.Slider(this, wx.ID_ANY, this.imgInfo.redness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
+					this.sldrRedness = ctrl
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.redness,
 							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
+					this.textRedness = ctrl
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
@@ -1624,10 +1664,12 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.Slider(this, wx.ID_ANY, this.imgInfo.greenness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
+					this.sldrGreenness = ctrl
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.greenness,
 							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
+					this.textGreenness = ctrl
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
@@ -1641,10 +1683,12 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.Slider(this, wx.ID_ANY, this.imgInfo.blueness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
+					this.sldrBlueness = ctrl
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.blueness,
 							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
+					this.textBlueness = ctrl
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
@@ -1665,10 +1709,29 @@ ColorAdjustDialog = class(wx.Dialog) {
 			}
 		}
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
+		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
+		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
+	}
+	OnButton_OK(event:wx.CommandEvent) = {
+		this.EndModal(wx.OK)
+	}
+	OnButton_CANCEL(event:wx.CommandEvent) = {
+		this.imgInfo.colorTone	= this.colorTone_init
+		this.imgInfo.brightness	= this.brightness_init
+		this.imgInfo.contrast	= this.contrast_init
+		this.imgInfo.redness	= this.redness_init
+		this.imgInfo.greenness	= this.greenness_init
+		this.imgInfo.blueness	= this.blueness_init
+		this.UpdateImage()
+		this.EndModal(wx.CANCEL)
 	}
 	UpdateSizePosInfo() = {
 		(this.IsIconized() || this.IsMaximized()) && return
 		[g.xColorAdjustDialog, g.yColorAdjustDialog] = this.GetScreenPositionXY()
+	}
+	UpdateImage() = {
+		!this.extractor && return
+		this.extractor.Refresh()
 	}
 }
 
