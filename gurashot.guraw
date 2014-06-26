@@ -1561,13 +1561,14 @@ ColorAdjustDialog = class(wx.Dialog) {
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
 				wx.StaticText(this, wx.ID_ANY, 'Brightness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl)
+					hbox.Add(ctrl, wx.SizerFlags())
 				}
-				wx.Slider(this, wx.ID_ANY, 0, -100, 100) {|ctrl|
+				wx.Slider(this, wx.ID_ANY, this.imgInfo.brightness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
 				}
-				wx.TextCtrl(this, wx.ID_ANY, '', size => wx.Size(wdText, -1)) {|ctrl|
-					hbox.Add(ctrl)
+				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.brightness,
+							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags())
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
@@ -1577,13 +1578,14 @@ ColorAdjustDialog = class(wx.Dialog) {
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
 				wx.StaticText(this, wx.ID_ANY, 'Contrast'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl)
+					hbox.Add(ctrl, wx.SizerFlags())
 				}
-				wx.Slider(this, wx.ID_ANY, 0, -100, 100) {|ctrl|
+				wx.Slider(this, wx.ID_ANY, this.imgInfo.contrast, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
 				}
-				wx.TextCtrl(this, wx.ID_ANY, '', size => wx.Size(wdText, -1)) {|ctrl|
-					hbox.Add(ctrl)
+				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.contrast,
+							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags())
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
@@ -1601,13 +1603,14 @@ ColorAdjustDialog = class(wx.Dialog) {
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
 				wx.StaticText(this, wx.ID_ANY, 'Redness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl)
+					hbox.Add(ctrl, wx.SizerFlags())
 				}
-				wx.Slider(this, wx.ID_ANY, 0, -100, 100) {|ctrl|
+				wx.Slider(this, wx.ID_ANY, this.imgInfo.redness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
 				}
-				wx.TextCtrl(this, wx.ID_ANY, '', size => wx.Size(wdText, -1)) {|ctrl|
-					hbox.Add(ctrl)
+				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.redness,
+							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags())
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
@@ -1617,13 +1620,14 @@ ColorAdjustDialog = class(wx.Dialog) {
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
 				wx.StaticText(this, wx.ID_ANY, 'Greenness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl)
+					hbox.Add(ctrl, wx.SizerFlags())
 				}
-				wx.Slider(this, wx.ID_ANY, 0, -100, 100) {|ctrl|
+				wx.Slider(this, wx.ID_ANY, this.imgInfo.greenness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
 				}
-				wx.TextCtrl(this, wx.ID_ANY, '', size => wx.Size(wdText, -1)) {|ctrl|
-					hbox.Add(ctrl)
+				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.greenness,
+							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags())
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
@@ -1633,13 +1637,14 @@ ColorAdjustDialog = class(wx.Dialog) {
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
 				wx.StaticText(this, wx.ID_ANY, 'Blueness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl)
+					hbox.Add(ctrl, wx.SizerFlags())
 				}
-				wx.Slider(this, wx.ID_ANY, 0, -100, 100) {|ctrl|
+				wx.Slider(this, wx.ID_ANY, this.imgInfo.blueness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
 				}
-				wx.TextCtrl(this, wx.ID_ANY, '', size => wx.Size(wdText, -1)) {|ctrl|
-					hbox.Add(ctrl)
+				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.blueness,
+							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags())
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
