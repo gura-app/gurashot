@@ -240,6 +240,11 @@ g = module {
 	imgOrientVert:public	= I(resource.page_white_png)
 	imgOrientHorz:public	= I(resource.page_white_horizontal_png)
 	imgOrientAuto:public	= I(resource.page_white_database_png)
+	imgBrightness:public	= I(resource.weather_sun_png)
+	imgContrast:public		= I(resource.contrast_png)
+	imgBoxRed:public		= I(resource.box_red_png)
+	imgBoxGreen:public		= I(resource.box_green_png)
+	imgBoxBlue:public		= I(resource.box_blue_png)
 	layoutTbl:public = @(Layout) {
 		{ 'Driver\'s license etc.'$,				30, 24, 2, 23 }
 		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23 }
@@ -1593,8 +1598,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 			vbox:local = vboxIn
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticBitmap(this, wx.ID_ANY, wx.Bitmap(g.imgBrightness)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				}
 				wx.StaticText(this, wx.ID_ANY, 'Brightness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
 				wx.Slider(this, wx.ID_ANY, this.imgInfo.brightness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
@@ -1625,8 +1633,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 			vbox.AddSpacer(8)
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticBitmap(this, wx.ID_ANY, wx.Bitmap(g.imgContrast)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				}
 				wx.StaticText(this, wx.ID_ANY, 'Contrast'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
 				wx.Slider(this, wx.ID_ANY, this.imgInfo.contrast, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
@@ -1665,8 +1676,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 			vbox:local = vboxIn
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticBitmap(this, wx.ID_ANY, wx.Bitmap(g.imgBoxRed)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				}
 				wx.StaticText(this, wx.ID_ANY, 'Redness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
 				wx.Slider(this, wx.ID_ANY, this.imgInfo.redness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
@@ -1697,8 +1711,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 			vbox.AddSpacer(8)
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticBitmap(this, wx.ID_ANY, wx.Bitmap(g.imgBoxGreen)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				}
 				wx.StaticText(this, wx.ID_ANY, 'Greenness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
 				wx.Slider(this, wx.ID_ANY, this.imgInfo.greenness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
@@ -1729,8 +1746,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 			vbox.AddSpacer(8)
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticBitmap(this, wx.ID_ANY, wx.Bitmap(g.imgBoxBlue)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				}
 				wx.StaticText(this, wx.ID_ANY, 'Blueness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
 				wx.Slider(this, wx.ID_ANY, this.imgInfo.blueness, -100, 100) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
