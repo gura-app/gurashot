@@ -146,8 +146,16 @@ ImageInfo = class {
 	}
 	AdjustColor(image:image) = {
 		imgResult = image
-		
-		
+		if (this.brightness != 0) {
+		}
+		if (this.contrast != 0) {
+		}
+		if (this.redness != 0) {
+		}
+		if (this.greenness != 0) {
+		}
+		if (this.blueness != 0) {
+		}
 		if (this.colorTone == `mono) {
 			imgResult.grayscale()
 		} elsif (this.colorTone == `sepia) {
