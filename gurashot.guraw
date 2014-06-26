@@ -110,7 +110,10 @@ ImageInfo = class {
 	redness_init		= 0
 	greenness_init		= 0
 	blueness_init		= 0
-	mapColorLevelLenear	= [0..255]
+	mapTblLenear		= [0..255]
+	mapTblSepia_R		= int(interval(0, 255, 256)):list
+	mapTblSepia_G		= int(interval(0, 200, 256)):list
+	mapTblSepia_B		= int(interval(0, 150, 256)):list
 	__init__() = {
 		this.label			= label_init
 		this.fileName		= fileName_init
@@ -145,47 +148,48 @@ ImageInfo = class {
 		FrameCoord(xMarkTop, xMarkBtm, yMarkTop, yMarkBtm,
 										xTop, xBtm, yTop, yBtm, width, height)
 	}
-	MakeBoldMapColorLevel(level:number) = {
+	MakeEmphasisMapTbl(level:number) = {
 		a = -int(level * 128 / 100)
 		b = 255 + int(level * 127 / 100)
-		mapColorLevel = int(interval(a, b, 256))
-		mapColorLevel = conds(mapColorLevel < 0, 0, mapColorLevel)
-		mapColorLevel = conds(mapColorLevel > 255, 255, mapColorLevel)
+		mapTbl = int(interval(a, b, 256))
+		mapTbl = conds(mapTbl < 0, 0, mapTbl)
+		mapTbl = conds(mapTbl > 255, 255, mapTbl)
 	}
 	AdjustColor(image:image) = {
 		imgResult = image
 		if (this.brightness < 0) {
-			mapColorLevel = int(interval(0, 255 + int(this.brightness * 255 / 100), 256))
-			imgResult = imgResult.mapcolorlevel(mapColorLevel)
+			mapTbl = int(interval(0, 255 + int(this.brightness * 255 / 100), 256))
+			imgResult = imgResult.mapcolorlevel(mapTbl)
 		} elsif (this.brightness > 0) {
-			mapColorLevel = int(interval(int(this.brightness * 255 / 100), 255, 256))
-			imgResult = imgResult.mapcolorlevel(mapColorLevel)
+			mapTbl = int(interval(int(this.brightness * 255 / 100), 255, 256))
+			imgResult = imgResult.mapcolorlevel(mapTbl)
 		}
 		if (this.contrast != 0) {
-			imgResult = imgResult.mapcolorlevel(this.MakeBoldMapColorLevel(this.contrast))
+			imgResult = imgResult.mapcolorlevel(this.MakeEmphasisMapTbl(this.contrast))
 		}
 		if (this.redness != 0) {
 			imgResult = imgResult.mapcolorlevel(
-						this.MakeBoldMapColorLevel(this.redness),
-						this.mapColorLevelLenear,
-						this.mapColorLevelLenear)
+						this.MakeEmphasisMapTbl(this.redness),
+						this.mapTblLenear,
+						this.mapTblLenear)
 		}
 		if (this.greenness != 0) {
 			imgResult = imgResult.mapcolorlevel(
-						this.mapColorLevelLenear,
-						this.MakeBoldMapColorLevel(this.greenness),
-						this.mapColorLevelLenear)
+						this.mapTblLenear,
+						this.MakeEmphasisMapTbl(this.greenness),
+						this.mapTblLenear)
 		}
 		if (this.blueness != 0) {
 			imgResult = imgResult.mapcolorlevel(
-						this.mapColorLevelLenear,
-						this.mapColorLevelLenear,
-						this.MakeBoldMapColorLevel(this.blueness))
+						this.mapTblLenear,
+						this.mapTblLenear,
+						this.MakeEmphasisMapTbl(this.blueness))
 		}
 		if (this.colorTone == `mono) {
 			imgResult.grayscale()
 		} elsif (this.colorTone == `sepia) {
-			imgResult.grayscale()
+			imgResult.grayscale().mapcolorlevel(this.mapTblSepia_R,
+						this.mapTblSepia_G, this.mapTblSepia_B)
 		} else {
 			imgResult
 		}
@@ -694,7 +698,7 @@ Extractor = class(wx.Panel) {
 		this.brushBg = wx.Brush(wx.Colour(128, 128, 128), wx.BRUSHSTYLE_SOLID)
 		this.brushCursor = wx.Brush(wx.Colour(255, 255, 255), wx.BRUSHSTYLE_SOLID)
 		this.DragAcceptFiles(true)
-		this.mapColorLevel = interval(64, 140, 256):list
+		this.mapTblFrosted = interval(64, 140, 256):list
 		// bind event handlers
 		this.Bind(wx.EVT_ERASE_BACKGROUND) { /* nothing to do */ }
 		this.Bind(wx.EVT_SIZE) {|event| this.OnSize(event)}
@@ -741,7 +745,7 @@ Extractor = class(wx.Panel) {
 		[wdClient, htClient] = this.GetClientSizeWH()
 		this.bmpScreen = wx.BitmapWH(wdClient, htClient)
 		img = g.imgInfoCur.AdjustColor(g.imgPhotoLowRes.thumbnail(wdClient, htClient))
-		imgFrosted = img.mapcolorlevel(this.mapColorLevel)
+		imgFrosted = img.mapcolorlevel(this.mapTblFrosted)
 		[xOffset, yOffset] = [(wdClient - img.width) / 2, (htClient - img.height) / 2]
 		this.rcImg = wx.Rect(xOffset, yOffset, img.width, img.height)
 		wx.MemoryDC(this.bmpScreen) {|dc|
