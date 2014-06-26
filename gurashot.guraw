@@ -88,6 +88,12 @@ ImageInfo = class {
 		yrateTop,		yrateTop_init
 		yrateBtm,		yrateBtm_init
 		tiltAdjFlag,	tiltAdjFlag_init
+		colorTone,		colorTone_init
+		brightness,		brigheness_init
+		contrast,		contrast_init
+		redness,		redness_init
+		greenness,		greenness_init
+		blueness,		blueness_init
 		imgPhotoRaw,
 	}
 	label_init			= ''
@@ -98,6 +104,12 @@ ImageInfo = class {
 	yrateTop_init		= .1
 	yrateBtm_init		= .6
 	tiltAdjFlag_init	= false
+	colorTone_init		= `color
+	brightness_init		= 0
+	contrast_init		= 0
+	redness_init		= 0
+	greenness_init		= 0
+	blueness_init		= 0
 	__init__() = {
 		this.label			= label_init
 		this.fileName		= fileName_init
@@ -107,6 +119,12 @@ ImageInfo = class {
 		this.yrateTop		= yrateTop_init
 		this.yrateBtm		= yrateBtm_init
 		this.tiltAdjFlag	= tiltAdjFlag_init
+		this.colorTone		= colorTone_init
+		this.brightness		= brightness_init
+		this.contrast		= contrast_init
+		this.redness		= redness_init
+		this.greenness		= greenness_init
+		this.blueness		= blueness_init
 		this.imgPhotoRaw	= nil
 	}
 	CalcFrameCoord(rcImg:wx.Rect, layout:Layout) = {
@@ -252,14 +270,21 @@ LoadConfig() = {
 		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
 		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
 			imgInfo = ImageInfo()
-			imgInfo.label			= dict['label']
-			imgInfo.fileName		= dict['fileName']
-			imgInfo.rotate:number	= dict['rotate']
-			imgInfo.xrateTop:number	= dict['xrateTop']
-			imgInfo.xrateBtm:number	= dict['xrateBtm']
-			imgInfo.yrateTop:number	= dict['yrateTop']
-			imgInfo.yrateBtm:number	= dict['yrateBtm']
-			imgInfo.tiltAdjFlag		= (dict['tiltAdjFlag'] == 'true')
+			imgInfo.label				= dict['label']
+			imgInfo.fileName			= dict['fileName']
+			imgInfo.rotate:number		= dict['rotate']
+			imgInfo.xrateTop:number		= dict['xrateTop']
+			imgInfo.xrateBtm:number		= dict['xrateBtm']
+			imgInfo.yrateTop:number		= dict['yrateTop']
+			imgInfo.yrateBtm:number		= dict['yrateBtm']
+			imgInfo.tiltAdjFlag			= (dict['tiltAdjFlag'] == 'true')
+			imgInfo.colorTone			= [`color, `mono, `sepia].\
+							find(dict['colorTone'].tosymbol()) || `color
+			imgInfo.brightness:number	= dict['brightness']
+			imgInfo.contrast:number		= dict['contrast']
+			imgInfo.redness:number		= dict['redness']
+			imgInfo.greenness:number	= dict['greenness']
+			imgInfo.blueness:number		= dict['blueness']
 			imgInfo
 		}
 	} catch {}
@@ -308,6 +333,12 @@ SaveConfig() = {
 			'yrateTop'		=> imgInfo.yrateTop
 			'yrateBtm'		=> imgInfo.yrateBtm
 			'tiltAdjFlag'	=> imgInfo.tiltAdjFlag
+			'colorTone'		=> imgInfo.colorTone
+			'brightness'	=> imgInfo.brightness
+			'contrast'		=> imgInfo.contrast
+			'redness'		=> imgInfo.redness
+			'greenness'		=> imgInfo.greenness
+			'blueness'		=> imgInfo.blueness
 		}
 	}
 	yaml.write(g.fileNameCfg, g.cfg)
@@ -1491,6 +1522,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 				size => wx.Size(320, 140)|
 		this.extractor = extractor
 		this.imgInfo = imgInfo
+		this.SetIcon(g.icon)
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 	}
 	UpdateSizePosInfo() = {
