@@ -26,7 +26,7 @@ Version = '1.0.3'
 [
 	ID_Open, ID_Close, ID_ShowList, ID_Prev, ID_Next,
 	ID_OutputPDF, ID_LaunchPDFViewer,
-	ID_RotateL, ID_RotateR, ID_TiltAdj,
+	ID_RotateL, ID_RotateR, ID_ColorAdjust, ID_TiltAdj,
 	ID_FrostFrame, ID_CenterGuide, ID_CopyExtractedImage, ID_SaveExtractedImage,
 	ID_Label, ID_Remove, ID_RenameLabel,
 	ID_OrientVert, ID_OrientHorz, ID_OrientAuto,
@@ -163,6 +163,7 @@ g = module {
 	imgPrev:public			= I(resource.resultset_previous_png)
 	imgRotateL:public		= I(resource.arrow_rotate_anticlockwise_png)
 	imgRotateR:public		= I(resource.arrow_rotate_clockwise_png)
+	imgColorAdjust:public	= I(resource.color_wheel_png)
 	imgTiltAdj:public		= I(resource.tilt_adj_png)
 	imgCenterGuide:public	= I(resource.center_guide_png)
 	imgFrostFrame:public	= I(resource.user_frosted_png)
@@ -198,29 +199,33 @@ g = module {
 		{ 'Mutsugiri'$,		254, 203 }
 		{ 'Yotsugiri'$,		305, 254 }
 	}
-	cfg:public				= %{}
-	imgPhotoRaw:public		= imgBlank
-	imgPhotoHighRes:public	= nil
-	imgPhotoLowRes:public	= nil
-	frame:public			= nil
-	xFrame:public			= -1
-	yFrame:public			= -1
-	wdFrame:public			= 800
-	htFrame:public			= 730
-	wdSashLeft:public		= 320
-	htSashTop:public		= 300
-	frostFrameFlag:public	= false
-	centerGuideFlag:public	= false
-	orientation:public		= `auto	// `auto, `horizontal, `vertical
-	paperSizeCur:public		= paperSizeTbl[0]
-	imgInfos:public			= []
-	imgInfoCur:public		= nil
-	wdMgn:public			= 2
-	htMgn:public			= 2
-	wdGuide:public			= 2
-	htGuide:public			= 2
-	htMessage:public		= 5
-	icon:public				= nil
+	cfg:public					= %{}
+	imgPhotoRaw:public			= imgBlank
+	imgPhotoHighRes:public		= nil
+	imgPhotoLowRes:public		= nil
+	frame:public				= nil
+	xFrame:public				= -1
+	yFrame:public				= -1
+	wdFrame:public				= 800
+	htFrame:public				= 730
+	wdSashLeft:public			= 320
+	htSashTop:public			= 300
+	xImageListDialog:public		= -1
+	yImageListDialog:public		= -1
+	xColorAdjustDialog:public	= -1
+	yColorAdjustDialog:public	= -1
+	frostFrameFlag:public		= false
+	centerGuideFlag:public		= false
+	orientation:public			= `auto	// `auto, `horizontal, `vertical
+	paperSizeCur:public			= paperSizeTbl[0]
+	imgInfos:public				= []
+	imgInfoCur:public			= nil
+	wdMgn:public				= 2
+	htMgn:public				= 2
+	wdGuide:public				= 2
+	htGuide:public				= 2
+	htMessage:public			= 5
+	icon:public					= nil
 }
 
 //-----------------------------------------------------------------------------
@@ -229,15 +234,19 @@ g = module {
 LoadConfig() = {
 	try {
 		g.cfg = yaml.read(g.fileNameCfg)
-		g.xFrame:number			= g.cfg['xFrame']
-		g.yFrame:number			= g.cfg['yFrame']
-		g.wdFrame:number		= g.cfg['wdFrame']
-		g.htFrame:number		= g.cfg['htFrame']
-		g.wdSashLeft:number		= g.cfg['wdSashLeft']
-		g.htSashTop:number		= g.cfg['htSashTop']
-		g.frostFrameFlag		= (g.cfg['frostFrameFlag'] == 'true')
-		g.centerGuideFlag		= (g.cfg['centerGuideFlag'] == 'true')
-		g.orientation			= [`horizontal, `vertical, `auto].\
+		g.xFrame:number				= g.cfg['xFrame']
+		g.yFrame:number				= g.cfg['yFrame']
+		g.wdFrame:number			= g.cfg['wdFrame']
+		g.htFrame:number			= g.cfg['htFrame']
+		g.wdSashLeft:number			= g.cfg['wdSashLeft']
+		g.htSashTop:number			= g.cfg['htSashTop']
+		g.xImageListDialog:number	= g.cfg['xImageListDialog']
+		g.yImageListDialog:number	= g.cfg['yImageListDialog']
+		g.xColorAdjustDialog:number	= g.cfg['xColorAdjustDialog']
+		g.yColorAdjustDialog:number	= g.cfg['yColorAdjustDialog']
+		g.frostFrameFlag			= (g.cfg['frostFrameFlag'] == 'true')
+		g.centerGuideFlag			= (g.cfg['centerGuideFlag'] == 'true')
+		g.orientation				= [`horizontal, `vertical, `auto].\
 							find(g.cfg['orientation'].tosymbol()) || `auto
 		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
 		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
@@ -280,6 +289,10 @@ SaveConfig() = {
 	g.cfg['htFrame']			= g.htFrame
 	g.cfg['wdSashLeft']			= g.wdSashLeft
 	g.cfg['htSashTop']			= g.htSashTop
+	g.cfg['xImageListDialog']	= g.xImageListDialog
+	g.cfg['yImageListDialog']	= g.yImageListDialog
+	g.cfg['xColorAdjustDialog']	= g.xColorAdjustDialog
+	g.cfg['yColorAdjustDialog']	= g.yColorAdjustDialog
 	g.cfg['frostFrameFlag']		= g.frostFrameFlag
 	g.cfg['centerGuideFlag']	= g.centerGuideFlag
 	g.cfg['orientation']		= g.orientation
@@ -846,6 +859,7 @@ Frame = class(wx.Frame) {
 			m.AppendEx(ID_RenameLabel,			'&Rename Label'$,			g.imgRenameLabel)
 			m.AppendEx(ID_RotateL,				'Rotate &Left\tCtrl-L'$,	g.imgRotateL)
 			m.AppendEx(ID_RotateR,				'Rotate R&ight\tCtrl-I'$,	g.imgRotateR)
+			m.AppendEx(ID_ColorAdjust,			'Color &Adjustment'$,		g.imgColorAdjust)
 			m.AppendSeparator()
 			m.AppendCheckItem(ID_TiltAdj,		'&Tilt Adjust&t\tCtrl-T'$)
 			m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
@@ -879,6 +893,7 @@ Frame = class(wx.Frame) {
 			tb.AddTool(ID_RenameLabel,	'Rename Label'$,	g.imgRenameLabel,	wx.NullBitmap, wx.ITEM_NORMAL,	'Rename Label'$)
 			tb.AddTool(ID_RotateL,		'Rotate Left'$,		g.imgRotateL,		wx.NullBitmap, wx.ITEM_NORMAL,	'Rotate Left'$)
 			tb.AddTool(ID_RotateR,		'Rotate Right'$,	g.imgRotateR,		wx.NullBitmap, wx.ITEM_NORMAL,	'Rotate Right'$)
+			tb.AddTool(ID_ColorAdjust,	'Color Adjustment'$,g.imgColorAdjust,	wx.NullBitmap, wx.ITEM_NORMAL,	'Color Adjustment'$)
 			tb.AddSeparator()
 			tb.AddTool(ID_TiltAdj,		'Tilt Adjust'$,		g.imgTiltAdj,		wx.NullBitmap, wx.ITEM_CHECK,	'Tilt Adjust'$)
 			tb.AddTool(ID_FrostFrame,	'Frost Frame'$,		g.imgFrostFrame,	wx.NullBitmap, wx.ITEM_CHECK,	'Frost Frame'$)
@@ -974,6 +989,7 @@ Frame = class(wx.Frame) {
 		this.Bind(wx.EVT_MENU, ID_RenameLabel)		{|event| this.OnMenu_RenameLabel(event)}
 		this.Bind(wx.EVT_MENU, ID_RotateL)			{|event| this.OnMenu_RotateL(event)}
 		this.Bind(wx.EVT_MENU, ID_RotateR)			{|event| this.OnMenu_RotateR(event)}
+		this.Bind(wx.EVT_MENU, ID_ColorAdjust)		{|event| this.OnMenu_ColorAdjust(event)}
 		this.Bind(wx.EVT_MENU, ID_TiltAdj)			{|event| this.OnMenu_TiltAdj(event)}
 		this.Bind(wx.EVT_MENU, ID_FrostFrame)		{|event| this.OnMenu_FrostFrame(event)}
 		this.Bind(wx.EVT_MENU, ID_CenterGuide)		{|event| this.OnMenu_CenterGuide(event)}
@@ -1088,6 +1104,7 @@ Frame = class(wx.Frame) {
 			m.AppendEx(ID_RenameLabel,			'&Rename Label'$,			g.imgRenameLabel)
 			m.AppendEx(ID_RotateL,				'Rotate &Left\tCtrl-L'$,	g.imgRotateL)
 			m.AppendEx(ID_RotateR,				'Rotate R&ight\tCtrl-I'$,	g.imgRotateR)
+			m.AppendEx(ID_ColorAdjust,			'Color &Adjustment'$,		g.imgColorAdjust)
 			m.AppendSeparator()
 			m.AppendCheckItem(ID_TiltAdj,		'&Tilt Adjust&t\tCtrl-T'$)
 			m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
@@ -1210,6 +1227,15 @@ Frame = class(wx.Frame) {
 			RotateImageR()
 		}
 	}
+	OnMenu_ColorAdjust(event:wx.CommandEvent) = {
+		dlg = ColorAdjustDialog(this, this.extractor, g.imgInfoCur)
+		if (dlg.ShowModal() == wx.OK) {
+			wx.BusyCursor {
+				this.productViewer.UpdateContent(this)
+				this.productViewer.UpdateContent()
+			}
+		}
+	}
 	OnMenu_TiltAdj(event:wx.CommandEvent) = {
 		g.imgInfoCur.tiltAdjFlag = event.IsChecked()
 		if (g.imgInfoCur.tiltAdjFlag) {
@@ -1290,9 +1316,9 @@ Frame = class(wx.Frame) {
 // ImageListDialog
 //-----------------------------------------------------------------------------
 ImageListDialog = class(wx.Dialog) {
-	__init__(parent:wx.Window, imgInfos[]:ImageInfo, idxSel:number,
-			pos:wx.Point => wx.DefaultPosition, size:wx.Size => wx.Size(640, 480)) = {|parent, wx.ID_ANY,
-						'Image List'$, pos, size, style => wx.DEFAULT_DIALOG_STYLE|
+	__init__(parent:wx.Window, imgInfos[]:ImageInfo, idxSel:number) = {|parent, wx.ID_ANY,
+				'Image List'$, wx.Point(g.xImageListDialog, g.yImageListDialog),
+				wx.Size(640, 480), style => wx.DEFAULT_DIALOG_STYLE|
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
@@ -1326,6 +1352,7 @@ ImageListDialog = class(wx.Dialog) {
 			this.PrepareContent(idxSel)
 		}
 		this.idxImgInfoProtected = idxSel
+		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
 		this.Bind(wx.EVT_MENU, ID_RenameLabel) {|event| this.OnMenu_RenameLabel(event)}
 		this.Bind(wx.EVT_MENU, ID_Remove) {|event| this.OnMenu_Remove(event)}
@@ -1342,6 +1369,10 @@ ImageListDialog = class(wx.Dialog) {
 				event.Enable(idxImgInfo != this.idxImgInfoProtected)
 			}
 		}
+	}
+	UpdateSizePosInfo() = {
+		(this.IsIconized() || this.IsMaximized()) && return
+		[g.xImageListDialog, g.yImageListDialog] = this.GetScreenPositionXY()
 	}
 	PrepareContent(idxSel:number) = {
 		size = 128
@@ -1455,9 +1486,16 @@ ImageListDialog = class(wx.Dialog) {
 //-----------------------------------------------------------------------------
 ColorAdjustDialog = class(wx.Dialog) {
 	__init__(parent:wx.Window, extractor:Extractor, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
-									'Color Adjustment'$, size => wx.Size(320, 140)|
+				'Color Adjustment'$,
+				pos => wx.Point(g.xColorAdjustDialog, g.yColorAdjustDialog),
+				size => wx.Size(320, 140)|
 		this.extractor = extractor
 		this.imgInfo = imgInfo
+		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
+	}
+	UpdateSizePosInfo() = {
+		(this.IsIconized() || this.IsMaximized()) && return
+		[g.xColorAdjustDialog, g.yColorAdjustDialog] = this.GetScreenPositionXY()
 	}
 }
 

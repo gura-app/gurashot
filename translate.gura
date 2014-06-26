@@ -23,6 +23,7 @@ transDicts = %{
 '&Image'								=> '画像(&I)'
 'Rotate &Left\tCtrl-L'					=> '左回転(&L)\tCtrl-L'
 'Rotate R&ight\tCtrl-I'					=> '右回転(&I)\tCtrl-I'
+'Color &Adjustment'						=> '色彩調整(&A)'
 '&Tilt Adjust&t\tCtrl-T'				=> '傾き調整(&T)\tCtrl-T'
 '&Frost Frame'							=> 'フレーム表示(&F)'
 'C&enter Guide'							=> '中心ガイド(&E)'
