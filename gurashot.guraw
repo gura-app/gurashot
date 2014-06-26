@@ -1573,7 +1573,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 	__init__(parent:wx.Window, extractor, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
 				'Color Adjustment'$,
 				pos => wx.Point(g.xColorAdjustDialog, g.yColorAdjustDialog),
-				size => wx.Size(560, 300)|
+				size => wx.Size(560, 340)|
 		this.extractor = extractor
 		this.imgInfo = imgInfo
 		this.colorTone_init		= this.imgInfo.colorTone
@@ -1587,45 +1587,6 @@ ColorAdjustDialog = class(wx.Dialog) {
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.TOP | wx.BOTTOM, 8))
-		vbox.AddStretchSpacer(1)
-		wx.BoxSizer(wx.VERTICAL) {|vboxIn|
-			vbox.Add(vboxIn, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
-			vbox:local = vboxIn
-			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-				vbox.Add(hbox, wx.SizerFlags().Expand())
-				wx.StaticText(this, wx.ID_ANY, 'Color Tone'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl)
-				}
-				wx.RadioButton(this, wx.ID_ANY, 'Color'$, style => wx.RB_GROUP) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
-					ctrl.SetValue(this.imgInfo.colorTone == `color)
-					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						this.imgInfo.colorTone = `color
-						this.UpdateImage()
-					}
-				}
-				wx.RadioButton(this, wx.ID_ANY, 'Monochrome'$) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 12))
-					ctrl.SetValue(this.imgInfo.colorTone == `mono)
-					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						this.imgInfo.colorTone = `mono
-						this.UpdateImage()
-					}
-				}
-				wx.RadioButton(this, wx.ID_ANY, 'Sepia'$) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 12))
-					ctrl.SetValue(this.imgInfo.colorTone == `sepia)
-					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						this.imgInfo.colorTone = `sepia
-						this.UpdateImage()
-					}
-				}
-			}
-		}
-		vbox.AddStretchSpacer(1)
-		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
-			vbox.Add(ctrl, wx.SizerFlags().Expand())
-		}
 		vbox.AddStretchSpacer(1)
 		wx.BoxSizer(wx.VERTICAL) {|vboxIn|
 			vbox.Add(vboxIn, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
@@ -1646,7 +1607,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.brightness,
-							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
+						size => wx.Size(wdText, -1), style => wx.TE_CENTRE | wx.TE_READONLY) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
 					this.textBrightness = ctrl
 				}
@@ -1678,7 +1639,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.contrast,
-							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
+						size => wx.Size(wdText, -1), style => wx.TE_CENTRE | wx.TE_READONLY) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
 					this.textContrast = ctrl
 				}
@@ -1718,7 +1679,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.redness,
-							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
+						size => wx.Size(wdText, -1), style => wx.TE_CENTRE | wx.TE_READONLY) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
 					this.textRedness = ctrl
 				}
@@ -1750,7 +1711,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.greenness,
-							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
+						size => wx.Size(wdText, -1), style => wx.TE_CENTRE | wx.TE_READONLY) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
 					this.textGreenness = ctrl
 				}
@@ -1782,7 +1743,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.blueness,
-							size => wx.Size(wdText, -1), style => wx.TE_CENTRE) {|ctrl|
+						size => wx.Size(wdText, -1), style => wx.TE_CENTRE | wx.TE_READONLY) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())
 					this.textBlueness = ctrl
 				}
@@ -1793,6 +1754,45 @@ ColorAdjustDialog = class(wx.Dialog) {
 						this.imgInfo.blueness = pos
 						this.sldrBlueness.SetValue(pos)
 						this.textBlueness.SetValue(pos)
+						this.UpdateImage()
+					}
+				}
+			}
+		}
+		vbox.AddStretchSpacer(1)
+		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
+			vbox.Add(ctrl, wx.SizerFlags().Expand())
+		}
+		vbox.AddStretchSpacer(1)
+		wx.BoxSizer(wx.VERTICAL) {|vboxIn|
+			vbox.Add(vboxIn, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
+			vbox:local = vboxIn
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticText(this, wx.ID_ANY, 'Color Tone'$, size => wx.Size(wdLabel, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.RadioButton(this, wx.ID_ANY, 'Color'$, style => wx.RB_GROUP) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags())
+					ctrl.SetValue(this.imgInfo.colorTone == `color)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						this.imgInfo.colorTone = `color
+						this.UpdateImage()
+					}
+				}
+				wx.RadioButton(this, wx.ID_ANY, 'Monochrome'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 20))
+					ctrl.SetValue(this.imgInfo.colorTone == `mono)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						this.imgInfo.colorTone = `mono
+						this.UpdateImage()
+					}
+				}
+				wx.RadioButton(this, wx.ID_ANY, 'Sepia'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 20))
+					ctrl.SetValue(this.imgInfo.colorTone == `sepia)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						this.imgInfo.colorTone = `sepia
 						this.UpdateImage()
 					}
 				}
