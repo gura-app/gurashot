@@ -110,6 +110,7 @@ ImageInfo = class {
 	redness_init		= 0
 	greenness_init		= 0
 	blueness_init		= 0
+	mapColorLevelLenear	= [0..255]
 	__init__() = {
 		this.label			= label_init
 		this.fileName		= fileName_init
@@ -144,17 +145,42 @@ ImageInfo = class {
 		FrameCoord(xMarkTop, xMarkBtm, yMarkTop, yMarkBtm,
 										xTop, xBtm, yTop, yBtm, width, height)
 	}
+	MakeBoldMapColorLevel(level:number) = {
+		a = -int(level * 128 / 100)
+		b = 255 + int(level * 127 / 100)
+		mapColorLevel = int(interval(a, b, 256))
+		mapColorLevel = conds(mapColorLevel < 0, 0, mapColorLevel)
+		mapColorLevel = conds(mapColorLevel > 255, 255, mapColorLevel)
+	}
 	AdjustColor(image:image) = {
 		imgResult = image
-		if (this.brightness != 0) {
+		if (this.brightness < 0) {
+			mapColorLevel = int(interval(0, 255 + int(this.brightness * 255 / 100), 256))
+			imgResult = imgResult.mapcolorlevel(mapColorLevel)
+		} elsif (this.brightness > 0) {
+			mapColorLevel = int(interval(int(this.brightness * 255 / 100), 255, 256))
+			imgResult = imgResult.mapcolorlevel(mapColorLevel)
 		}
 		if (this.contrast != 0) {
+			imgResult = imgResult.mapcolorlevel(this.MakeBoldMapColorLevel(this.contrast))
 		}
 		if (this.redness != 0) {
+			imgResult = imgResult.mapcolorlevel(
+						this.MakeBoldMapColorLevel(this.redness),
+						this.mapColorLevelLenear,
+						this.mapColorLevelLenear)
 		}
 		if (this.greenness != 0) {
+			imgResult = imgResult.mapcolorlevel(
+						this.mapColorLevelLenear,
+						this.MakeBoldMapColorLevel(this.greenness),
+						this.mapColorLevelLenear)
 		}
 		if (this.blueness != 0) {
+			imgResult = imgResult.mapcolorlevel(
+						this.mapColorLevelLenear,
+						this.mapColorLevelLenear,
+						this.MakeBoldMapColorLevel(this.blueness))
 		}
 		if (this.colorTone == `mono) {
 			imgResult.grayscale()
