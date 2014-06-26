@@ -145,13 +145,15 @@ ImageInfo = class {
 										xTop, xBtm, yTop, yBtm, width, height)
 	}
 	AdjustColor(image:image) = {
+		imgResult = image
+		
 		
 		if (this.colorTone == `mono) {
-			image.grayscale()
+			imgResult.grayscale()
 		} elsif (this.colorTone == `sepia) {
-			image.grayscale()
+			imgResult.grayscale()
 		} else {
-			image
+			imgResult
 		}
 	}
 }
