@@ -1516,13 +1516,149 @@ ImageListDialog = class(wx.Dialog) {
 // ColorAdjustDialog
 //-----------------------------------------------------------------------------
 ColorAdjustDialog = class(wx.Dialog) {
-	__init__(parent:wx.Window, extractor:Extractor, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
+	wdLabel = 80
+	wdText = 60
+	wdButton = 80
+	__init__(parent:wx.Window, extractor, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
 				'Color Adjustment'$,
 				pos => wx.Point(g.xColorAdjustDialog, g.yColorAdjustDialog),
-				size => wx.Size(320, 140)|
+				size => wx.Size(560, 300)|
 		this.extractor = extractor
 		this.imgInfo = imgInfo
 		this.SetIcon(g.icon)
+		outerBox = wx.BoxSizer(wx.VERTICAL)
+		this.SetSizer(outerBox)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.TOP | wx.BOTTOM, 8))
+		vbox.AddStretchSpacer(1)
+		wx.BoxSizer(wx.VERTICAL) {|vboxIn|
+			vbox.Add(vboxIn, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
+			vbox:local = vboxIn
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticText(this, wx.ID_ANY, 'Color Tone'$, size => wx.Size(wdLabel, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.RadioButton(this, wx.ID_ANY, 'Color'$, style => wx.RB_GROUP) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags())
+				}
+				wx.RadioButton(this, wx.ID_ANY, 'Monochrome'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 12))
+				}
+				wx.RadioButton(this, wx.ID_ANY, 'Sepia'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 12))
+				}
+			}
+		}
+		vbox.AddStretchSpacer(1)
+		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
+			vbox.Add(ctrl, wx.SizerFlags().Expand())
+		}
+		vbox.AddStretchSpacer(1)
+		wx.BoxSizer(wx.VERTICAL) {|vboxIn|
+			vbox.Add(vboxIn, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
+			vbox:local = vboxIn
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticText(this, wx.ID_ANY, 'Brightness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.Slider(this, wx.ID_ANY, 0, -100, 100) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
+				}
+				wx.TextCtrl(this, wx.ID_ANY, '', size => wx.Size(wdText, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
+				}
+			}
+			vbox.AddSpacer(8)
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticText(this, wx.ID_ANY, 'Contrast'$, size => wx.Size(wdLabel, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.Slider(this, wx.ID_ANY, 0, -100, 100) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
+				}
+				wx.TextCtrl(this, wx.ID_ANY, '', size => wx.Size(wdText, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
+				}
+			}
+		}
+		vbox.AddStretchSpacer(1)
+		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
+			vbox.Add(ctrl, wx.SizerFlags().Expand())
+		}
+		vbox.AddStretchSpacer(1)
+		wx.BoxSizer(wx.VERTICAL) {|vboxIn|
+			vbox.Add(vboxIn, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
+			vbox:local = vboxIn
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticText(this, wx.ID_ANY, 'Redness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.Slider(this, wx.ID_ANY, 0, -100, 100) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
+				}
+				wx.TextCtrl(this, wx.ID_ANY, '', size => wx.Size(wdText, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
+				}
+			}
+			vbox.AddSpacer(8)
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticText(this, wx.ID_ANY, 'Greenness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.Slider(this, wx.ID_ANY, 0, -100, 100) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
+				}
+				wx.TextCtrl(this, wx.ID_ANY, '', size => wx.Size(wdText, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
+				}
+			}
+			vbox.AddSpacer(8)
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticText(this, wx.ID_ANY, 'Blueness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.Slider(this, wx.ID_ANY, 0, -100, 100) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
+				}
+				wx.TextCtrl(this, wx.ID_ANY, '', size => wx.Size(wdText, -1)) {|ctrl|
+					hbox.Add(ctrl)
+				}
+				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
+				}
+			}
+		}
+		vbox.AddStretchSpacer(1)
+		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
+			vbox.Add(ctrl, wx.SizerFlags().Expand())
+		}
+		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+			vbox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
+			wx.Button(this, wx.ID_OK, 'OK'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags())
+			}
+			wx.Button(this, wx.ID_CANCEL, 'Cancel'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+			}
+		}
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 	}
 	UpdateSizePosInfo() = {
@@ -1645,6 +1781,11 @@ App = class(wx.App) {
 	OnInit() = {
 		LoadConfig()
 		InitializeResource()
+
+		dlg = ColorAdjustDialog(nil, nil, g.imgInfoCur)
+		dlg.ShowModal()
+		return(false)
+
 		UpdateImagePhoto()
 		frame = Frame('Gura Shot'$)
 		frame.Show()
