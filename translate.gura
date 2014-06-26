@@ -85,6 +85,7 @@ transDicts = %{
 'Mutsugiri'								=> '六切り'
 'Yotsugiri'								=> '四切り'
 'Information'							=> '情報'
+'Color Adjustment'						=> '色彩調整'
 'Are you sure to close the current image?' => '現在表示している画像を閉じますか?'
 R'''
 Are you sure to remove the image from the list?

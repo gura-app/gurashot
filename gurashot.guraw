@@ -220,6 +220,7 @@ g = module {
 	wdGuide:public			= 2
 	htGuide:public			= 2
 	htMessage:public		= 5
+	icon:public				= nil
 }
 
 //-----------------------------------------------------------------------------
@@ -297,6 +298,10 @@ SaveConfig() = {
 		}
 	}
 	yaml.write(g.fileNameCfg, g.cfg)
+}
+
+InitializeResource() = {
+	g.icon = wx.Icon(g.fileNameIcon, wx.BITMAP_TYPE_ICO)
 }
 
 //-----------------------------------------------------------------------------
@@ -824,7 +829,7 @@ wx.Menu.AppendEx(id:number, text:string, img:image, kind:number => wx.ITEM_NORMA
 Frame = class(wx.Frame) {
 	__init__(title:string, pos:wx.Point => wx.Point(g.xFrame, g.yFrame),
 			size:wx.Size => wx.Size(g.wdFrame, g.htFrame)) = {|nil, wx.ID_ANY, title, pos, size|
-		this.SetIcon(wx.Icon(g.fileNameIcon, wx.BITMAP_TYPE_ICO))
+		this.SetIcon(g.icon)
 		menuBar = wx.MenuBar()
 		wx.Menu {|m|
 			menuBar.Append(m, '&File'$)
@@ -1288,7 +1293,7 @@ ImageListDialog = class(wx.Dialog) {
 	__init__(parent:wx.Window, imgInfos[]:ImageInfo, idxSel:number,
 			pos:wx.Point => wx.DefaultPosition, size:wx.Size => wx.Size(640, 480)) = {|parent, wx.ID_ANY,
 						'Image List'$, pos, size, style => wx.DEFAULT_DIALOG_STYLE|
-		this.SetIcon(wx.Icon(g.fileNameIcon, wx.BITMAP_TYPE_ICO))
+		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1446,13 +1451,24 @@ ImageListDialog = class(wx.Dialog) {
 }
 
 //-----------------------------------------------------------------------------
+// ColorAdjustDialog
+//-----------------------------------------------------------------------------
+ColorAdjustDialog = class(wx.Dialog) {
+	__init__(parent:wx.Window, extractor:Extractor, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
+									'Color Adjustment'$, size => wx.Size(320, 140)|
+		this.extractor = extractor
+		this.imgInfo = imgInfo
+	}
+}
+
+//-----------------------------------------------------------------------------
 // RenameLabelDialog
 //-----------------------------------------------------------------------------
 RenameLabelDialog = class(wx.Dialog) {
-	__init__(parent:wx.Window, imgInfo:ImageInfo) = {|parent, wx.ID_ANY, 'Rename Label'$, size => wx.Size(320, 140)|
+	__init__(parent:wx.Window, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
+									'Rename Label'$, size => wx.Size(320, 140)|
 		this.imgInfo = imgInfo
-		icon = wx.Icon(g.fileNameIcon, wx.BITMAP_TYPE_ICO)
-		this.SetIcon(icon)
+		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1501,8 +1517,7 @@ RenameLabelDialog = class(wx.Dialog) {
 //-----------------------------------------------------------------------------
 AboutDialog = class(wx.Dialog) {
 	__init__(parent:wx.Window) = {|parent, wx.ID_ANY, 'About'$, size => wx.Size(320, 200)|
-		icon = wx.Icon(g.fileNameIcon, wx.BITMAP_TYPE_ICO)
-		this.SetIcon(icon)
+		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1512,7 +1527,7 @@ AboutDialog = class(wx.Dialog) {
 			vbox.Add(hbox, wx.SizerFlags().Centre())
 			wx.StaticBitmap(this, wx.ID_ANY, wx.NullBitmap) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags())
-				ctrl.SetIcon(icon)
+				ctrl.SetIcon(g.icon)
 			}
 			wx.BoxSizer(wx.HORIZONTAL) {|hboxIn|
 				hbox.Add(hboxIn, wx.SizerFlags().Centre().Border(wx.LEFT, 12))
@@ -1559,6 +1574,7 @@ AboutDialog = class(wx.Dialog) {
 App = class(wx.App) {
 	OnInit() = {
 		LoadConfig()
+		InitializeResource()
 		UpdateImagePhoto()
 		frame = Frame('Gura Shot'$)
 		frame.Show()
