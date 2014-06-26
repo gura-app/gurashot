@@ -144,6 +144,16 @@ ImageInfo = class {
 		FrameCoord(xMarkTop, xMarkBtm, yMarkTop, yMarkBtm,
 										xTop, xBtm, yTop, yBtm, width, height)
 	}
+	AdjustColor(image:image) = {
+		
+		if (this.colorTone == `mono) {
+			image.grayscale()
+		} elsif (this.colorTone == `sepia) {
+			image.grayscale()
+		} else {
+			image
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -489,7 +499,8 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 		}
 		cr.show_text(text)
 	}
-	imgExtract = ExtractImage(imgPhoto, layout, g.wdMgn, g.htMgn).thumbnail(1000):box
+	imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+								layout, g.wdMgn, g.htMgn).thumbnail(1000):box)
 	cairo.pattern.create_for_surface(imgExtract) {|pattern|
 		cr.set_line_width(.1)
 		cr.set_source_rgb(.2, .2, 1)
@@ -693,7 +704,7 @@ Extractor = class(wx.Panel) {
 	UpdateImageScreen() = {
 		[wdClient, htClient] = this.GetClientSizeWH()
 		this.bmpScreen = wx.BitmapWH(wdClient, htClient)
-		img = g.imgPhotoLowRes.thumbnail(wdClient, htClient)
+		img = g.imgInfoCur.AdjustColor(g.imgPhotoLowRes.thumbnail(wdClient, htClient))
 		imgFrosted = img.mapcolorlevel(this.mapColorLevel)
 		[xOffset, yOffset] = [(wdClient - img.width) / 2, (htClient - img.height) / 2]
 		this.rcImg = wx.Rect(xOffset, yOffset, img.width, img.height)
@@ -1602,8 +1613,8 @@ ColorAdjustDialog = class(wx.Dialog) {
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT, 4))
 					ctrl.Bind(wx.EVT_BUTTON) {
-						pos = 0
-						this.imgInfo.brightness = this.brightness_init
+						pos = this.brightness_init
+						this.imgInfo.brightness = pos
 						this.sldrBrightness.SetValue(pos)
 						this.textBrightness.SetValue(pos)
 						this.UpdateImage()
@@ -1849,11 +1860,11 @@ App = class(wx.App) {
 	OnInit() = {
 		LoadConfig()
 		InitializeResource()
-
+		/*
 		dlg = ColorAdjustDialog(nil, nil, g.imgInfoCur)
 		dlg.ShowModal()
 		return(false)
-
+		*/
 		UpdateImagePhoto()
 		frame = Frame('Gura Shot'$)
 		frame.Show()
