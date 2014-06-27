@@ -18,7 +18,7 @@ import(mswin)
 import(units)
 import(translate)
 
-Version = '1.0.3'
+Version = '1.0.4'
 
 //-----------------------------------------------------------------------------
 // Control ID
@@ -153,33 +153,48 @@ ImageInfo = class {
 		b = 255 + int(level * 127 / 100)
 		mapTbl = int(interval(a, b, 256))
 		mapTbl = conds(mapTbl < 0, 0, mapTbl)
-		mapTbl = conds(mapTbl > 255, 255, mapTbl)
+		conds(mapTbl > 255, 255, mapTbl):list
 	}
 	AdjustColor(image:image) = {
 		imgResult = image
-		if (this.brightness < 0) {
-			mapTbl = int(interval(0, 255 + int(this.brightness * 255 / 100), 256))
-			imgResult = imgResult.mapcolorlevel(mapTbl)
-		} elsif (this.brightness > 0) {
-			mapTbl = int(interval(int(this.brightness * 255 / 100), 255, 256))
-			imgResult = imgResult.mapcolorlevel(mapTbl)
-		}
-		if (this.contrast != 0) {
-			imgResult = imgResult.mapcolorlevel(this.MakeEmphasisMapTbl(this.contrast))
-		}
 		mapTbl_R = this.mapTblLenear
 		mapTbl_G = this.mapTblLenear
 		mapTbl_B = this.mapTblLenear
+		applyFlag = false
+		if (this.brightness != 0) {
+			applyFlag = true
+			if (this.brightness < 0) {
+				mapTbl = int(interval(0, 255 + int(this.brightness * 255 / 100), 256)):list
+			} else { // this.brightness > 0
+				mapTbl = int(interval(int(this.brightness * 255 / 100), 255, 256)):list
+			}
+			mapTbl_R = mapTbl[mapTbl_R]
+			mapTbl_G = mapTbl[mapTbl_G]
+			mapTbl_B = mapTbl[mapTbl_B]
+		}
+		if (this.contrast != 0) {
+			applyFlag = true
+			mapTbl = this.MakeEmphasisMapTbl(this.contrast)
+			mapTbl_R = mapTbl[mapTbl_R]
+			mapTbl_G = mapTbl[mapTbl_G]
+			mapTbl_B = mapTbl[mapTbl_B]
+		}
 		if (this.redness != 0) {
-			mapTbl_R = this.MakeEmphasisMapTbl(this.redness)
+			applyFlag = true
+			mapTbl = this.MakeEmphasisMapTbl(this.redness)
+			mapTbl_R = mapTbl[mapTbl_R]
 		}
 		if (this.greenness != 0) {
-			mapTbl_G = this.MakeEmphasisMapTbl(this.greenness)
+			applyFlag = true
+			mapTbl = this.MakeEmphasisMapTbl(this.greenness)
+			mapTbl_G = mapTbl[mapTbl_G]
 		}
 		if (this.blueness != 0) {
-			mapTbl_B = this.MakeEmphasisMapTbl(this.blueness)
+			applyFlag = true
+			mapTbl = this.MakeEmphasisMapTbl(this.blueness)
+			mapTbl_B = mapTbl[mapTbl_B]
 		}
-		if (this.redness != 0 || this.greenness != 0 || this.blueness != 0) {
+		if (applyFlag) {
 			imgResult = imgResult.mapcolorlevel(mapTbl_R, mapTbl_G, mapTbl_B)
 		}
 		if (this.colorTone == `mono) {
