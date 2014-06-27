@@ -1973,11 +1973,6 @@ App = class(wx.App) {
 	OnInit() = {
 		LoadConfig()
 		InitializeResource()
-		/*
-		dlg = ColorAdjustDialog(nil, nil, g.imgInfoCur)
-		dlg.ShowModal()
-		return(false)
-		*/
 		UpdateImagePhoto()
 		frame = Frame('Gura Shot'$)
 		frame.Show()
