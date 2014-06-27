@@ -1830,6 +1830,8 @@ ColorAdjustDialog = class(wx.Dialog) {
 			}
 			wx.Button(this, wx.ID_CANCEL, 'Cancel'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+				ctrl.SetDefault()
+				ctrl.SetFocus()
 			}
 		}
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
