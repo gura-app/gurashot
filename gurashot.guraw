@@ -167,23 +167,20 @@ ImageInfo = class {
 		if (this.contrast != 0) {
 			imgResult = imgResult.mapcolorlevel(this.MakeEmphasisMapTbl(this.contrast))
 		}
+		mapTbl_R = this.mapTblLenear
+		mapTbl_G = this.mapTblLenear
+		mapTbl_B = this.mapTblLenear
 		if (this.redness != 0) {
-			imgResult = imgResult.mapcolorlevel(
-						this.MakeEmphasisMapTbl(this.redness),
-						this.mapTblLenear,
-						this.mapTblLenear)
+			mapTbl_R = this.MakeEmphasisMapTbl(this.redness)
 		}
 		if (this.greenness != 0) {
-			imgResult = imgResult.mapcolorlevel(
-						this.mapTblLenear,
-						this.MakeEmphasisMapTbl(this.greenness),
-						this.mapTblLenear)
+			mapTbl_G = this.MakeEmphasisMapTbl(this.greenness)
 		}
 		if (this.blueness != 0) {
-			imgResult = imgResult.mapcolorlevel(
-						this.mapTblLenear,
-						this.mapTblLenear,
-						this.MakeEmphasisMapTbl(this.blueness))
+			mapTbl_B = this.MakeEmphasisMapTbl(this.blueness)
+		}
+		if (this.redness != 0 || this.greenness != 0 || this.blueness != 0) {
+			imgResult = imgResult.mapcolorlevel(mapTbl_R, mapTbl_G, mapTbl_B)
 		}
 		if (this.colorTone == `mono) {
 			imgResult.grayscale()
@@ -245,6 +242,7 @@ g = module {
 	imgBoxRed:public		= I(resource.box_red_png)
 	imgBoxGreen:public		= I(resource.box_green_png)
 	imgBoxBlue:public		= I(resource.box_blue_png)
+	imgColorTone:public		= I(resource.color_swatch_png)
 	layoutTbl:public = @(Layout) {
 		{ 'Driver\'s license etc.'$,				30, 24, 2, 23 }
 		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23 }
@@ -1578,7 +1576,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 	__init__(parent:wx.Window, extractor, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
 				'Color Adjustment'$,
 				pos => wx.Point(g.xColorAdjustDialog, g.yColorAdjustDialog),
-				size => wx.Size(560, 340)|
+				size => wx.Size(560, 350)|
 		this.extractor = extractor
 		this.imgInfo = imgInfo
 		this.colorTone_init		= this.imgInfo.colorTone
@@ -1616,7 +1614,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.brightness,
 						size => wx.Size(wdText, -1), style => wx.TE_CENTRE | wx.TE_READONLY) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 					this.textBrightness = ctrl
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
@@ -1651,7 +1649,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.contrast,
 						size => wx.Size(wdText, -1), style => wx.TE_CENTRE | wx.TE_READONLY) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 					this.textContrast = ctrl
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
@@ -1694,7 +1692,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.redness,
 						size => wx.Size(wdText, -1), style => wx.TE_CENTRE | wx.TE_READONLY) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 					this.textRedness = ctrl
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
@@ -1729,7 +1727,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.greenness,
 						size => wx.Size(wdText, -1), style => wx.TE_CENTRE | wx.TE_READONLY) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 					this.textGreenness = ctrl
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
@@ -1764,7 +1762,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.blueness,
 						size => wx.Size(wdText, -1), style => wx.TE_CENTRE | wx.TE_READONLY) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 					this.textBlueness = ctrl
 				}
 				wx.Button(this, wx.ID_ANY, 'Reset'$, size => wx.Size(wdButton, -1)) {|ctrl|
@@ -1789,8 +1787,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 			vbox:local = vboxIn
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vbox.Add(hbox, wx.SizerFlags().Expand())
+				wx.StaticBitmap(this, wx.ID_ANY, wx.Bitmap(g.imgColorTone)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				}
 				wx.StaticText(this, wx.ID_ANY, 'Color Tone'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-					hbox.Add(ctrl)
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Color'$, style => wx.RB_GROUP) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags())

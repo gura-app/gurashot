@@ -4,6 +4,7 @@ Source URLs
 http://www.famfamfam.com/lab/icons/silk/preview.php
 arrow_rotate_anticlockwise.png
 arrow_rotate_clockwise.png
+color_swatch.png
 color_wheel.png
 contrast.png
 folder_image.png
