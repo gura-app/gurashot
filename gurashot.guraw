@@ -951,7 +951,7 @@ Frame = class(wx.Frame) {
 			m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
 			m.AppendSeparator()
 			m.Append(ID_CopyExtractedImage,		'&Copy Extracted Image\tCtrl-C'$)
-			m.Append(ID_SaveExtractedImage,		'&Save Extracted Image'$)
+			m.Append(ID_SaveExtractedImage,		'&Save Extracted Image...'$)
 		}
 		wx.Menu {|m|
 			menuBar.Append(m, '&Output'$)
@@ -1196,7 +1196,7 @@ Frame = class(wx.Frame) {
 			m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
 			m.AppendSeparator()
 			m.Append(ID_CopyExtractedImage,		'&Copy Extracted Image\tCtrl-C'$)
-			m.Append(ID_SaveExtractedImage,		'&Save Extracted Image'$)
+			m.Append(ID_SaveExtractedImage,		'&Save Extracted Image...'$)
 			this.PopupMenu(m)
 		}
 	}
