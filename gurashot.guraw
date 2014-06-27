@@ -25,7 +25,7 @@ Version = '1.0.4'
 //-----------------------------------------------------------------------------
 [
 	ID_Open, ID_Close, ID_ShowList, ID_Prev, ID_Next,
-	ID_OutputPDF, ID_LaunchPDFViewer,
+	ID_OutputPDF, ID_LaunchPDFViewer, ID_PrintService,
 	ID_RotateL, ID_RotateR, ID_ColorAdjust, ID_TiltAdj,
 	ID_FrostFrame, ID_CenterGuide, ID_CopyExtractedImage, ID_SaveExtractedImage,
 	ID_Label, ID_Remove, ID_RenameLabel,
@@ -50,12 +50,13 @@ Layout = struct(purpose:string, htImg:number, wdImg:number, htTop:number, htFace
 //-----------------------------------------------------------------------------
 // PaperSize
 //-----------------------------------------------------------------------------
-PaperSize = struct(name:string, width:number, height:number) {
+PaperSize = struct(name:string, width:number, height:number, printServiceFlag:boolean) {
+	margin:public = 5
 	GetCanvasWidth(orientation:symbol) = {
-		cond(orientation == `horizontal, this.width - 10, this.height - 10)
+		cond(orientation == `horizontal, this.width - margin * 2, this.height - margin * 2)
 	}
 	GetCanvasHeight(orientation:symbol) = {
-		cond(orientation == `horizontal, this.height - 10, this.width - 10)
+		cond(orientation == `horizontal, this.height - margin * 2, this.width - margin * 2)
 	}
 	GetBetterOrientation(layout:Layout, orientation:symbol) = {
 		(orientation != `auto) && return(orientation)
@@ -276,14 +277,14 @@ g = module {
 	}
 	layoutCur:public		= layoutTbl[0]
 	paperSizeTbl:public = @(PaperSize) {
-		{ 'L'$,				127,  89 }
-		{ 'KG'$,			152, 102 }
-		{ '2L'$,			178, 127 }
-		{ 'A4'$,			297, 210 }
-		{ 'A3'$,			420, 297 }
-		{ 'Hagaki'$,		148, 100 }
-		{ 'Mutsugiri'$,		254, 203 }
-		{ 'Yotsugiri'$,		305, 254 }
+		{ 'L'$,				127,  89, true }
+		{ 'KG'$,			152, 102, false }
+		{ '2L'$,			178, 127, false }
+		{ 'A4'$,			297, 210, false }
+		{ 'A3'$,			420, 297, false }
+		{ 'Hagaki'$,		148, 100, false }
+		{ 'Mutsugiri'$,		254, 203, false }
+		{ 'Yotsugiri'$,		305, 254, false }
 	}
 	cfg:public					= %{}
 	imgPhotoRaw:public			= imgBlank
@@ -610,6 +611,86 @@ ComposeProductPDF(fileName:string, imgPhoto:image, layout:Layout,
 		ComposeProduct(cr, imgPhoto, layout, paperSize, orientation)
 		cr.show_page()
 	}
+}
+
+
+DrawRules(img:image) = {
+	[width, height] = [img.width, img.height]
+	nLines = 20
+	img.cairo {|cr|
+		cr.set_source_rgb(.6, 1, .6)
+		repeat (nLines) {|i|
+			y = (nLines - i) * 10
+			cr.move_to(0, y)
+			cr.line_to(width, y)
+			if (i % 10 == 0) {
+				cr.set_line_width(4)
+			} elsif (i % 5 == 0) {
+				cr.set_line_width(2)
+			} else {
+				cr.set_line_width(1)
+			}
+			cr.stroke()
+		}
+		repeat (nLines) {|i|
+			y = height - (nLines - i) * 10
+			cr.move_to(0, y)
+			cr.line_to(width, y)
+			if (i % 10 == 0) {
+				cr.set_line_width(4)
+			} elsif (i % 5 == 0) {
+				cr.set_line_width(2)
+			} else {
+				cr.set_line_width(1)
+			}
+			cr.stroke()
+		}
+		repeat (nLines) {|i|
+			x = (nLines - i) * 10
+			cr.move_to(x, 0)
+			cr.line_to(x, height)
+			if (i % 10 == 0) {
+				cr.set_line_width(4)
+			} elsif (i % 5 == 0) {
+				cr.set_line_width(2)
+			} else {
+				cr.set_line_width(1)
+			}
+			cr.stroke()
+		}
+		repeat (nLines) {|i|
+			x = width - (nLines - i) * 10
+			cr.move_to(x, 0)
+			cr.line_to(x, height)
+			if (i % 10 == 0) {
+				cr.set_line_width(4)
+			} elsif (i % 5 == 0) {
+				cr.set_line_width(2)
+			} else {
+				cr.set_line_width(1)
+			}
+			cr.stroke()
+		}
+	}
+}
+
+ComposeProductPrintService(fileName:string, imgPhoto:image, layout:Layout,
+					paperSize:PaperSize, orientation:symbol, dpi:number,
+					wdSideDrop:number, htSideDrop:number) = {
+	[wdOuter, htOuter] = int([paperSize.width, paperSize.height] * dpi / 25.4)
+	[wdInner, htInner] = [wdOuter - wdSideDrop, htOuter - htSideDrop]
+	wdCanvas = wdInner * (paperSize.width - paperSize.margin * 2) / paperSize.width
+	htCanvas = htInner * (paperSize.height - paperSize.margin * 2) / paperSize.height
+	img = image(`rgba, wdOuter, htOuter, `white)
+	DrawRules(img)
+	img.cairo {|cr|
+		cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
+		scale = wdInner / wdOuter * dpi / 25.4
+		cr.scale(scale, scale)
+		ComposeProduct(cr, imgPhoto, layout, paperSize, orientation)
+		cr.show_page()
+	}
+	img.write(fileName)
 }
 
 //-----------------------------------------------------------------------------
@@ -976,6 +1057,8 @@ Frame = class(wx.Frame) {
 			m.AppendSeparator()
 			m.Append(ID_OutputPDF,				'&Output PDF...\tCtrl-U'$)
 			m.Append(ID_LaunchPDFViewer,		'Launch PDF &Viewer...\tCtrl-V'$)
+			m.AppendSeparator()
+			m.Append(ID_PrintService,			'&Print Service...'$)
 		}
 		wx.Menu {|m|
 			menuBar.Append(m, '&Help'$)
@@ -1086,6 +1169,7 @@ Frame = class(wx.Frame) {
 		this.Bind(wx.EVT_MENU, ID_Next)				{|event| this.OnMenu_Next(event)}
 		this.Bind(wx.EVT_MENU, ID_OutputPDF)		{|event| this.OnMenu_OutputPDF(event)}
 		this.Bind(wx.EVT_MENU, ID_LaunchPDFViewer)	{|event| this.OnMenu_LaunchPDFViewer(event)}
+		this.Bind(wx.EVT_MENU, ID_PrintService)		{|event| this.OnMenu_PrintService(event)}
 		this.Bind(wx.EVT_MENU, ID_RenameLabel)		{|event| this.OnMenu_RenameLabel(event)}
 		this.Bind(wx.EVT_MENU, ID_RotateL)			{|event| this.OnMenu_RotateL(event)}
 		this.Bind(wx.EVT_MENU, ID_RotateR)			{|event| this.OnMenu_RotateR(event)}
@@ -1172,6 +1256,9 @@ Frame = class(wx.Frame) {
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_OrientAuto) {|event|
 			event.Check(g.orientation == `auto)
+		}
+		this.Bind(wx.EVT_UPDATE_UI,	ID_PrintService) {|event|
+			event.Enable(g.paperSizeCur.printServiceFlag)
 		}
 	}
 	UpdateSizePosInfo() = {
@@ -1306,6 +1393,9 @@ Frame = class(wx.Frame) {
 				dlg.ShowModal()
 			}
 		}
+	}
+	OnMenu_PrintService(event:wx.CommandEvent) = {
+		
 	}
 	OnMenu_RenameLabel(event:wx.CommandEvent) = {
 		dlg = RenameLabelDialog(this, g.imgInfoCur)
@@ -1588,7 +1678,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 	wdLabel = 80
 	wdText = 60
 	wdButton = 80
-	__init__(parent:wx.Window, extractor, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
+	__init__(parent:wx.Window, extractor:Extractor, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
 				'Color Adjustment'$,
 				pos => wx.Point(g.xColorAdjustDialog, g.yColorAdjustDialog),
 				size => wx.Size(560, 350)|
@@ -1877,6 +1967,21 @@ ColorAdjustDialog = class(wx.Dialog) {
 }
 
 //-----------------------------------------------------------------------------
+// PrintServiceDialog
+//-----------------------------------------------------------------------------
+PrintServiceDialog = class(wx.Dialog) {
+	__init__(parent:wx.Window) = {|parent, wx.ID_ANY,
+						'Print Service'$, size => wx.Size(560, 350)|
+		this.SetIcon(g.icon)
+		outerBox = wx.BoxSizer(wx.VERTICAL)
+		this.SetSizer(outerBox)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.TOP | wx.BOTTOM, 8))
+	}
+	
+}
+
+//-----------------------------------------------------------------------------
 // RenameLabelDialog
 //-----------------------------------------------------------------------------
 RenameLabelDialog = class(wx.Dialog) {
@@ -1991,6 +2096,23 @@ App = class(wx.App) {
 		LoadConfig()
 		InitializeResource()
 		UpdateImagePhoto()
+		/*
+		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
+		ComposeProductPDF(g.fileNameTmpPDF, g.imgPhotoHighRes,
+							g.layoutCur, g.paperSizeCur, orientation)
+		dpi = 600
+		wdSideDrop = (20 * 2 - (12 + 11)) * 10
+		htSideDrop = (20 * 2 - (13 + 13)) * 10
+		ComposeProductPrintService('test.jpg', g.imgPhotoHighRes, g.layoutCur,
+					g.paperSizeCur, orientation, 600,
+					wdSideDrop:number, htSideDrop)
+		return(false)
+		*/
+		/*
+		dlg = PrintServiceDialog(nil)
+		dlg.ShowModal()
+		return(false)
+		*/
 		frame = Frame('Gura Shot'$)
 		frame.Show()
 		g.frame = frame

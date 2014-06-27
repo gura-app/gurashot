@@ -35,6 +35,7 @@ transDicts = %{
 'Orientation &Auto'						=> '用紙方向自動設定(&A)'
 '&Output PDF...\tCtrl-U'				=> 'PDF出力(&O)...\tCtrl-U'
 'Launch PDF &Viewer...\tCtrl-V'			=> 'PDFビューア起動(&V)...\tCtrl-V'
+'&Print Service...'						=> 'プリントサービス(&P)...'
 '&Help'									=> 'ヘルプ(&H)'
 '&About...'								=> 'バージョン情報(&A)...'
 'About'									=> 'バージョン情報'
@@ -97,6 +98,7 @@ transDicts = %{
 'Monochrome'							=> 'モノクロ'
 'Sepia'									=> 'セピア調'
 'Reset'									=> 'リセット'
+'Print Service'							=> 'プリントサービス'
 'Are you sure to close the current image?' => '現在表示している画像を閉じますか?'
 R'''
 Are you sure to remove the image from the list?
