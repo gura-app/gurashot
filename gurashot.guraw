@@ -259,6 +259,7 @@ g = module {
 	imgBoxGreen:public		= I(resource.box_green_png)
 	imgBoxBlue:public		= I(resource.box_blue_png)
 	imgColorTone:public		= I(resource.color_swatch_png)
+	imgPrintServiceAdjust:public = I(resource.print_service_adjust_png)
 	layoutTbl:public = @(Layout) {
 		{ 'Driver\'s license etc.'$,				30, 24, 2, 23 }
 		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23 }
@@ -631,57 +632,27 @@ ComposeProductPDF(fileName:string, imgPhoto:image, layout:Layout,
 DrawAdjustLines(img:image, nAdjLinesDrawn:number) = {
 	[width, height] = [img.width, img.height]
 	img.cairo {|cr|
-		cr.set_source_rgb(.6, 1, .6)
+		cr.set_source_rgb(.3, 1, .3)
 		repeat (nAdjLinesDrawn) {|i|
+			if (i % 10 == 0) {
+				cr.set_line_width(4)
+			} elsif (i % 5 == 0) {
+				cr.set_line_width(2)
+			} else {
+				cr.set_line_width(1)
+			}
 			y = (nAdjLinesDrawn - i) * 10
 			cr.move_to(0, y)
 			cr.line_to(width, y)
-			if (i % 10 == 0) {
-				cr.set_line_width(4)
-			} elsif (i % 5 == 0) {
-				cr.set_line_width(2)
-			} else {
-				cr.set_line_width(1)
-			}
-			cr.stroke()
-		}
-		repeat (nAdjLinesDrawn) {|i|
 			y = height - (nAdjLinesDrawn - i) * 10
 			cr.move_to(0, y)
 			cr.line_to(width, y)
-			if (i % 10 == 0) {
-				cr.set_line_width(4)
-			} elsif (i % 5 == 0) {
-				cr.set_line_width(2)
-			} else {
-				cr.set_line_width(1)
-			}
-			cr.stroke()
-		}
-		repeat (nAdjLinesDrawn) {|i|
 			x = (nAdjLinesDrawn - i) * 10
 			cr.move_to(x, 0)
 			cr.line_to(x, height)
-			if (i % 10 == 0) {
-				cr.set_line_width(4)
-			} elsif (i % 5 == 0) {
-				cr.set_line_width(2)
-			} else {
-				cr.set_line_width(1)
-			}
-			cr.stroke()
-		}
-		repeat (nAdjLinesDrawn) {|i|
 			x = width - (nAdjLinesDrawn - i) * 10
 			cr.move_to(x, 0)
 			cr.line_to(x, height)
-			if (i % 10 == 0) {
-				cr.set_line_width(4)
-			} elsif (i % 5 == 0) {
-				cr.set_line_width(2)
-			} else {
-				cr.set_line_width(1)
-			}
 			cr.stroke()
 		}
 	}
@@ -1423,7 +1394,26 @@ Frame = class(wx.Frame) {
 		}
 	}
 	OnMenu_PrintService(event:wx.CommandEvent) = {
+		dlg = PrintServiceDialog(this)
+		dlg.CentreOnParent()
+		(dlg.ShowModal() != wx.ID_OK) && return
 		
+		fileName = 'test.jpg'
+		nAdjLinesLongSide1 = 12
+		nAdjLinesLongSide2 = 11
+		nAdjLinesShortSide1 = 13
+		nAdjLinesShortSide2 = 13
+		
+		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
+		dpi = 600
+		nAdjLinesDrawn = 20
+		nAdjLinesLongSide = nAdjLinesLongSide1 + nAdjLinesLongSide2
+		nAdjLinesShortSide = nAdjLinesShortSide1 + nAdjLinesShortSide2
+		wx.BusyCursor {
+			ComposeProductForPrintService(fileName, g.imgPhotoHighRes, g.layoutCur,
+					g.paperSizeCur, orientation, dpi,
+					nAdjLinesDrawn, nAdjLinesLongSide, nAdjLinesShortSide)
+		}
 	}
 	OnMenu_RenameLabel(event:wx.CommandEvent) = {
 		dlg = RenameLabelDialog(this, g.imgInfoCur)
@@ -2022,15 +2012,82 @@ ColorAdjustDialog = class(wx.Dialog) {
 // PrintServiceDialog
 //-----------------------------------------------------------------------------
 PrintServiceDialog = class(wx.Dialog) {
+	textMsg = \
+	'Enter the numbers of adjustment lines printed on each long and short side of the paper.'$
 	__init__(parent:wx.Window) = {|parent, wx.ID_ANY,
-						'Print Service'$, size => wx.Size(560, 350)|
+						'Print Service'$, size => wx.Size(500, 400)|
 		this.SetIcon(g.icon)
+		wdLabel = 170
+		wdSpin = 80
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.TOP | wx.BOTTOM, 8))
+		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.BOTTOM, 8))
+		vbox.AddStretchSpacer(1)
+		wx.StaticText(this, wx.ID_ANY, textMsg) {|ctrl|
+			vbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
+		}
+		vbox.AddStretchSpacer(1)
+		wx.StaticBitmap(this, wx.ID_ANY, wx.Bitmap(g.imgPrintServiceAdjust),
+											style => wx.BORDER_STATIC) {|ctrl|
+			vbox.Add(ctrl, wx.SizerFlags().Centre())
+		}
+		vbox.AddStretchSpacer(1)
+		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+			vbox.Add(hbox, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
+			wx.BoxSizer(wx.VERTICAL) {|vbox|
+				hbox.Add(vbox, wx.SizerFlags().Expand())
+				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+					vbox.Add(hbox, wx.SizerFlags().Expand())
+					wx.StaticText(this, wx.ID_ANY, 'Num of Adj Lines on Long Side'$, size => wx.Size(wdLabel, -1)) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Centre())
+					}
+					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+									style => wx.ALIGN_CENTRE_HORIZONTAL,
+									min => 0, max => 20, initial => 0) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags())
+					}
+					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+									style => wx.ALIGN_CENTRE_HORIZONTAL,
+									min => 0, max => 20, initial => 0) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+					}
+				}
+				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+					vbox.Add(hbox, wx.SizerFlags().Expand().Border(wx.TOP, 8))
+					wx.StaticText(this, wx.ID_ANY, 'Num of Adj Lines on Short Side'$, size => wx.Size(wdLabel, -1)) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Centre())
+					}
+					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+									style => wx.ALIGN_CENTRE_HORIZONTAL,
+									min => 0, max => 20, initial => 0) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags())
+					}
+					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+									style => wx.ALIGN_CENTRE_HORIZONTAL,
+									min => 0, max => 20, initial => 0) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+					}
+				}
+			}
+			hbox.AddStretchSpacer(1)
+			wx.Button(this, wx.ID_OK, 'Output'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				ctrl.SetDefault()
+				ctrl.SetFocus()
+			}
+		}
+		vbox.AddStretchSpacer(1)
+		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
+			vbox.Add(ctrl, wx.SizerFlags().Expand())
+		}
+		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+			vbox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
+			wx.Button(this, wx.ID_CANCEL, 'Close'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+			}
+		}
 	}
-	
 }
 
 //-----------------------------------------------------------------------------
@@ -2148,22 +2205,11 @@ App = class(wx.App) {
 		LoadConfig()
 		InitializeResource()
 		UpdateImagePhoto()
-
-		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
-		dpi = 600
-		nAdjLinesDrawn = 20
-		nAdjLinesLongSide = 12 + 11
-		nAdjLinesShortSide = 13 + 13
-		ComposeProductForPrintService('test.jpg', g.imgPhotoHighRes, g.layoutCur,
-					g.paperSizeCur, orientation, dpi,
-					nAdjLinesDrawn, nAdjLinesLongSide, nAdjLinesShortSide)
-		return(false)
-
-		/*
+		
 		dlg = PrintServiceDialog(nil)
 		dlg.ShowModal()
 		return(false)
-		*/
+		
 		frame = Frame('Gura Shot'$)
 		frame.Show()
 		g.frame = frame

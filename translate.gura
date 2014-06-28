@@ -55,6 +55,7 @@ transDicts = %{
 'Orientation Auto'						=> '用紙方向自動設定'
 'Size'									=> 'サイズ'
 'Purpose'								=> '目的'
+'Output'								=> '出力'
 'Specify a PDF file to output'			=> '出力する PDF ファイルを指定'
 'Specify an image file to save'			=> '保存するイメージファイルを指定'
 'PDF file (*.pdf)|*.pdf|All files (*.*)|*.*' => \
@@ -100,6 +101,10 @@ transDicts = %{
 'Reset'									=> 'リセット'
 'Adjust'								=> '調整'
 'Print Service'							=> 'プリントサービス'
+'Num of Adj Lines on Long Side'			=> '長辺の調整ラインの数'
+'Num of Adj Lines on Short Side'		=> '短辺の調整ラインの数'
+'Enter the numbers of adjustment lines printed on each long and short side of the paper.' => \
+	'長辺と短辺に印刷された調整用ラインの数を入力してください'
 'Are you sure to close the current image?' => '現在表示している画像を閉じますか?'
 R'''
 Are you sure to remove the image from the list?
