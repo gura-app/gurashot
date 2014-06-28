@@ -305,10 +305,10 @@ g = module {
 	sepiaR:public				= 255
 	sepiaG:public				= 200
 	sepiaB:public				= 150
-	nAdjLinesLongSide1:public	= 12
-	nAdjLinesLongSide2:public	= 11
-	nAdjLinesShortSide1:public	= 13
-	nAdjLinesShortSide2:public	= 13
+	nAdjLinesLongSide1:public	= 8
+	nAdjLinesLongSide2:public	= 8
+	nAdjLinesShortSide1:public	= 8
+	nAdjLinesShortSide2:public	= 8
 	frostFrameFlag:public		= false
 	centerGuideFlag:public		= false
 	orientation:public			= `auto	// `auto, `horizontal, `vertical
@@ -1398,20 +1398,22 @@ Frame = class(wx.Frame) {
 		}
 	}
 	OnMenu_PrintService(event:wx.CommandEvent) = {
-		nAdjLinesDrawn = 20
+		nAdjLinesDrawn = 15
 		dpi = 600
 		dlg = PrintServiceDialog(this, nAdjLinesDrawn,
 							g.nAdjLinesLongSide1, g.nAdjLinesLongSide2,
 							g.nAdjLinesShortSide1, g.nAdjLinesShortSide2)
 		dlg.CentreOnParent()
 		(dlg.ShowModal() != wx.ID_OK) && return
-		
-		fileName = 'test.jpg'
-		
 		g.nAdjLinesLongSide1 = dlg.nAdjLinesLongSide1
 		g.nAdjLinesLongSide2 = dlg.nAdjLinesLongSide2
 		g.nAdjLinesShortSide1 = dlg.nAdjLinesShortSide1
 		g.nAdjLinesShortSide2 = dlg.nAdjLinesShortSide2
+		filter = 'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif'$
+		dlg = wx.FileDialog(this, 'Specify an image file to save'$,
+							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+		(dlg.ShowModal() != wx.ID_OK) && return
+		fileName = dlg.GetPath()
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
 		nAdjLinesLongSide = g.nAdjLinesLongSide1 + g.nAdjLinesLongSide2
 		nAdjLinesShortSide = g.nAdjLinesShortSide1 + g.nAdjLinesShortSide2
@@ -2058,16 +2060,18 @@ PrintServiceDialog = class(wx.Dialog) {
 							style => wx.ALIGN_CENTRE_HORIZONTAL,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesLongSide1) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
-						ctrl.Bind(wx.EVT_SPIN) {|event|
-							this.nAdjLinesLongSide1 = event.GetPosition()
+						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+							// you can't use event.GetPosition() with Gura v0.5.1
+							this.nAdjLinesLongSide1 = ctrl.GetValue()
 						}
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesLongSide2) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
-						ctrl.Bind(wx.EVT_SPIN) {|event|
-							this.nAdjLinesLongSide2 = event.GetPosition()
+						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+							// you can't use event.GetPosition() with Gura v0.5.1
+							this.nAdjLinesLongSide2 = ctrl.GetValue()
 						}
 					}
 				}
@@ -2080,16 +2084,18 @@ PrintServiceDialog = class(wx.Dialog) {
 							style => wx.ALIGN_CENTRE_HORIZONTAL,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesShortSide1) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
-						ctrl.Bind(wx.EVT_SPIN) {|event|
-							this.nAdjLinesShortSide1 = event.GetPosition()
+						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+							// you can't use event.GetPosition() with Gura v0.5.1
+							this.nAdjLinesShortSide1 = ctrl.GetValue()
 						}
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesShortSide2) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
-						ctrl.Bind(wx.EVT_SPIN) {|event|
-							this.nAdjLinesShortSide2 = event.GetPosition()
+						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+							// you can't use event.GetPosition() with Gura v0.5.1
+							this.nAdjLinesShortSide2 = ctrl.GetValue()
 						}
 					}
 				}
@@ -2229,11 +2235,11 @@ App = class(wx.App) {
 		LoadConfig()
 		InitializeResource()
 		UpdateImagePhoto()
-		
+		/*
 		dlg = PrintServiceDialog(nil, 20, 0, 0, 0, 0)
 		dlg.ShowModal()
 		return(false)
-		
+		*/
 		frame = Frame('Gura Shot'$)
 		frame.Show()
 		g.frame = frame
