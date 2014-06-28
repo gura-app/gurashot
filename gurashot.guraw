@@ -112,9 +112,6 @@ ImageInfo = class {
 	greenness_init		= 0
 	blueness_init		= 0
 	mapTblLenear		= [0..255]
-	mapTblSepia_R		= int(interval(0, 255, 256)):list
-	mapTblSepia_G		= int(interval(0, 200, 256)):list
-	mapTblSepia_B		= int(interval(0, 150, 256)):list
 	__init__() = {
 		this.label			= label_init
 		this.fileName		= fileName_init
@@ -201,8 +198,10 @@ ImageInfo = class {
 		if (this.colorTone == `mono) {
 			imgResult.grayscale()
 		} elsif (this.colorTone == `sepia) {
-			imgResult.grayscale().mapcolorlevel(this.mapTblSepia_R,
-						this.mapTblSepia_G, this.mapTblSepia_B)
+			mapTbl_R = int(interval(0, g.sepiaR, 256)):list
+			mapTbl_G = int(interval(0, g.sepiaG, 256)):list
+			mapTbl_B = int(interval(0, g.sepiaB, 256)):list
+			imgResult.grayscale().mapcolorlevel(mapTbl_R, mapTbl_G, mapTbl_B)
 		} else {
 			imgResult
 		}
@@ -301,6 +300,9 @@ g = module {
 	yImageListDialog:public		= -1
 	xColorAdjustDialog:public	= -1
 	yColorAdjustDialog:public	= -1
+	sepiaR:public				= 255
+	sepiaG:public				= 200
+	sepiaB:public				= 150
 	frostFrameFlag:public		= false
 	centerGuideFlag:public		= false
 	orientation:public			= `auto	// `auto, `horizontal, `vertical
@@ -331,6 +333,9 @@ LoadConfig() = {
 		g.yImageListDialog:number	= g.cfg['yImageListDialog']
 		g.xColorAdjustDialog:number	= g.cfg['xColorAdjustDialog']
 		g.yColorAdjustDialog:number	= g.cfg['yColorAdjustDialog']
+		g.sepiaR					= g.cfg['sepiaR']
+		g.sepiaG					= g.cfg['sepiaG']
+		g.sepiaB					= g.cfg['sepiaB']
 		g.frostFrameFlag			= (g.cfg['frostFrameFlag'] == 'true')
 		g.centerGuideFlag			= (g.cfg['centerGuideFlag'] == 'true')
 		g.orientation				= [`horizontal, `vertical, `auto].\
@@ -387,6 +392,9 @@ SaveConfig() = {
 	g.cfg['yImageListDialog']	= g.yImageListDialog
 	g.cfg['xColorAdjustDialog']	= g.xColorAdjustDialog
 	g.cfg['yColorAdjustDialog']	= g.yColorAdjustDialog
+	g.cfg['sepiaR']				= g.sepiaR
+	g.cfg['sepiaG']				= g.sepiaG
+	g.cfg['sepiaB']				= g.sepiaB
 	g.cfg['frostFrameFlag']		= g.frostFrameFlag
 	g.cfg['centerGuideFlag']	= g.centerGuideFlag
 	g.cfg['orientation']		= g.orientation
@@ -601,6 +609,9 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 	}
 }
 
+//-----------------------------------------------------------------------------
+// ComposeProductPDF
+//-----------------------------------------------------------------------------
 ComposeProductPDF(fileName:string, imgPhoto:image, layout:Layout,
 									paperSize:PaperSize, orientation:symbol) = {
 	cairo.create(cairo.pdf_surface.create(fileName,
@@ -613,7 +624,9 @@ ComposeProductPDF(fileName:string, imgPhoto:image, layout:Layout,
 	}
 }
 
-
+//-----------------------------------------------------------------------------
+// DrawRules
+//-----------------------------------------------------------------------------
 DrawRules(img:image) = {
 	[width, height] = [img.width, img.height]
 	nLines = 20
