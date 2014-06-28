@@ -626,15 +626,14 @@ ComposeProductPDF(fileName:string, imgPhoto:image, layout:Layout,
 }
 
 //-----------------------------------------------------------------------------
-// DrawRules
+// DrawAdjustLines
 //-----------------------------------------------------------------------------
-DrawRules(img:image) = {
+DrawAdjustLines(img:image, nAdjLinesDrawn:number) = {
 	[width, height] = [img.width, img.height]
-	nLines = 20
 	img.cairo {|cr|
 		cr.set_source_rgb(.6, 1, .6)
-		repeat (nLines) {|i|
-			y = (nLines - i) * 10
+		repeat (nAdjLinesDrawn) {|i|
+			y = (nAdjLinesDrawn - i) * 10
 			cr.move_to(0, y)
 			cr.line_to(width, y)
 			if (i % 10 == 0) {
@@ -646,8 +645,8 @@ DrawRules(img:image) = {
 			}
 			cr.stroke()
 		}
-		repeat (nLines) {|i|
-			y = height - (nLines - i) * 10
+		repeat (nAdjLinesDrawn) {|i|
+			y = height - (nAdjLinesDrawn - i) * 10
 			cr.move_to(0, y)
 			cr.line_to(width, y)
 			if (i % 10 == 0) {
@@ -659,8 +658,8 @@ DrawRules(img:image) = {
 			}
 			cr.stroke()
 		}
-		repeat (nLines) {|i|
-			x = (nLines - i) * 10
+		repeat (nAdjLinesDrawn) {|i|
+			x = (nAdjLinesDrawn - i) * 10
 			cr.move_to(x, 0)
 			cr.line_to(x, height)
 			if (i % 10 == 0) {
@@ -672,8 +671,8 @@ DrawRules(img:image) = {
 			}
 			cr.stroke()
 		}
-		repeat (nLines) {|i|
-			x = width - (nLines - i) * 10
+		repeat (nAdjLinesDrawn) {|i|
+			x = width - (nAdjLinesDrawn - i) * 10
 			cr.move_to(x, 0)
 			cr.line_to(x, height)
 			if (i % 10 == 0) {
@@ -688,15 +687,30 @@ DrawRules(img:image) = {
 	}
 }
 
-ComposeProductPrintService(fileName:string, imgPhoto:image, layout:Layout,
-					paperSize:PaperSize, orientation:symbol, dpi:number,
-					wdSideDrop:number, htSideDrop:number) = {
-	[wdOuter, htOuter] = int([paperSize.longSide, paperSize.shortSide] * dpi / 25.4)
-	[wdInner, htInner] = [wdOuter - wdSideDrop, htOuter - htSideDrop]
-	wdCanvas = wdInner * (paperSize.longSide - paperSize.margin * 2) / paperSize.longSide
-	htCanvas = htInner * (paperSize.shortSide - paperSize.margin * 2) / paperSize.shortSide
+//-----------------------------------------------------------------------------
+// ComposeProductForPrintService
+//-----------------------------------------------------------------------------
+ComposeProductForPrintService(fileName:string, imgPhoto:image, layout:Layout,
+		paperSize:PaperSize, orientation:symbol, dpi:number,
+		nAdjLinesDrawn:number, nAdjLinesLongSide:number, nAdjLinesShortSide:number) = {
+	longSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesLongSide) * 10
+	shortSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesShortSide) * 10
+	[longSideOuter, shortSideOuter] = int([paperSize.longSide, paperSize.shortSide] * dpi / 25.4)
+	longSideInner = longSideOuter - longSideDrop
+	shortSideInner = shortSideOuter - shortSideDrop
+	longSideCanvas = longSideInner * (paperSize.longSide - paperSize.margin * 2) / paperSize.longSide
+	shortSideCanvas = shortSideInner * (paperSize.shortSide - paperSize.margin * 2) / paperSize.shortSide
+	if (orientation == `horizontal) {
+		[wdOuter, htOuter] = [longSideOuter, shortSideOuter]
+		[wdInner, htInner] = [longSideInner, shortSideInner]
+		[wdCanvas, htCanvas] = [longSideCanvas, shortSideCanvas]
+	} else { // orientation == `vertical
+		[wdOuter, htOuter] = [shortSideOuter, longSideOuter]
+		[wdInner, htInner] = [shortSideInner, longSideInner]
+		[wdCanvas, htCanvas] = [shortSideCanvas, longSideCanvas]
+	}
 	img = image(`rgba, wdOuter, htOuter, `white)
-	DrawRules(img)
+	DrawAdjustLines(img, nAdjLinesDrawn)
 	img.cairo {|cr|
 		cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
 		scale = wdInner / wdOuter * dpi / 25.4
@@ -2134,18 +2148,17 @@ App = class(wx.App) {
 		LoadConfig()
 		InitializeResource()
 		UpdateImagePhoto()
-		/*
+
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
-		ComposeProductPDF(g.fileNameTmpPDF, g.imgPhotoHighRes,
-							g.layoutCur, g.paperSizeCur, orientation)
 		dpi = 600
-		wdSideDrop = (20 * 2 - (12 + 11)) * 10
-		htSideDrop = (20 * 2 - (13 + 13)) * 10
-		ComposeProductPrintService('test.jpg', g.imgPhotoHighRes, g.layoutCur,
-					g.paperSizeCur, orientation, 600,
-					wdSideDrop:number, htSideDrop)
+		nAdjLinesDrawn = 20
+		nAdjLinesLongSide = 12 + 11
+		nAdjLinesShortSide = 13 + 13
+		ComposeProductForPrintService('test.jpg', g.imgPhotoHighRes, g.layoutCur,
+					g.paperSizeCur, orientation, dpi,
+					nAdjLinesDrawn, nAdjLinesLongSide, nAdjLinesShortSide)
 		return(false)
-		*/
+
 		/*
 		dlg = PrintServiceDialog(nil)
 		dlg.ShowModal()
