@@ -98,6 +98,7 @@ transDicts = %{
 'Monochrome'							=> 'モノクロ'
 'Sepia'									=> 'セピア調'
 'Reset'									=> 'リセット'
+'Adjust'								=> '調整'
 'Print Service'							=> 'プリントサービス'
 'Are you sure to close the current image?' => '現在表示している画像を閉じますか?'
 R'''

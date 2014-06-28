@@ -30,6 +30,7 @@ Version = '1.0.4'
 	ID_FrostFrame, ID_CenterGuide, ID_CopyExtractedImage, ID_SaveExtractedImage,
 	ID_Label, ID_Remove, ID_RenameLabel,
 	ID_OrientVert, ID_OrientHorz, ID_OrientAuto,
+	ID_Adjust,
 ] = wx.ID_HIGHEST..
 
 //-----------------------------------------------------------------------------
@@ -1413,7 +1414,7 @@ Frame = class(wx.Frame) {
 	OnMenu_RenameLabel(event:wx.CommandEvent) = {
 		dlg = RenameLabelDialog(this, g.imgInfoCur)
 		dlg.CentreOnParent()
-		if (dlg.ShowModal() == wx.OK) {
+		if (dlg.ShowModal() == wx.ID_OK) {
 			wx.BusyCursor {
 				this.productViewer.UpdateContent(this)
 				this.productViewer.UpdateContent()
@@ -1432,7 +1433,7 @@ Frame = class(wx.Frame) {
 	}
 	OnMenu_ColorAdjust(event:wx.CommandEvent) = {
 		dlg = ColorAdjustDialog(this, this.extractor, g.imgInfoCur)
-		if (dlg.ShowModal() == wx.OK) {
+		if (dlg.ShowModal() == wx.ID_OK) {
 			wx.BusyCursor {
 				this.productViewer.UpdateContent(this)
 				this.productViewer.UpdateContent()
@@ -1649,7 +1650,7 @@ ImageListDialog = class(wx.Dialog) {
 		idxImgInfo = this.listCtrl.GetItemData(idx)
 		this.imgInfoCur = this.imgInfos[idxImgInfo]
 		this.UpdateImageInfos()
-		this.EndModal(wx.OK)
+		this.EndModal(wx.ID_OK)
 	}
 	OnMenu_RenameLabel(event:wx.CommandEvent) = {
 		((idx = this.listCtrl.GetFirstSelected()) < 0) && return
@@ -1663,7 +1664,7 @@ ImageListDialog = class(wx.Dialog) {
 		idxImgInfo = this.listCtrl.GetItemData(idx)
 		this.imgInfoCur = this.imgInfos[idxImgInfo]
 		this.UpdateImageInfos()
-		this.EndModal(wx.OK)
+		this.EndModal(wx.ID_OK)
 	}
 	OnListItemRightClick(event:wx.ListEvent) = {
 		wx.Menu() {|m|
@@ -1703,6 +1704,9 @@ ColorAdjustDialog = class(wx.Dialog) {
 		this.redness_init		= this.imgInfo.redness
 		this.greenness_init		= this.imgInfo.greenness
 		this.blueness_init		= this.imgInfo.blueness
+		this.sepiaR_init		= g.sepiaR
+		this.sepiaG_init		= g.sepiaG
+		this.sepiaB_init		= g.sepiaB
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
@@ -1912,7 +1916,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Color'$, style => wx.RB_GROUP) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags())
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 					ctrl.SetValue(this.imgInfo.colorTone == `color)
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						this.imgInfo.colorTone = `color
@@ -1920,7 +1924,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 					}
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Monochrome'$) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 20))
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 20).Align(wx.ALIGN_CENTRE_VERTICAL))
 					ctrl.SetValue(this.imgInfo.colorTone == `mono)
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						this.imgInfo.colorTone = `mono
@@ -1928,12 +1932,16 @@ ColorAdjustDialog = class(wx.Dialog) {
 					}
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Sepia'$) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 20))
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 20).Align(wx.ALIGN_CENTRE_VERTICAL))
 					ctrl.SetValue(this.imgInfo.colorTone == `sepia)
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						this.imgInfo.colorTone = `sepia
 						this.UpdateImage()
 					}
+				}
+				wx.Button(this, ID_Adjust, 'Adjust'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 12).Align(wx.ALIGN_CENTRE_VERTICAL))
+					
 				}
 			}
 		}
@@ -1953,11 +1961,25 @@ ColorAdjustDialog = class(wx.Dialog) {
 			}
 		}
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
+		this.Bind(wx.EVT_BUTTON, ID_Adjust) {|event| this.OnButton_Adjust(event)}
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
 		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
+		this.Bind(wx.EVT_UPDATE_UI, ID_Adjust) {|event|
+			event.Enable(this.imgInfo.colorTone == `sepia)
+		}
+	}
+	OnButton_Adjust(event:wx.CommandEvent) = {
+		data = wx.ColourData()
+		data.SetColour(wx.Colour(g.sepiaR, g.sepiaG, g.sepiaB))
+		dlg = wx.ColourDialog(this, data)
+		if (dlg.ShowModal() == wx.ID_OK) {
+			c = dlg.GetColourData().GetColour()
+			[g.sepiaR, g.sepiaG, g.sepiaB] = [c.Red(), c.Green(), c.Blue()]
+			this.UpdateImage()
+		}
 	}
 	OnButton_OK(event:wx.CommandEvent) = {
-		this.EndModal(wx.OK)
+		this.EndModal(wx.ID_OK)
 	}
 	OnButton_CANCEL(event:wx.CommandEvent) = {
 		this.imgInfo.colorTone	= this.colorTone_init
@@ -1966,8 +1988,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 		this.imgInfo.redness	= this.redness_init
 		this.imgInfo.greenness	= this.greenness_init
 		this.imgInfo.blueness	= this.blueness_init
+		g.sepiaR				= this.sepiaR_init
+		g.sepiaG				= this.sepiaG_init
+		g.sepiaB				= this.sepiaB_init
 		this.UpdateImage()
-		this.EndModal(wx.CANCEL)
+		this.EndModal(wx.ID_CANCEL)
 	}
 	UpdateSizePosInfo() = {
 		(this.IsIconized() || this.IsMaximized()) && return
@@ -2041,7 +2066,7 @@ RenameLabelDialog = class(wx.Dialog) {
 	}
 	OnButton_OK(event:wx.CommandEvent) = {
 		this.imgInfo.label = this.ctrlText.GetValue()
-		this.EndModal(wx.OK)
+		this.EndModal(wx.ID_OK)
 	}
 }
 
