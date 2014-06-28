@@ -51,13 +51,13 @@ Layout = struct(purpose:string, htImg:number, wdImg:number, htTop:number, htFace
 //-----------------------------------------------------------------------------
 // PaperSize
 //-----------------------------------------------------------------------------
-PaperSize = struct(name:string, width:number, height:number, printServiceFlag:boolean) {
+PaperSize = struct(name:string, longSide:number, shortSide:number, printServiceFlag:boolean) {
 	margin:public = 5
 	GetCanvasWidth(orientation:symbol) = {
-		cond(orientation == `horizontal, this.width - margin * 2, this.height - margin * 2)
+		cond(orientation == `horizontal, this.longSide - margin * 2, this.shortSide - margin * 2)
 	}
 	GetCanvasHeight(orientation:symbol) = {
-		cond(orientation == `horizontal, this.height - margin * 2, this.width - margin * 2)
+		cond(orientation == `horizontal, this.shortSide - margin * 2, this.longSide - margin * 2)
 	}
 	GetBetterOrientation(layout:Layout, orientation:symbol) = {
 		(orientation != `auto) && return(orientation)
@@ -691,10 +691,10 @@ DrawRules(img:image) = {
 ComposeProductPrintService(fileName:string, imgPhoto:image, layout:Layout,
 					paperSize:PaperSize, orientation:symbol, dpi:number,
 					wdSideDrop:number, htSideDrop:number) = {
-	[wdOuter, htOuter] = int([paperSize.width, paperSize.height] * dpi / 25.4)
+	[wdOuter, htOuter] = int([paperSize.longSide, paperSize.shortSide] * dpi / 25.4)
 	[wdInner, htInner] = [wdOuter - wdSideDrop, htOuter - htSideDrop]
-	wdCanvas = wdInner * (paperSize.width - paperSize.margin * 2) / paperSize.width
-	htCanvas = htInner * (paperSize.height - paperSize.margin * 2) / paperSize.height
+	wdCanvas = wdInner * (paperSize.longSide - paperSize.margin * 2) / paperSize.longSide
+	htCanvas = htInner * (paperSize.shortSide - paperSize.margin * 2) / paperSize.shortSide
 	img = image(`rgba, wdOuter, htOuter, `white)
 	DrawRules(img)
 	img.cairo {|cr|
@@ -1103,7 +1103,7 @@ Frame = class(wx.Frame) {
 			wx.ComboBox(tb, wx.ID_ANY, size => wx.Size(200, -1), style => wx.CB_READONLY) {|ctrl|
 				tb.AddControl(ctrl, 'Paper Size')
 				ctrl.Append(format('%s (%d x %dmm)', g.paperSizeTbl:*name,
-							g.paperSizeTbl:*height, g.paperSizeTbl:*width)):void
+							g.paperSizeTbl:*shortSide, g.paperSizeTbl:*longSide)):void
 				ctrl.Select(g.paperSizeTbl.find(g.paperSizeCur):index || 0)
 				this.cbPaperSize = ctrl
 				ctrl.Bind(wx.EVT_COMBOBOX) {|event| this.OnComboBox_PaperSize(event)}
