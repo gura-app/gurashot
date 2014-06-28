@@ -2021,11 +2021,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 //-----------------------------------------------------------------------------
 PrintServiceDialog = class(wx.Dialog) {
 	textMsg = \
-	'Enter the numbers of adjustment lines printed on each long and short side of the paper.'$
+	'For an exact size, enter numbers of adjustment lines printed on long and short side of paper.'$
 	__init__(parent:wx.Window, nAdjLinesDrawn:number,
 			nAdjLinesLongSide1:number, nAdjLinesLongSide2:number,
 			nAdjLinesShortSide1:number, nAdjLinesShortSide2:number) = {|parent, wx.ID_ANY,
-								'Print Service'$, size => wx.Size(500, 460)|
+								'Print Service'$, size => wx.Size(560, 460)|
 		this.SetIcon(g.icon)
 		this.nAdjLinesLongSide1:public = nAdjLinesLongSide1
 		this.nAdjLinesLongSide2:public = nAdjLinesLongSide2
@@ -2039,7 +2039,7 @@ PrintServiceDialog = class(wx.Dialog) {
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.BOTTOM, 8))
 		vbox.AddStretchSpacer(1)
 		wx.StaticText(this, wx.ID_ANY, textMsg) {|ctrl|
-			vbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
+			vbox.Add(ctrl, wx.SizerFlags().Centre())
 		}
 		vbox.AddStretchSpacer(1)
 		wx.StaticBitmap(this, wx.ID_ANY, wx.Bitmap(g.imgPrintServiceAdjust),
@@ -2048,7 +2048,7 @@ PrintServiceDialog = class(wx.Dialog) {
 		}
 		vbox.AddStretchSpacer(1)
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-			vbox.Add(hbox, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
+			vbox.Add(hbox, wx.SizerFlags().Centre())
 			wx.BoxSizer(wx.VERTICAL) {|vbox|
 				hbox.Add(vbox, wx.SizerFlags().Expand())
 				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
@@ -2100,7 +2100,7 @@ PrintServiceDialog = class(wx.Dialog) {
 					}
 				}
 			}
-			hbox.AddStretchSpacer(1)
+			hbox.AddSpacer(32)
 			wx.Button(this, wx.ID_OK, 'Output'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 				ctrl.SetDefault()
@@ -2235,11 +2235,6 @@ App = class(wx.App) {
 		LoadConfig()
 		InitializeResource()
 		UpdateImagePhoto()
-		/*
-		dlg = PrintServiceDialog(nil, 20, 0, 0, 0, 0)
-		dlg.ShowModal()
-		return(false)
-		*/
 		frame = Frame('Gura Shot'$)
 		frame.Show()
 		g.frame = frame
