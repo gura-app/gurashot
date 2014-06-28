@@ -305,6 +305,10 @@ g = module {
 	sepiaR:public				= 255
 	sepiaG:public				= 200
 	sepiaB:public				= 150
+	nAdjLinesLongSide1:public	= 12
+	nAdjLinesLongSide2:public	= 11
+	nAdjLinesShortSide1:public	= 13
+	nAdjLinesShortSide2:public	= 13
 	frostFrameFlag:public		= false
 	centerGuideFlag:public		= false
 	orientation:public			= `auto	// `auto, `horizontal, `vertical
@@ -1394,21 +1398,23 @@ Frame = class(wx.Frame) {
 		}
 	}
 	OnMenu_PrintService(event:wx.CommandEvent) = {
-		dlg = PrintServiceDialog(this)
+		nAdjLinesDrawn = 20
+		dpi = 600
+		dlg = PrintServiceDialog(this, nAdjLinesDrawn,
+							g.nAdjLinesLongSide1, g.nAdjLinesLongSide2,
+							g.nAdjLinesShortSide1, g.nAdjLinesShortSide2)
 		dlg.CentreOnParent()
 		(dlg.ShowModal() != wx.ID_OK) && return
 		
 		fileName = 'test.jpg'
-		nAdjLinesLongSide1 = 12
-		nAdjLinesLongSide2 = 11
-		nAdjLinesShortSide1 = 13
-		nAdjLinesShortSide2 = 13
 		
+		g.nAdjLinesLongSide1 = dlg.nAdjLinesLongSide1
+		g.nAdjLinesLongSide2 = dlg.nAdjLinesLongSide2
+		g.nAdjLinesShortSide1 = dlg.nAdjLinesShortSide1
+		g.nAdjLinesShortSide2 = dlg.nAdjLinesShortSide2
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
-		dpi = 600
-		nAdjLinesDrawn = 20
-		nAdjLinesLongSide = nAdjLinesLongSide1 + nAdjLinesLongSide2
-		nAdjLinesShortSide = nAdjLinesShortSide1 + nAdjLinesShortSide2
+		nAdjLinesLongSide = g.nAdjLinesLongSide1 + g.nAdjLinesLongSide2
+		nAdjLinesShortSide = g.nAdjLinesShortSide1 + g.nAdjLinesShortSide2
 		wx.BusyCursor {
 			ComposeProductForPrintService(fileName, g.imgPhotoHighRes, g.layoutCur,
 					g.paperSizeCur, orientation, dpi,
@@ -2014,9 +2020,15 @@ ColorAdjustDialog = class(wx.Dialog) {
 PrintServiceDialog = class(wx.Dialog) {
 	textMsg = \
 	'Enter the numbers of adjustment lines printed on each long and short side of the paper.'$
-	__init__(parent:wx.Window) = {|parent, wx.ID_ANY,
-						'Print Service'$, size => wx.Size(500, 400)|
+	__init__(parent:wx.Window, nAdjLinesDrawn:number,
+			nAdjLinesLongSide1:number, nAdjLinesLongSide2:number,
+			nAdjLinesShortSide1:number, nAdjLinesShortSide2:number) = {|parent, wx.ID_ANY,
+								'Print Service'$, size => wx.Size(500, 460)|
 		this.SetIcon(g.icon)
+		this.nAdjLinesLongSide1:public = nAdjLinesLongSide1
+		this.nAdjLinesLongSide2:public = nAdjLinesLongSide2
+		this.nAdjLinesShortSide1:public = nAdjLinesShortSide1
+		this.nAdjLinesShortSide2:public = nAdjLinesShortSide2
 		wdLabel = 170
 		wdSpin = 80
 		outerBox = wx.BoxSizer(wx.VERTICAL)
@@ -2043,14 +2055,20 @@ PrintServiceDialog = class(wx.Dialog) {
 						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-									style => wx.ALIGN_CENTRE_HORIZONTAL,
-									min => 0, max => 20, initial => 0) {|ctrl|
+							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesLongSide1) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
+						ctrl.Bind(wx.EVT_SPIN) {|event|
+							this.nAdjLinesLongSide1 = event.GetPosition()
+						}
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-									style => wx.ALIGN_CENTRE_HORIZONTAL,
-									min => 0, max => 20, initial => 0) {|ctrl|
+							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesLongSide2) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+						ctrl.Bind(wx.EVT_SPIN) {|event|
+							this.nAdjLinesLongSide2 = event.GetPosition()
+						}
 					}
 				}
 				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
@@ -2059,14 +2077,20 @@ PrintServiceDialog = class(wx.Dialog) {
 						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-									style => wx.ALIGN_CENTRE_HORIZONTAL,
-									min => 0, max => 20, initial => 0) {|ctrl|
+							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesShortSide1) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
+						ctrl.Bind(wx.EVT_SPIN) {|event|
+							this.nAdjLinesShortSide1 = event.GetPosition()
+						}
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-									style => wx.ALIGN_CENTRE_HORIZONTAL,
-									min => 0, max => 20, initial => 0) {|ctrl|
+							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesShortSide2) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+						ctrl.Bind(wx.EVT_SPIN) {|event|
+							this.nAdjLinesShortSide2 = event.GetPosition()
+						}
 					}
 				}
 			}
@@ -2206,7 +2230,7 @@ App = class(wx.App) {
 		InitializeResource()
 		UpdateImagePhoto()
 		
-		dlg = PrintServiceDialog(nil)
+		dlg = PrintServiceDialog(nil, 20, 0, 0, 0, 0)
 		dlg.ShowModal()
 		return(false)
 		

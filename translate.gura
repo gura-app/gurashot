@@ -101,8 +101,8 @@ transDicts = %{
 'Reset'									=> 'リセット'
 'Adjust'								=> '調整'
 'Print Service'							=> 'プリントサービス'
-'Num of Adj Lines on Long Side'			=> '長辺の調整ラインの数'
-'Num of Adj Lines on Short Side'		=> '短辺の調整ラインの数'
+'Num of Adj Lines on Long Side'			=> '長辺の調整用ラインの数'
+'Num of Adj Lines on Short Side'		=> '短辺の調整用ラインの数'
 'Enter the numbers of adjustment lines printed on each long and short side of the paper.' => \
 	'長辺と短辺に印刷された調整用ラインの数を入力してください'
 'Are you sure to close the current image?' => '現在表示している画像を閉じますか?'
