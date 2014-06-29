@@ -339,9 +339,13 @@ LoadConfig() = {
 		g.yImageListDialog:number	= g.cfg['yImageListDialog']
 		g.xColorAdjustDialog:number	= g.cfg['xColorAdjustDialog']
 		g.yColorAdjustDialog:number	= g.cfg['yColorAdjustDialog']
-		g.sepiaR					= g.cfg['sepiaR']
-		g.sepiaG					= g.cfg['sepiaG']
-		g.sepiaB					= g.cfg['sepiaB']
+		g.sepiaR:number				= g.cfg['sepiaR']
+		g.sepiaG:number				= g.cfg['sepiaG']
+		g.sepiaB:number				= g.cfg['sepiaB']
+		g.nAdjLinesLongSide1:number	= g.cfg['nAdjLinesLongSide1']
+		g.nAdjLinesLongSide2:number	= g.cfg['nAdjLinesLongSide2']
+		g.nAdjLinesShortSide1:number= g.cfg['nAdjLinesShortSide1']
+		g.nAdjLinesShortSide2:number= g.cfg['nAdjLinesShortSide2']
 		g.frostFrameFlag			= (g.cfg['frostFrameFlag'] == 'true')
 		g.centerGuideFlag			= (g.cfg['centerGuideFlag'] == 'true')
 		g.orientation				= [`horizontal, `vertical, `auto].\
@@ -401,6 +405,10 @@ SaveConfig() = {
 	g.cfg['sepiaR']				= g.sepiaR
 	g.cfg['sepiaG']				= g.sepiaG
 	g.cfg['sepiaB']				= g.sepiaB
+	g.cfg['nAdjLinesLongSide1']	= g.nAdjLinesLongSide1:number
+	g.cfg['nAdjLinesLongSide2']	= g.nAdjLinesLongSide2:number
+	g.cfg['nAdjLinesShortSide1']= g.nAdjLinesShortSide1:number
+	g.cfg['nAdjLinesShortSide2']= g.nAdjLinesShortSide2:number
 	g.cfg['frostFrameFlag']		= g.frostFrameFlag
 	g.cfg['centerGuideFlag']	= g.centerGuideFlag
 	g.cfg['orientation']		= g.orientation
@@ -2025,13 +2033,13 @@ PrintServiceDialog = class(wx.Dialog) {
 	__init__(parent:wx.Window, nAdjLinesDrawn:number,
 			nAdjLinesLongSide1:number, nAdjLinesLongSide2:number,
 			nAdjLinesShortSide1:number, nAdjLinesShortSide2:number) = {|parent, wx.ID_ANY,
-								'Print Service'$, size => wx.Size(560, 460)|
+								'Print Service'$, size => wx.Size(580, 460)|
 		this.SetIcon(g.icon)
 		this.nAdjLinesLongSide1:public = nAdjLinesLongSide1
 		this.nAdjLinesLongSide2:public = nAdjLinesLongSide2
 		this.nAdjLinesShortSide1:public = nAdjLinesShortSide1
 		this.nAdjLinesShortSide2:public = nAdjLinesShortSide2
-		wdLabel = 170
+		wdSymbol = 30
 		wdSpin = 80
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
@@ -2049,35 +2057,15 @@ PrintServiceDialog = class(wx.Dialog) {
 		vbox.AddStretchSpacer(1)
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 			vbox.Add(hbox, wx.SizerFlags().Centre())
-			wx.BoxSizer(wx.VERTICAL) {|vbox|
-				hbox.Add(vbox, wx.SizerFlags().Expand())
-				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-					vbox.Add(hbox, wx.SizerFlags().Expand())
-					wx.StaticText(this, wx.ID_ANY, 'Num of Adj Lines on Long Side'$, size => wx.Size(wdLabel, -1)) {|ctrl|
-						hbox.Add(ctrl, wx.SizerFlags().Centre())
-					}
-					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-							style => wx.ALIGN_CENTRE_HORIZONTAL,
-							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesLongSide1) {|ctrl|
-						hbox.Add(ctrl, wx.SizerFlags())
-						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
-							// you can't use event.GetPosition() with Gura v0.5.1
-							this.nAdjLinesLongSide1 = ctrl.GetValue()
-						}
-					}
-					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-							style => wx.ALIGN_CENTRE_HORIZONTAL,
-							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesLongSide2) {|ctrl|
-						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
-						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
-							// you can't use event.GetPosition() with Gura v0.5.1
-							this.nAdjLinesLongSide2 = ctrl.GetValue()
-						}
-					}
+			wx.FlexGridSizer(nil, 3, 8, 12) {|gbox|
+				hbox.Add(gbox, wx.SizerFlags().Centre())
+				wx.StaticText(this, wx.ID_ANY, 'Num of Adj Lines on Long Side'$) {|ctrl|
+					gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.RIGHT, 12))
 				}
+				// Number of adjust lines on long side is used for size calculation of short side.
 				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-					vbox.Add(hbox, wx.SizerFlags().Expand().Border(wx.TOP, 8))
-					wx.StaticText(this, wx.ID_ANY, 'Num of Adj Lines on Short Side'$, size => wx.Size(wdLabel, -1)) {|ctrl|
+					gbox.Add(hbox, wx.SizerFlags().Centre())
+					wx.StaticText(this, wx.ID_ANY, 'a =', size => wx.Size(wdSymbol, -1)) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
@@ -2089,13 +2077,53 @@ PrintServiceDialog = class(wx.Dialog) {
 							this.nAdjLinesShortSide1 = ctrl.GetValue()
 						}
 					}
+				}
+				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+					gbox.Add(hbox, wx.SizerFlags().Centre())
+					wx.StaticText(this, wx.ID_ANY, 'b =', size => wx.Size(wdSymbol, -1)) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Centre())
+					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesShortSide2) {|ctrl|
-						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+						hbox.Add(ctrl, wx.SizerFlags())
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
 							this.nAdjLinesShortSide2 = ctrl.GetValue()
+						}
+					}
+				}
+				wx.StaticText(this, wx.ID_ANY, 'Num of Adj Lines on Short Side'$) {|ctrl|
+					gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.RIGHT, 12))
+				}
+				// Number of adjust lines on short side is used for size calculation of long side.
+				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+					gbox.Add(hbox, wx.SizerFlags().Centre())
+					wx.StaticText(this, wx.ID_ANY, 'c =', size => wx.Size(wdSymbol, -1)) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Centre())
+					}
+					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesLongSide1) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags())
+						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+							// you can't use event.GetPosition() with Gura v0.5.1
+							this.nAdjLinesLongSide1 = ctrl.GetValue()
+						}
+					}
+				}
+				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+					gbox.Add(hbox, wx.SizerFlags().Centre())
+					wx.StaticText(this, wx.ID_ANY, 'd =', size => wx.Size(wdSymbol, -1)) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Centre())
+					}
+					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesLongSide2) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags())
+						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+							// you can't use event.GetPosition() with Gura v0.5.1
+							this.nAdjLinesLongSide2 = ctrl.GetValue()
 						}
 					}
 				}
