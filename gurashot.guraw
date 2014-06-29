@@ -2033,7 +2033,7 @@ PrintServiceDialog = class(wx.Dialog) {
 	__init__(parent:wx.Window, nAdjLinesDrawn:number,
 			nAdjLinesLongSide1:number, nAdjLinesLongSide2:number,
 			nAdjLinesShortSide1:number, nAdjLinesShortSide2:number) = {|parent, wx.ID_ANY,
-								'Print Service'$, size => wx.Size(640, 460)|
+								'Print Service'$|
 		this.SetIcon(g.icon)
 		this.nAdjLinesLongSide1:public = nAdjLinesLongSide1
 		this.nAdjLinesLongSide2:public = nAdjLinesLongSide2
@@ -2044,17 +2044,17 @@ PrintServiceDialog = class(wx.Dialog) {
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.BOTTOM, 8))
-		vbox.AddStretchSpacer(1)
+		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
+		vbox.AddSpacer(16)
 		wx.StaticText(this, wx.ID_ANY, textMsg) {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Centre())
 		}
-		vbox.AddStretchSpacer(1)
+		vbox.AddSpacer(8)
 		wx.StaticBitmap(this, wx.ID_ANY, wx.Bitmap(g.imgPrintServiceAdjust),
 											style => wx.BORDER_STATIC) {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Centre())
 		}
-		vbox.AddStretchSpacer(1)
+		vbox.AddSpacer(8)
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 			vbox.Add(hbox, wx.SizerFlags().Centre())
 			wx.FlexGridSizer(nil, 3, 8, 12) {|gbox|
@@ -2135,16 +2135,18 @@ PrintServiceDialog = class(wx.Dialog) {
 				ctrl.SetFocus()
 			}
 		}
-		vbox.AddStretchSpacer(1)
+		outerBox.AddSpacer(16)
 		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
-			vbox.Add(ctrl, wx.SizerFlags().Expand())
+			outerBox.Add(ctrl, wx.SizerFlags().Expand())
 		}
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-			vbox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
+			outerBox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
 			wx.Button(this, wx.ID_CANCEL, 'Close'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
 			}
 		}
+		outerBox.AddSpacer(8)
+		this.Fit()
 	}
 }
 
