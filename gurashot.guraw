@@ -643,6 +643,7 @@ ComposeProductPDF(fileName:string, imgPhoto:image, layout:Layout,
 //-----------------------------------------------------------------------------
 DrawAdjustLines(img:image, nAdjLinesDrawn:number,
 		nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
+	fontName = 'Sans'
 	[width, height] = [img.width, img.height]
 	img.cairo {|cr|
 		cr.set_source_rgb(.3, 1, .3)
@@ -668,6 +669,16 @@ DrawAdjustLines(img:image, nAdjLinesDrawn:number,
 			cr.line_to(x, height)
 			cr.stroke()
 		}
+		cr.set_source_rgb(0, .7, 0)
+		cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+		cr.set_font_size(50)
+		text = format('a = %d, b = %d, c = %d, d = %d', nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
+		extText = cr.text_extents(text)
+		extFont = cr.font_extents()
+		x = width - nAdjLinesDrawn * 10 - extText.x_advance - 10
+		y = nAdjLinesDrawn * 10 - 10
+		cr.move_to(x, y)
+		cr.show_text(text)
 	}
 }
 
