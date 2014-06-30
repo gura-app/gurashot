@@ -305,10 +305,10 @@ g = module {
 	sepiaR:public				= 255
 	sepiaG:public				= 200
 	sepiaB:public				= 150
-	nAdjLinesLongSide1:public	= 8
-	nAdjLinesLongSide2:public	= 8
-	nAdjLinesShortSide1:public	= 8
-	nAdjLinesShortSide2:public	= 8
+	nAdjLines_a:public			= 8
+	nAdjLines_b:public			= 8
+	nAdjLines_c:public			= 8
+	nAdjLines_d:public			= 8
 	frostFrameFlag:public		= false
 	centerGuideFlag:public		= false
 	orientation:public			= `auto	// `auto, `horizontal, `vertical
@@ -342,10 +342,10 @@ LoadConfig() = {
 		g.sepiaR:number				= g.cfg['sepiaR']
 		g.sepiaG:number				= g.cfg['sepiaG']
 		g.sepiaB:number				= g.cfg['sepiaB']
-		g.nAdjLinesLongSide1:number	= g.cfg['nAdjLinesLongSide1']
-		g.nAdjLinesLongSide2:number	= g.cfg['nAdjLinesLongSide2']
-		g.nAdjLinesShortSide1:number= g.cfg['nAdjLinesShortSide1']
-		g.nAdjLinesShortSide2:number= g.cfg['nAdjLinesShortSide2']
+		g.nAdjLines_a:number		= g.cfg['nAdjLines_a']
+		g.nAdjLines_b:number		= g.cfg['nAdjLines_b']
+		g.nAdjLines_c:number		= g.cfg['nAdjLines_c']
+		g.nAdjLines_d:number		= g.cfg['nAdjLines_d']
 		g.frostFrameFlag			= (g.cfg['frostFrameFlag'] == 'true')
 		g.centerGuideFlag			= (g.cfg['centerGuideFlag'] == 'true')
 		g.orientation				= [`horizontal, `vertical, `auto].\
@@ -405,10 +405,10 @@ SaveConfig() = {
 	g.cfg['sepiaR']				= g.sepiaR
 	g.cfg['sepiaG']				= g.sepiaG
 	g.cfg['sepiaB']				= g.sepiaB
-	g.cfg['nAdjLinesLongSide1']	= g.nAdjLinesLongSide1:number
-	g.cfg['nAdjLinesLongSide2']	= g.nAdjLinesLongSide2:number
-	g.cfg['nAdjLinesShortSide1']= g.nAdjLinesShortSide1:number
-	g.cfg['nAdjLinesShortSide2']= g.nAdjLinesShortSide2:number
+	g.cfg['nAdjLines_a']		= g.nAdjLines_a
+	g.cfg['nAdjLines_b']		= g.nAdjLines_b
+	g.cfg['nAdjLines_c']		= g.nAdjLines_c
+	g.cfg['nAdjLines_d']		= g.nAdjLines_d
 	g.cfg['frostFrameFlag']		= g.frostFrameFlag
 	g.cfg['centerGuideFlag']	= g.centerGuideFlag
 	g.cfg['orientation']		= g.orientation
@@ -641,7 +641,8 @@ ComposeProductPDF(fileName:string, imgPhoto:image, layout:Layout,
 //-----------------------------------------------------------------------------
 // DrawAdjustLines
 //-----------------------------------------------------------------------------
-DrawAdjustLines(img:image, nAdjLinesDrawn:number) = {
+DrawAdjustLines(img:image, nAdjLinesDrawn:number,
+		nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
 	[width, height] = [img.width, img.height]
 	img.cairo {|cr|
 		cr.set_source_rgb(.3, 1, .3)
@@ -674,8 +675,10 @@ DrawAdjustLines(img:image, nAdjLinesDrawn:number) = {
 // ComposeProductForPrintService
 //-----------------------------------------------------------------------------
 ComposeProductForPrintService(fileName:string, imgPhoto:image, layout:Layout,
-		paperSize:PaperSize, orientation:symbol, dpi:number,
-		nAdjLinesDrawn:number, nAdjLinesLongSide:number, nAdjLinesShortSide:number) = {
+		paperSize:PaperSize, orientation:symbol, dpi:number, nAdjLinesDrawn:number,
+		nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
+	nAdjLinesLongSide = nAdjLines_c + nAdjLines_d
+	nAdjLinesShortSide = nAdjLines_a + nAdjLines_b
 	longSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesLongSide) * 10
 	shortSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesShortSide) * 10
 	[longSideOuter, shortSideOuter] = int([paperSize.longSide, paperSize.shortSide] * dpi / 25.4)
@@ -693,7 +696,8 @@ ComposeProductForPrintService(fileName:string, imgPhoto:image, layout:Layout,
 		[wdCanvas, htCanvas] = [shortSideCanvas, longSideCanvas]
 	}
 	img = image(`rgba, wdOuter, htOuter, `white)
-	DrawAdjustLines(img, nAdjLinesDrawn)
+	DrawAdjustLines(img, nAdjLinesDrawn,
+				nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
 	img.cairo {|cr|
 		cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
 		scale = wdInner / wdOuter * dpi / 25.4
@@ -1409,26 +1413,23 @@ Frame = class(wx.Frame) {
 		nAdjLinesDrawn = 15
 		dpi = 600
 		dlg = PrintServiceDialog(this, nAdjLinesDrawn,
-							g.nAdjLinesLongSide1, g.nAdjLinesLongSide2,
-							g.nAdjLinesShortSide1, g.nAdjLinesShortSide2)
+					g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
 		dlg.CentreOnParent()
 		(dlg.ShowModal() != wx.ID_OK) && return
-		g.nAdjLinesLongSide1 = dlg.nAdjLinesLongSide1
-		g.nAdjLinesLongSide2 = dlg.nAdjLinesLongSide2
-		g.nAdjLinesShortSide1 = dlg.nAdjLinesShortSide1
-		g.nAdjLinesShortSide2 = dlg.nAdjLinesShortSide2
+		g.nAdjLines_a = dlg.nAdjLines_a
+		g.nAdjLines_b = dlg.nAdjLines_b
+		g.nAdjLines_c = dlg.nAdjLines_c
+		g.nAdjLines_d = dlg.nAdjLines_d
 		filter = 'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif'$
 		dlg = wx.FileDialog(this, 'Specify an image file to save'$,
 							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		(dlg.ShowModal() != wx.ID_OK) && return
 		fileName = dlg.GetPath()
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
-		nAdjLinesLongSide = g.nAdjLinesLongSide1 + g.nAdjLinesLongSide2
-		nAdjLinesShortSide = g.nAdjLinesShortSide1 + g.nAdjLinesShortSide2
 		wx.BusyCursor {
 			ComposeProductForPrintService(fileName, g.imgPhotoHighRes, g.layoutCur,
-					g.paperSizeCur, orientation, dpi,
-					nAdjLinesDrawn, nAdjLinesLongSide, nAdjLinesShortSide)
+					g.paperSizeCur, orientation, dpi, nAdjLinesDrawn,
+					g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
 		}
 	}
 	OnMenu_RenameLabel(event:wx.CommandEvent) = {
@@ -2031,14 +2032,14 @@ PrintServiceDialog = class(wx.Dialog) {
 	textMsg = \
 	'For exact sizing, enter numbers of adjustment lines printed alongside of long and short side of paper.'$
 	__init__(parent:wx.Window, nAdjLinesDrawn:number,
-			nAdjLinesLongSide1:number, nAdjLinesLongSide2:number,
-			nAdjLinesShortSide1:number, nAdjLinesShortSide2:number) = {|parent, wx.ID_ANY,
+			nAdjLines_a:number, nAdjLines_b:number,
+			nAdjLines_c:number, nAdjLines_d:number) = {|parent, wx.ID_ANY,
 								'Print Service'$|
 		this.SetIcon(g.icon)
-		this.nAdjLinesLongSide1:public = nAdjLinesLongSide1
-		this.nAdjLinesLongSide2:public = nAdjLinesLongSide2
-		this.nAdjLinesShortSide1:public = nAdjLinesShortSide1
-		this.nAdjLinesShortSide2:public = nAdjLinesShortSide2
+		this.nAdjLines_a:public = nAdjLines_a
+		this.nAdjLines_b:public = nAdjLines_b
+		this.nAdjLines_c:public = nAdjLines_c
+		this.nAdjLines_d:public = nAdjLines_d
 		wdSymbol = 30
 		wdSpin = 80
 		outerBox = wx.BoxSizer(wx.VERTICAL)
@@ -2062,7 +2063,6 @@ PrintServiceDialog = class(wx.Dialog) {
 				wx.StaticText(this, wx.ID_ANY, 'Num of Adjust Lines on Long Side'$) {|ctrl|
 					gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.RIGHT, 12))
 				}
-				// Number of adjust lines on long side is used for size calculation of short side.
 				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 					gbox.Add(hbox, wx.SizerFlags().Centre())
 					wx.StaticText(this, wx.ID_ANY, 'a =', size => wx.Size(wdSymbol, -1)) {|ctrl|
@@ -2070,11 +2070,11 @@ PrintServiceDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL,
-							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesShortSide1) {|ctrl|
+							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_a) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
-							this.nAdjLinesShortSide1 = ctrl.GetValue()
+							this.nAdjLines_a = ctrl.GetValue()
 						}
 					}
 				}
@@ -2085,18 +2085,17 @@ PrintServiceDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL,
-							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesShortSide2) {|ctrl|
+							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_b) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
-							this.nAdjLinesShortSide2 = ctrl.GetValue()
+							this.nAdjLines_b = ctrl.GetValue()
 						}
 					}
 				}
 				wx.StaticText(this, wx.ID_ANY, 'Num of Adjust Lines on Short Side'$) {|ctrl|
 					gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.RIGHT, 12))
 				}
-				// Number of adjust lines on short side is used for size calculation of long side.
 				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 					gbox.Add(hbox, wx.SizerFlags().Centre())
 					wx.StaticText(this, wx.ID_ANY, 'c =', size => wx.Size(wdSymbol, -1)) {|ctrl|
@@ -2104,11 +2103,11 @@ PrintServiceDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL,
-							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesLongSide1) {|ctrl|
+							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_c) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
-							this.nAdjLinesLongSide1 = ctrl.GetValue()
+							this.nAdjLines_c = ctrl.GetValue()
 						}
 					}
 				}
@@ -2119,11 +2118,11 @@ PrintServiceDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL,
-							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLinesLongSide2) {|ctrl|
+							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_d) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
-							this.nAdjLinesLongSide2 = ctrl.GetValue()
+							this.nAdjLines_d = ctrl.GetValue()
 						}
 					}
 				}
