@@ -101,10 +101,12 @@ transDicts = %{
 'Reset'									=> 'リセット'
 'Adjust'								=> '調整'
 'Print Service'							=> 'プリントサービス'
+'Print Service Function'				=> 'プリントサービス機能'
 'Num of Adjust Lines on Long Side'		=> '長辺沿いの調整用ラインの数'
 'Num of Adjust Lines on Short Side'	=> '短辺沿いの調整用ラインの数'
 'For exact sizing, enter numbers of adjustment lines printed alongside of long and short side of paper.' => \
 	'正確なサイズを得るため、長辺と短辺に沿って印刷された調整用ラインの数を入力してください'
+'Detail information about adjustment lines:' => '調整用ラインについてももっと詳しく:'
 'Are you sure to close the current image?' => '現在表示している画像を閉じますか?'
 R'''
 Are you sure to remove the image from the list?

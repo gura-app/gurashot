@@ -2040,7 +2040,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 // PrintServiceDialog
 //-----------------------------------------------------------------------------
 PrintServiceDialog = class(wx.Dialog) {
-	textMsg = \
+	textMsg1 = \
 	'For exact sizing, enter numbers of adjustment lines printed alongside of long and short side of paper.'$
 	__init__(parent:wx.Window, nAdjLinesDrawn:number,
 			nAdjLines_a:number, nAdjLines_b:number,
@@ -2058,10 +2058,23 @@ PrintServiceDialog = class(wx.Dialog) {
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
 		vbox.AddSpacer(16)
-		wx.StaticText(this, wx.ID_ANY, textMsg) {|ctrl|
+		wx.StaticText(this, wx.ID_ANY, textMsg1) {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Centre())
 		}
 		vbox.AddSpacer(8)
+		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+			vbox.Add(hbox, wx.SizerFlags().Centre())
+			wx.StaticText(this, wx.ID_ANY,
+				'Detail information about adjustment lines:'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Centre())
+			}
+			text = 'Print Service Function'$
+			url = 'http://app.gura-lang.org/gurashot/#print-service'
+			wx.HyperlinkCtrl(this, wx.ID_ANY, text, url) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
+			}
+		}
+		vbox.AddSpacer(16)
 		wx.StaticBitmap(this, wx.ID_ANY, wx.Bitmap(g.imgPrintServiceAdjust),
 											style => wx.BORDER_STATIC) {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Centre())
