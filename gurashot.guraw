@@ -38,7 +38,7 @@ Version = '1.1.0'
 //-----------------------------------------------------------------------------
 Layout = struct(purpose:string, htImg:number, wdImg:number, htTop:number, htFace:number) {
 	CalcSizeEx() = {
-		[this.wdImg + g.wdMgn * 2,  this.htImg + g.htMgn * 2]
+		[this.wdImg + g.wdEdgeMgn * 2,  this.htImg + g.htEdgeMgn * 2]
 	}
 	CalcImageGrid(wdCanvas:number, htCanvas:number) = {
 		[wdImgEx, htImgEx] = this.CalcSizeEx()
@@ -315,18 +315,18 @@ g = module {
 	frostFrameFlag:public			= false
 	centerGuideFlag:public			= false
 	orientation:public				= `auto		// `auto, `horizontal, `vertical
-	trimMarks:public				= `outer	// `outer, `overwrite, `none
-	trimMarksR:public				= 50
-	trimMarksG:public				= 50
-	trimMarksB:public				= 255
+	trimMark:public					= `outer	// `outer, `overwrite, `none
+	trimMarkR:public				= 50
+	trimMarkG:public				= 50
+	trimMarkB:public				= 255
 	titleDispFlag_Size:public		= true
 	titleDispFlag_ImageLabel:public	= true
 	titleDispFlag_Purpose:public	= true
 	paperSizeCur:public				= paperSizeTbl[0]
 	imgInfos:public					= []
 	imgInfoCur:public				= nil
-	wdMgn:public					= 2	// unit: mm
-	htMgn:public					= 2	// unit: mm
+	wdEdgeMgn:public				= 2	// unit: mm
+	htEdgeMgn:public				= 2	// unit: mm
 	wdGuide:public					= 2	// unit: mm
 	htGuide:public					= 2	// unit: mm
 	htMessage:public				= 5	// unit: mm
@@ -362,16 +362,16 @@ LoadConfig() = {
 		g.centerGuideFlag			= (g.cfg['centerGuideFlag'] == 'true')
 		g.orientation				= [`horizontal, `vertical, `auto].\
 							find(g.cfg['orientation'].tosymbol()) || `auto
-		g.trimMarks					= [`outer, `overwrite, `none].\
-							find(g.cfg['trimMarks'].tosymbol()) || `outer
-		g.trimMarksR:number			= g.cfg['trimMarksR']
-		g.trimMarksG:number			= g.cfg['trimMarksG']
-		g.trimMarksB:number			= g.cfg['trimMarksB']
+		g.trimMark					= [`outer, `overwrite, `none].\
+							find(g.cfg['trimMark'].tosymbol()) || `outer
+		g.trimMarkR:number			= g.cfg['trimMarkR']
+		g.trimMarkG:number			= g.cfg['trimMarkG']
+		g.trimMarkB:number			= g.cfg['trimMarkB']
 		g.titleDispFlag_Size		= (g.cfg['titleDispFlag_Size'] == 'true')
 		g.titleDispFlag_ImageLabel	= (g.cfg['titleDispFlag_ImageLabel'] == 'true')
 		g.titleDispFlag_Purpose		= (g.cfg['titleDispFlag_Purpose'] == 'true')
-		g.wdMgn:number				= g.cfg['wdMgn']
-		g.htMgn:number				= g.cfg['htMgn']
+		g.wdEdgeMgn:number			= g.cfg['wdEdgeMgn']
+		g.htEdgeMgn:number			= g.cfg['htEdgeMgn']
 		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
 		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
 		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
@@ -436,15 +436,15 @@ SaveConfig() = {
 	g.cfg['frostFrameFlag']				= g.frostFrameFlag
 	g.cfg['centerGuideFlag']			= g.centerGuideFlag
 	g.cfg['orientation']				= g.orientation
-	g.cfg['trimMarks']					= g.trimMarks
-	g.cfg['trimMarksR']					= g.trimMarksR
-	g.cfg['trimMarksG']					= g.trimMarksG
-	g.cfg['trimMarksB']					= g.trimMarksB
+	g.cfg['trimMark']					= g.trimMark
+	g.cfg['trimMarkR']					= g.trimMarkR
+	g.cfg['trimMarkG']					= g.trimMarkG
+	g.cfg['trimMarkB']					= g.trimMarkB
 	g.cfg['titleDispFlag_Size']			= g.titleDispFlag_Size
 	g.cfg['titleDispFlag_ImageLabel']	= g.titleDispFlag_ImageLabel
 	g.cfg['titleDispFlag_Purpose']		= g.titleDispFlag_Purpose
-	g.cfg['wdMgn']						= g.wdMgn
-	g.cfg['htMgn']						= g.htMgn
+	g.cfg['wdEdgeMgn']					= g.wdEdgeMgn
+	g.cfg['htEdgeMgn']					= g.htEdgeMgn
 	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.paperSizeCur):index || 0
 	g.cfg['idxImgInfoCur']				= g.imgInfos.find(g.imgInfoCur):index || -1
 	g.cfg['imgInfos'] = g.imgInfos.each():list {|imgInfo|
@@ -542,7 +542,7 @@ OpenWithApp(fileName:string) = {
 //-----------------------------------------------------------------------------
 // ExtractImage
 //-----------------------------------------------------------------------------
-ExtractImage(imgPhoto:image, layout:Layout, wdMgn:number, htMgn:number) = {
+ExtractImage(imgPhoto:image, layout:Layout, wdEdgeMgn:number, htEdgeMgn:number) = {
 	bgColor = `gray
 	[wdDummy, htDummy] = int([imgPhoto.width / 2, imgPhoto.height / 2])
 	imgSrc = image(`rgba, imgPhoto.width + wdDummy * 2, imgPhoto.height + htDummy * 2, bgColor)
@@ -579,7 +579,7 @@ ExtractImage(imgPhoto:image, layout:Layout, wdMgn:number, htMgn:number) = {
 	imgSrc.paste(wdDummy + imgPhoto.width, htDummy + imgPhoto.height,
 		imgPhoto.crop(imgPhoto.width - wdDummy, imgPhoto.height - htDummy, wdDummy, htDummy).rotate(180))
 	f = g.imgInfoCur.CalcFrameCoord(wx.Rect(wdDummy, htDummy, imgPhoto.width, imgPhoto.height), layout)
-	[wdDotMgn, htDotMgn] = f.height * [wdMgn, htMgn] / layout.htImg
+	[wdDotMgn, htDotMgn] = f.height * [wdEdgeMgn, htEdgeMgn] / layout.htImg
 	if (g.imgInfoCur.tiltAdjFlag) {
 		angleAdj = math.atan2(f.xBtm - f.xTop, f.yBtm - f.yTop):deg
 		[xCenter, yCenter] = [imgSrc.width / 2, imgSrc.height / 2]
@@ -622,10 +622,10 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 		cr.show_text(text)
 	}
 	imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-								layout, g.wdMgn, g.htMgn).thumbnail(1000):box)
+								layout, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
 	cairo.pattern.create_for_surface(imgExtract) {|pattern|
 		cr.set_line_width(.1)
-		cr.set_source_rgb(([g.trimMarksR, g.trimMarksG, g.trimMarksB] / 255)*)
+		cr.set_source_rgb(([g.trimMarkR, g.trimMarkG, g.trimMarkB] / 255)*)
 		[wdImgEx, htImgEx] = layout.CalcSizeEx()
 		[nx, ny] = layout.CalcImageGrid(wdCanvas, htCanvas)
 		wdFrame = wdCanvas / nx
@@ -634,19 +634,19 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 			repeat(nx) {|ix|
 				xFrame = wdFrame * ix
 				x = xFrame + (wdFrame - wdImgEx) / 2
-				cr.move_to(x + g.wdMgn, 0)
-				cr.line_to(x + g.wdMgn, htCanvas - g.htMessage)
-				cr.move_to(x + wdImgEx - g.wdMgn, 0)
-				cr.line_to(x + wdImgEx - g.wdMgn, htCanvas - g.htMessage)
+				cr.move_to(x + g.wdEdgeMgn, 0)
+				cr.line_to(x + g.wdEdgeMgn, htCanvas - g.htMessage)
+				cr.move_to(x + wdImgEx - g.wdEdgeMgn, 0)
+				cr.line_to(x + wdImgEx - g.wdEdgeMgn, htCanvas - g.htMessage)
 				cr.stroke()
 			}
 			repeat(ny) {|iy|
 				yFrame = htFrame * iy
 				y = yFrame + (htFrame - htImgEx) / 2
-				cr.move_to(0, y + g.htMgn)
-				cr.line_to(wdCanvas, y + g.htMgn)
-				cr.move_to(0, y + htImgEx - g.htMgn)
-				cr.line_to(wdCanvas, y + htImgEx - g.htMgn)
+				cr.move_to(0, y + g.htEdgeMgn)
+				cr.line_to(wdCanvas, y + g.htEdgeMgn)
+				cr.move_to(0, y + htImgEx - g.htEdgeMgn)
+				cr.line_to(wdCanvas, y + htImgEx - g.htEdgeMgn)
 				cr.stroke()
 			}
 		}
@@ -665,13 +665,13 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 				}
 			}
 		}
-		if (g.trimMarks == `outer) {
+		if (g.trimMark == `outer) {
 			drawTrimMarks()
 			drawFaceImages()
-		} elsif (g.trimMarks == `overwrite) {
+		} elsif (g.trimMark == `overwrite) {
 			drawFaceImages()
 			drawTrimMarks()
-		} else {	// g.trimMarks == `none
+		} else {	// g.trimMark == `none
 			drawFaceImages()
 		}
 	}
@@ -2107,12 +2107,12 @@ OutputOptionDialog = class(wx.Dialog) {
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
 		vbox.AddSpacer(16)
 		this.orientation_init				= g.orientation
-		this.wdMgn_init						= g.wdMgn
-		this.htMgn_init						= g.htMgn
-		this.trimMarks_init					= g.trimMarks
-		this.trimMarksR_init				= g.trimMarksR
-		this.trimMarksG_init				= g.trimMarksG
-		this.trimMarksB_init				= g.trimMarksB
+		this.wdEdgeMgn_init					= g.wdEdgeMgn
+		this.htEdgeMgn_init					= g.htEdgeMgn
+		this.trimMark_init					= g.trimMark
+		this.trimMarkR_init					= g.trimMarkR
+		this.trimMarkG_init					= g.trimMarkG
+		this.trimMarkB_init					= g.trimMarkB
 		this.titleDispFlag_Size_init		= g.titleDispFlag_Size
 		this.titleDispFlag_ImageLabel_init	= g.titleDispFlag_ImageLabel
 		this.titleDispFlag_Purpose_init		= g.titleDispFlag_Purpose
@@ -2163,7 +2163,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.spinEdgeMgn_Horizontal = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
-						g.wdMgn = ctrl.GetValue()
+						g.wdEdgeMgn = ctrl.GetValue()
 						this.UpdateProduct()
 					}
 				}
@@ -2180,7 +2180,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.spinEdgeMgn_Vertical = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
-						g.htMgn = ctrl.GetValue()
+						g.htEdgeMgn = ctrl.GetValue()
 						this.UpdateProduct()
 					}
 				}
@@ -2195,25 +2195,25 @@ OutputOptionDialog = class(wx.Dialog) {
 				gbox.Add(hbox, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 				wx.RadioButton(this, wx.ID_ANY, 'Outer'$, style => wx.RB_GROUP) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre())
-					this.rbTrimMarks_Outer = ctrl
+					this.rbTrimMark_Outer = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						g.trimMarks = `outer
+						g.trimMark = `outer
 						this.UpdateProduct()
 					}
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Overwrite'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
-					this.rbTrimMarks_Overwrite = ctrl
+					this.rbTrimMark_Overwrite = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						g.trimMarks = `overwrite
+						g.trimMark = `overwrite
 						this.UpdateProduct()
 					}
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'None'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
-					this.rbTrimMarks_None = ctrl
+					this.rbTrimMark_None = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						g.trimMarks = `none
+						g.trimMark = `none
 						this.UpdateProduct()
 					}
 				}
@@ -2222,12 +2222,12 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.ColourPickerCtrl(this, wx.ID_ANY) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 12))
-					this.clrPickerTrimMarksLineColor = ctrl
+					this.clrPickerTrimMarkLineColor = ctrl
 					ctrl.Bind(wx.EVT_COLOURPICKER_CHANGED) {
 						c = ctrl.GetColour()
-						g.trimMarksR = c.Red()
-						g.trimMarksG = c.Green()
-						g.trimMarksB = c.Blue()
+						g.trimMarkR = c.Red()
+						g.trimMarkG = c.Green()
+						g.trimMarkB = c.Blue()
 						this.UpdateProduct()
 					}
 				}
@@ -2289,13 +2289,13 @@ OutputOptionDialog = class(wx.Dialog) {
 		this.rbPaperOrient_Auto.SetValue(g.orientation == `auto)
 		this.rbPaperOrient_Vertical.SetValue(g.orientation == `vertical)
 		this.rbPaperOrient_Horizontal.SetValue(g.orientation == `horizontal)
-		this.spinEdgeMgn_Horizontal.SetValue(g.wdMgn)
-		this.spinEdgeMgn_Vertical.SetValue(g.htMgn)
-		this.rbTrimMarks_Outer.SetValue(g.trimMarks == `outer)
-		this.rbTrimMarks_Overwrite.SetValue(g.trimMarks == `overwrite)
-		this.rbTrimMarks_None.SetValue(g.trimMarks == `none)
-		this.clrPickerTrimMarksLineColor.SetColour(
-					wx.Colour(g.trimMarksR, g.trimMarksG, g.trimMarksB))
+		this.spinEdgeMgn_Horizontal.SetValue(g.wdEdgeMgn)
+		this.spinEdgeMgn_Vertical.SetValue(g.htEdgeMgn)
+		this.rbTrimMark_Outer.SetValue(g.trimMark == `outer)
+		this.rbTrimMark_Overwrite.SetValue(g.trimMark == `overwrite)
+		this.rbTrimMark_None.SetValue(g.trimMark == `none)
+		this.clrPickerTrimMarkLineColor.SetColour(
+					wx.Colour(g.trimMarkR, g.trimMarkG, g.trimMarkB))
 		this.chkTitle_Size.SetValue(g.titleDispFlag_Size)
 		this.chkTitle_ImageLabel.SetValue(g.titleDispFlag_ImageLabel)
 		this.chkTitle_Purpose.SetValue(g.titleDispFlag_Purpose)
@@ -2313,12 +2313,12 @@ OutputOptionDialog = class(wx.Dialog) {
 	}
 	CancelModification() = {
 		g.orientation				= this.orientation_init
-		g.wdMgn						= this.wdMgn_init
-		g.htMgn						= this.htMgn_init
-		g.trimMarks					= this.trimMarks_init
-		g.trimMarksR				= this.trimMarksR_init
-		g.trimMarksG				= this.trimMarksG_init
-		g.trimMakrsB				= this.trimMarksB_init
+		g.wdEdgeMgn					= this.wdEdgeMgn_init
+		g.htEdgeMgn					= this.htEdgeMgn_init
+		g.trimMark					= this.trimMark_init
+		g.trimMarkR					= this.trimMarkR_init
+		g.trimMarkG					= this.trimMarkG_init
+		g.trimMakrsB				= this.trimMarkB_init
 		g.titleDispFlag_Size		= this.titleDispFlag_Size_init
 		g.titleDispFlag_ImageLabel	= this.titleDispFlag_ImageLabel_init
 		g.titleDispFLag_Purpose		= this.titleDispFlag_Purpose_init
