@@ -370,6 +370,8 @@ LoadConfig() = {
 		g.titleDispFlag_Size		= (g.cfg['titleDispFlag_Size'] == 'true')
 		g.titleDispFlag_ImageLabel	= (g.cfg['titleDispFlag_ImageLabel'] == 'true')
 		g.titleDispFlag_Purpose		= (g.cfg['titleDispFlag_Purpose'] == 'true')
+		g.wdMgn:number				= g.cfg['wdMgn']
+		g.htMgn:number				= g.cfg['htMgn']
 		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
 		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
 		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
@@ -441,6 +443,8 @@ SaveConfig() = {
 	g.cfg['titleDispFlag_Size']			= g.titleDispFlag_Size
 	g.cfg['titleDispFlag_ImageLabel']	= g.titleDispFlag_ImageLabel
 	g.cfg['titleDispFlag_Purpose']		= g.titleDispFlag_Purpose
+	g.cfg['wdMgn']						= g.wdMgn
+	g.cfg['htMgn']						= g.htMgn
 	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.paperSizeCur):index || 0
 	g.cfg['idxImgInfoCur']				= g.imgInfos.find(g.imgInfoCur):index || -1
 	g.cfg['imgInfos'] = g.imgInfos.each():list {|imgInfo|
@@ -2069,6 +2073,8 @@ OutputOptionDialog = class(wx.Dialog) {
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
 		vbox.AddSpacer(16)
 		this.orientation_init				= g.orientation
+		this.wdMgn_init						= g.wdMgn
+		this.htMgn_init						= g.htMgn
 		this.trimMarks_init					= g.trimMarks
 		this.trimMarksR_init				= g.trimMarksR
 		this.trimMarksG_init				= g.trimMarksG
@@ -2076,7 +2082,7 @@ OutputOptionDialog = class(wx.Dialog) {
 		this.titleDispFlag_Size_init		= g.titleDispFlag_Size
 		this.titleDispFlag_ImageLabel_init	= g.titleDispFlag_ImageLabel
 		this.titleDispFlag_Purpose_init		= g.titleDispFlag_Purpose
-		wx.FlexGridSizer(nil, 2, 24, 24) {|gbox|
+		wx.FlexGridSizer(nil, 2, 32, 24) {|gbox|
 			vbox.Add(gbox, wx.SizerFlags().Centre())
 			wx.StaticText(this, wx.ID_ANY, 'Paper Orientation'$) {|ctrl|
 				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
@@ -2241,6 +2247,8 @@ OutputOptionDialog = class(wx.Dialog) {
 	}
 	OnButton_CANCEL(event:wx.CommandEvent) = {
 		g.orientation				= this.orientation_init
+		g.wdMgn						= this.wdMgn_init
+		g.htMgn						= this.htMgn_init
 		g.trimMarks					= this.trimMarks_init
 		g.trimMarksR				= this.trimMarksR_init
 		g.trimMarksG				= this.trimMarksG_init
