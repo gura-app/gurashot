@@ -42,8 +42,8 @@ Layout = struct(purpose:string, htImg:number, wdImg:number, htTop:number, htFace
 	}
 	CalcImageGrid(wdCanvas:number, htCanvas:number) = {
 		[wdImgEx, htImgEx] = this.CalcSizeEx()
-		nx = int((wdCanvas - g.wdGuide) / (wdImgEx + g.wdGuide))
-		ny = int((htCanvas - g.htGuide - g.htMessage) / (htImgEx + g.htGuide))
+		nx = int((wdCanvas - g.wdTrimMark) / (wdImgEx + g.wdTrimMark))
+		ny = int((htCanvas - g.htTrimMark - g.htMessage) / (htImgEx + g.htTrimMark))
 		[nx, ny]
 	}
 }
@@ -61,13 +61,21 @@ PaperSize = struct(name:string, longSide:number, shortSide:number, printServiceF
 	}
 	GetBetterOrientation(layout:Layout, orientation:symbol) = {
 		(orientation != `auto) && return(orientation)
-		[nx, ny] = layout.CalcImageGrid(this.GetCanvasWidth(`horizontal),
+		[nx1, ny1] = layout.CalcImageGrid(this.GetCanvasWidth(`horizontal),
 									this.GetCanvasHeight(`horizontal))
-		n1 = nx * ny
-		[nx, ny] = layout.CalcImageGrid(this.GetCanvasWidth(`vertical),
+		n1 = nx1 * ny1
+		[nx2, ny2] = layout.CalcImageGrid(this.GetCanvasWidth(`vertical),
 									this.GetCanvasHeight(`vertical))
-		n2 = nx * ny
-		cond(n1 >= n2, `horizontal, `vertical)
+		n2 = nx2 * ny2
+		if (n1 > n2) {
+			`horizontal
+		} elsif (n1 < n2) {
+			`vertical
+		} elsif (max(nx1, ny1) / min(nx1, ny1) <= max(nx2, ny2) / min(nx2, ny2)) {
+			`horizontal
+		} else {
+			`vertical
+		}
 	}
 }
 
@@ -327,8 +335,8 @@ g = module {
 	imgInfoCur:public				= nil
 	wdEdgeMgn:public				= 1	// unit: mm
 	htEdgeMgn:public				= 1	// unit: mm
-	wdGuide:public					= 2	// unit: mm
-	htGuide:public					= 2	// unit: mm
+	wdTrimMark:public				= 2	// unit: mm
+	htTrimMark:public				= 2	// unit: mm
 	htMessage:public				= 5	// unit: mm
 	icon:public						= nil
 }
@@ -2158,7 +2166,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 								style => wx.ALIGN_CENTRE_HORIZONTAL,
-								min => 0, max => 3, initial => 0) {|ctrl|
+								min => 0, max => 10, initial => 0) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
 					this.spinEdgeMgn_Horizontal = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
@@ -2175,7 +2183,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 								style => wx.ALIGN_CENTRE_HORIZONTAL,
-								min => 0, max => 3, initial => 0) {|ctrl|
+								min => 0, max => 10, initial => 0) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
 					this.spinEdgeMgn_Vertical = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
