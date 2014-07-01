@@ -2188,7 +2188,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Align(wx.ALIGN_CENTRE_VERTICAL))
 				}
 			}
-			wx.StaticText(this, wx.ID_ANY, 'Trim Marks'$) {|ctrl|
+			wx.StaticText(this, wx.ID_ANY, 'Trim Mark'$) {|ctrl|
 				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 			}
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
