@@ -1406,7 +1406,8 @@ MainWindow = class(wx.Frame) {
 		(idx < 0) && return
 		layout = g.layoutTbl[idx]
 		!layout.userDefFlag && return
-		println('hello')
+		dlg = LayoutEditorDialog(this, this.extractor, layout)
+		dlg.ShowModal()
 	}
 	OnRightDown_Label(event:wx.MouseEvent) = {
 		wx.Menu() {|m|
@@ -2129,10 +2130,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 // LayoutEditorDialog
 //-----------------------------------------------------------------------------
 LayoutEditorDialog = class(wx.Dialog) {
-	wdSpin = 60
+	wdSpin = 80
 	wdUnit = 20
-	__init__(parent:wx.Window, extractor) = {|parent, wx.ID_ANY, 'Layout Editor'$|
+	__init__(parent:wx.Window, extractor, layout:Layout) = {|parent, wx.ID_ANY, 'Layout Editor'$|
 		this.extractor = extractor
+		this.layout = layout
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
@@ -2150,8 +2152,13 @@ LayoutEditorDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 								style => wx.ALIGN_CENTRE_HORIZONTAL,
-								min => 0, max => 10, initial => 0) {|ctrl|
+								min => 10, max => 100, initial => layout.htFrame) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+						// you can't use event.GetPosition() with Gura v0.5.1
+						this.layout = ctrl.GetValue()
+						this.UpdateExtractor()
+					}
 				}
 				wx.StaticText(this, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
@@ -2161,7 +2168,7 @@ LayoutEditorDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 								style => wx.ALIGN_CENTRE_HORIZONTAL,
-								min => 0, max => 10, initial => 0) {|ctrl|
+								min => 0, max => 80, initial => layout.wdFrame) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
 				}
 				wx.StaticText(this, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
@@ -2249,6 +2256,10 @@ LayoutEditorDialog = class(wx.Dialog) {
 		}
 		outerBox.AddSpacer(8)
 		this.Fit()
+	}
+	UpdateExtractor() = {
+		!this.extractor && return
+		this.extractor.Refresh()
 	}
 }
 
@@ -2748,11 +2759,11 @@ App = class(wx.App) {
 		LoadConfig()
 		InitializeResource()
 		UpdateImagePhoto()
-		
-		dlg = LayoutEditorDialog(nil, nil)
+		/*
+		dlg = LayoutEditorDialog(nil, nil, g.layoutUserDef)
 		dlg.ShowModal()
 		return(false)
-		
+		*/
 		mainWindow = MainWindow('Gura Shot'$)
 		mainWindow.Show()
 		g.mainWindow = mainWindow
