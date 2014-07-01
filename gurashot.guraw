@@ -29,7 +29,7 @@ Version = '1.0.5'
 	ID_RotateL, ID_RotateR, ID_ColorAdjust, ID_TiltAdj,
 	ID_FrostFrame, ID_CenterGuide, ID_CopyExtractedImage, ID_SaveExtractedImage,
 	ID_Label, ID_Remove, ID_RenameLabel,
-	ID_OrientVert, ID_OrientHorz, ID_OrientAuto,
+	ID_OutputOption,
 	ID_Adjust,
 ] = wx.ID_HIGHEST..
 
@@ -250,9 +250,7 @@ g = module {
 	imgFrostFrame:public	= I(resource.user_frosted_png)
 	imgTick:public			= I(resource.tick_png)
 	imgRenameLabel:public	= I(resource.tag_blue_edit_png)
-	imgOrientVert:public	= I(resource.page_white_png)
-	imgOrientHorz:public	= I(resource.page_white_horizontal_png)
-	imgOrientAuto:public	= I(resource.page_white_database_png)
+	imgOutputOption:public	= I(resource.page_white_database_png)
 	imgBrightness:public	= I(resource.weather_sun_png)
 	imgContrast:public		= I(resource.contrast_png)
 	imgBoxRed:public		= I(resource.box_red_png)
@@ -287,40 +285,47 @@ g = module {
 		{ 'Mutsugiri'$,		254, 203, false }
 		{ 'Yotsugiri'$,		305, 254, false }
 	}
-	cfg:public					= %{}
-	imgPhotoRaw:public			= imgBlank
-	imgPhotoHighRes:public		= nil
-	imgPhotoLowRes:public		= nil
-	frame:public				= nil
-	xFrame:public				= -1
-	yFrame:public				= -1
-	wdFrame:public				= 800
-	htFrame:public				= 730
-	wdSashLeft:public			= 320
-	htSashTop:public			= 300
-	xImageListDialog:public		= -1
-	yImageListDialog:public		= -1
-	xColorAdjustDialog:public	= -1
-	yColorAdjustDialog:public	= -1
-	sepiaR:public				= 255
-	sepiaG:public				= 200
-	sepiaB:public				= 150
-	nAdjLines_a:public			= 8
-	nAdjLines_b:public			= 8
-	nAdjLines_c:public			= 8
-	nAdjLines_d:public			= 8
-	frostFrameFlag:public		= false
-	centerGuideFlag:public		= false
-	orientation:public			= `auto	// `auto, `horizontal, `vertical
-	paperSizeCur:public			= paperSizeTbl[0]
-	imgInfos:public				= []
-	imgInfoCur:public			= nil
-	wdMgn:public				= 2
-	htMgn:public				= 2
-	wdGuide:public				= 2
-	htGuide:public				= 2
-	htMessage:public			= 5
-	icon:public					= nil
+	cfg:public						= %{}
+	imgPhotoRaw:public				= imgBlank
+	imgPhotoHighRes:public			= nil
+	imgPhotoLowRes:public			= nil
+	frame:public					= nil
+	xFrame:public					= -1
+	yFrame:public					= -1
+	wdFrame:public					= 800
+	htFrame:public					= 730
+	wdSashLeft:public				= 320
+	htSashTop:public				= 300
+	xImageListDialog:public			= -1
+	yImageListDialog:public			= -1
+	xColorAdjustDialog:public		= -1
+	yColorAdjustDialog:public		= -1
+	sepiaR:public					= 255
+	sepiaG:public					= 200
+	sepiaB:public					= 150
+	nAdjLines_a:public				= 8
+	nAdjLines_b:public				= 8
+	nAdjLines_c:public				= 8
+	nAdjLines_d:public				= 8
+	frostFrameFlag:public			= false
+	centerGuideFlag:public			= false
+	orientation:public				= `auto		// `auto, `horizontal, `vertical
+	trimMarks:public				= `outer	// `outer, `overwrite, `none
+	trimMarksR:public				= 50
+	trimMarksG:public				= 50
+	trimMarksB:public				= 255
+	titleDispFlag_Size:public		= true
+	titleDispFlag_ImageLabel:public	= true
+	titleDispFlag_Purpose:public	= true
+	paperSizeCur:public				= paperSizeTbl[0]
+	imgInfos:public					= []
+	imgInfoCur:public				= nil
+	wdMgn:public					= 2
+	htMgn:public					= 2
+	wdGuide:public					= 2
+	htGuide:public					= 2
+	htMessage:public				= 5
+	icon:public						= nil
 }
 
 //-----------------------------------------------------------------------------
@@ -350,6 +355,14 @@ LoadConfig() = {
 		g.centerGuideFlag			= (g.cfg['centerGuideFlag'] == 'true')
 		g.orientation				= [`horizontal, `vertical, `auto].\
 							find(g.cfg['orientation'].tosymbol()) || `auto
+		g.trimMarks					= [`outer, `overwrite, `none].\
+							find(g.cfg['trimMarks'].tosymbol()) || `outer
+		g.trimMarksR:number			= g.cfg['trimMarksR']
+		g.trimMarksG:number			= g.cfg['trimMarksG']
+		g.trimMarksB:number			= g.cfg['trimMarksB']
+		g.titleDispFlag_Size		= (g.cfg['titleDispFlag_Size'] == 'true')
+		g.titleDispFlag_ImageLabel	= (g.cfg['titleDispFlag_ImageLabel'] == 'true')
+		g.titleDispFlag_Purpose		= (g.cfg['titleDispFlag_Purpose'] == 'true')
 		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
 		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
 		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
@@ -392,28 +405,35 @@ LoadConfig() = {
 }
 
 SaveConfig() = {
-	g.cfg['xFrame']				= g.xFrame
-	g.cfg['yFrame']				= g.yFrame
-	g.cfg['wdFrame']			= g.wdFrame
-	g.cfg['htFrame']			= g.htFrame
-	g.cfg['wdSashLeft']			= g.wdSashLeft
-	g.cfg['htSashTop']			= g.htSashTop
-	g.cfg['xImageListDialog']	= g.xImageListDialog
-	g.cfg['yImageListDialog']	= g.yImageListDialog
-	g.cfg['xColorAdjustDialog']	= g.xColorAdjustDialog
-	g.cfg['yColorAdjustDialog']	= g.yColorAdjustDialog
-	g.cfg['sepiaR']				= g.sepiaR
-	g.cfg['sepiaG']				= g.sepiaG
-	g.cfg['sepiaB']				= g.sepiaB
-	g.cfg['nAdjLines_a']		= g.nAdjLines_a
-	g.cfg['nAdjLines_b']		= g.nAdjLines_b
-	g.cfg['nAdjLines_c']		= g.nAdjLines_c
-	g.cfg['nAdjLines_d']		= g.nAdjLines_d
-	g.cfg['frostFrameFlag']		= g.frostFrameFlag
-	g.cfg['centerGuideFlag']	= g.centerGuideFlag
-	g.cfg['orientation']		= g.orientation
-	g.cfg['idxPaperSizeCur']	= g.paperSizeTbl.find(g.paperSizeCur):index || 0
-	g.cfg['idxImgInfoCur']		= g.imgInfos.find(g.imgInfoCur):index || -1
+	g.cfg['xFrame']						= g.xFrame
+	g.cfg['yFrame']						= g.yFrame
+	g.cfg['wdFrame']					= g.wdFrame
+	g.cfg['htFrame']					= g.htFrame
+	g.cfg['wdSashLeft']					= g.wdSashLeft
+	g.cfg['htSashTop']					= g.htSashTop
+	g.cfg['xImageListDialog']			= g.xImageListDialog
+	g.cfg['yImageListDialog']			= g.yImageListDialog
+	g.cfg['xColorAdjustDialog']			= g.xColorAdjustDialog
+	g.cfg['yColorAdjustDialog']			= g.yColorAdjustDialog
+	g.cfg['sepiaR']						= g.sepiaR
+	g.cfg['sepiaG']						= g.sepiaG
+	g.cfg['sepiaB']						= g.sepiaB
+	g.cfg['nAdjLines_a']				= g.nAdjLines_a
+	g.cfg['nAdjLines_b']				= g.nAdjLines_b
+	g.cfg['nAdjLines_c']				= g.nAdjLines_c
+	g.cfg['nAdjLines_d']				= g.nAdjLines_d
+	g.cfg['frostFrameFlag']				= g.frostFrameFlag
+	g.cfg['centerGuideFlag']			= g.centerGuideFlag
+	g.cfg['orientation']				= g.orientation
+	g.cfg['trimMarks']					= g.trimMarks
+	g.cfg['trimMarksR']					= g.trimMarksR
+	g.cfg['trimMarksG']					= g.trimMarksG
+	g.cfg['trimMarksB']					= g.trimMarksB
+	g.cfg['titleDispFlag_Size']			= g.titleDispFlag_Size
+	g.cfg['titleDispFlag_ImageLabel']	= g.titleDispFlag_ImageLabel
+	g.cfg['titleDispFlag_Purpose']		= g.titleDispFlag_Purpose
+	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.paperSizeCur):index || 0
+	g.cfg['idxImgInfoCur']				= g.imgInfos.find(g.imgInfoCur):index || -1
 	g.cfg['imgInfos'] = g.imgInfos.each():list {|imgInfo|
 		%{
 			'label'			=> imgInfo.label
@@ -584,7 +604,8 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 								layout, g.wdMgn, g.htMgn).thumbnail(1000):box)
 	cairo.pattern.create_for_surface(imgExtract) {|pattern|
 		cr.set_line_width(.1)
-		cr.set_source_rgb(.2, .2, 1)
+		cr.set_source_rgb(([g.trimMarksR, g.trimMarksG, g.trimMarksB] / 255)*)
+		//cr.set_source_rgb(.2, .2, 1)
 		[wdImgEx, htImgEx] = layout.CalcSizeEx()
 		[nx, ny] = layout.CalcImageGrid(wdCanvas, htCanvas)
 		wdFrame = wdCanvas / nx
@@ -1077,12 +1098,10 @@ Frame = class(wx.Frame) {
 		}
 		wx.Menu {|m|
 			menuBar.Append(m, '&Output'$)
-			m.AppendRadioItem(ID_OrientVert,	'Orientation V&ertical'$)
-			m.AppendRadioItem(ID_OrientHorz,	'Orientation &Horizontal'$)
-			m.AppendRadioItem(ID_OrientAuto,	'Orientation &Auto'$)
+			m.AppendEx(ID_OutputOption,			'&Output Option...'$,		g.imgOutputOption)
 			m.AppendSeparator()
-			m.Append(ID_OutputPDF,				'&Output PDF...\tCtrl-U'$)
-			m.Append(ID_LaunchPDFViewer,		'Launch PDF &Viewer...\tCtrl-V'$)
+			m.Append(ID_OutputPDF,				'O&utput PDF...'$)
+			m.Append(ID_LaunchPDFViewer,		'Launch PDF &Viewer...'$)
 			m.AppendSeparator()
 			m.Append(ID_PrintService,			'&Print Service...'$)
 		}
@@ -1108,9 +1127,7 @@ Frame = class(wx.Frame) {
 			tb.AddTool(ID_FrostFrame,	'Frost Frame'$,		g.imgFrostFrame,	wx.NullBitmap, wx.ITEM_CHECK,	'Frost Frame'$)
 			tb.AddTool(ID_CenterGuide,	'Center Guide'$,	g.imgCenterGuide,	wx.NullBitmap, wx.ITEM_CHECK,	'Center Guide'$)
 			tb.AddSeparator()
-			tb.AddTool(ID_OrientVert,	'Orientation Vertical'$,	g.imgOrientVert,		wx.NullBitmap, wx.ITEM_RADIO,	'Orientation Vertical'$)
-			tb.AddTool(ID_OrientHorz,	'Orientation Horizontal'$,	g.imgOrientHorz,		wx.NullBitmap, wx.ITEM_RADIO,	'Orientation Horizontal'$)
-			tb.AddTool(ID_OrientAuto,	'Orientation Auto'$,		g.imgOrientAuto,		wx.NullBitmap, wx.ITEM_RADIO,	'Orientation Auto'$)
+			tb.AddTool(ID_OutputOption,	'Output Option'$,	g.imgOutputOption,	wx.NullBitmap, wx.ITEM_NORMAL,	'Output Option'$)
 			tb.AddStretchableSpace()
 			wx.ComboBox(tb, wx.ID_ANY, size => wx.Size(200, -1), style => wx.CB_READONLY) {|ctrl|
 				tb.AddControl(ctrl, 'Paper Size')
@@ -1203,11 +1220,9 @@ Frame = class(wx.Frame) {
 		this.Bind(wx.EVT_MENU, ID_TiltAdj)			{|event| this.OnMenu_TiltAdj(event)}
 		this.Bind(wx.EVT_MENU, ID_FrostFrame)		{|event| this.OnMenu_FrostFrame(event)}
 		this.Bind(wx.EVT_MENU, ID_CenterGuide)		{|event| this.OnMenu_CenterGuide(event)}
+		this.Bind(wx.EVT_MENU, ID_OutputOption)		{|event| this.OnMenu_OutputOption(event)}
 		this.Bind(wx.EVT_MENU, ID_CopyExtractedImage) {|event| this.OnMenu_CopyExtractedImage(event)}
 		this.Bind(wx.EVT_MENU, ID_SaveExtractedImage) {|event| this.OnMenu_SaveExtractedImage(event)}
-		this.Bind(wx.EVT_MENU, ID_OrientVert)		{|event| this.OnMenu_OrientVert(event)}
-		this.Bind(wx.EVT_MENU, ID_OrientHorz)		{|event| this.OnMenu_OrientHorz(event)}
-		this.Bind(wx.EVT_MENU, ID_OrientAuto)		{|event| this.OnMenu_OrientAuto(event)}
 		this.Bind(wx.EVT_MENU, wx.ID_ABOUT)			{|event| this.OnMenu_About(event)}
 		this.Bind(wx.EVT_SIZE) {|event|
 			wx.LayoutAlgorithm().LayoutWindow(this, this.productViewer)
@@ -1273,15 +1288,6 @@ Frame = class(wx.Frame) {
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_CenterGuide) {|event|
 			event.Check(g.centerGuideFlag)
-		}
-		this.Bind(wx.EVT_UPDATE_UI,	ID_OrientVert) {|event|
-			event.Check(g.orientation == `vertical)
-		}
-		this.Bind(wx.EVT_UPDATE_UI,	ID_OrientHorz) {|event|
-			event.Check(g.orientation == `horizontal)
-		}
-		this.Bind(wx.EVT_UPDATE_UI,	ID_OrientAuto) {|event|
-			event.Check(g.orientation == `auto)
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_PrintService) {|event|
 			event.Enable(g.paperSizeCur.printServiceFlag)
@@ -1395,6 +1401,9 @@ Frame = class(wx.Frame) {
 				ReadImageFile(this, imgInfo.fileName)
 			}
 		}
+	}
+	OnMenu_OutputOption(event:wx.CommandEvent) = {
+		
 	}
 	OnMenu_OutputPDF(event:wx.CommandEvent) = {
 		filter = 'PDF file (*.pdf)|*.pdf|All files (*.*)|*.*'$
@@ -1518,27 +1527,6 @@ Frame = class(wx.Frame) {
 					dlg.ShowModal()
 				}
 			}
-		}
-	}
-	OnMenu_OrientVert(event:wx.CommandEvent) = {
-		g.orientation = `vertical
-		wx.BusyCursor {
-			this.productViewer.UpdateContent(this)
-			this.productViewer.UpdateContent()
-		}
-	}
-	OnMenu_OrientHorz(event:wx.CommandEvent) = {
-		g.orientation = `horizontal
-		wx.BusyCursor {
-			this.productViewer.UpdateContent(this)
-			this.productViewer.UpdateContent()
-		}
-	}
-	OnMenu_OrientAuto(event:wx.CommandEvent) = {
-		g.orientation = `auto
-		wx.BusyCursor {
-			this.productViewer.UpdateContent(this)
-			this.productViewer.UpdateContent()
 		}
 	}
 	OnMenu_About(event:wx.CommandEvent) = {
@@ -1763,7 +1751,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 						pos = event.GetPosition()
 						this.imgInfo.brightness = pos
 						this.textBrightness.SetValue(pos)
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.brightness,
@@ -1778,7 +1766,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 						this.imgInfo.brightness = pos
 						this.sldrBrightness.SetValue(pos)
 						this.textBrightness.SetValue(pos)
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 			}
@@ -1798,7 +1786,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 						pos = event.GetPosition()
 						this.imgInfo.contrast = pos
 						this.textContrast.SetValue(pos)
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.contrast,
@@ -1813,7 +1801,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 						this.imgInfo.contrast = pos
 						this.sldrContrast.SetValue(pos)
 						this.textContrast.SetValue(pos)
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 			}
@@ -1841,7 +1829,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 						pos = event.GetPosition()
 						this.imgInfo.redness = pos
 						this.textRedness.SetValue(pos)
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.redness,
@@ -1856,7 +1844,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 						this.imgInfo.redness = pos
 						this.sldrRedness.SetValue(pos)
 						this.textRedness.SetValue(pos)
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 			}
@@ -1876,7 +1864,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 						pos = event.GetPosition()
 						this.imgInfo.greenness = pos
 						this.textGreenness.SetValue(pos)
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.greenness,
@@ -1891,7 +1879,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 						this.imgInfo.greenness = pos
 						this.sldrGreenness.SetValue(pos)
 						this.textGreenness.SetValue(pos)
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 			}
@@ -1911,7 +1899,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 						pos = event.GetPosition()
 						this.imgInfo.blueness = pos
 						this.textBlueness.SetValue(pos)
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 				wx.TextCtrl(this, wx.ID_ANY, this.imgInfo.blueness,
@@ -1926,7 +1914,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 						this.imgInfo.blueness = pos
 						this.sldrBlueness.SetValue(pos)
 						this.textBlueness.SetValue(pos)
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 			}
@@ -1952,7 +1940,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 					ctrl.SetValue(this.imgInfo.colorTone == `color)
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						this.imgInfo.colorTone = `color
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Monochrome'$) {|ctrl|
@@ -1960,7 +1948,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 					ctrl.SetValue(this.imgInfo.colorTone == `mono)
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						this.imgInfo.colorTone = `mono
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Sepia'$) {|ctrl|
@@ -1968,7 +1956,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 					ctrl.SetValue(this.imgInfo.colorTone == `sepia)
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						this.imgInfo.colorTone = `sepia
-						this.UpdateImage()
+						this.UpdateExtractor()
 					}
 				}
 				wx.Button(this, ID_Adjust, 'Adjust'$) {|ctrl|
@@ -2007,7 +1995,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 		if (dlg.ShowModal() == wx.ID_OK) {
 			c = dlg.GetColourData().GetColour()
 			[g.sepiaR, g.sepiaG, g.sepiaB] = [c.Red(), c.Green(), c.Blue()]
-			this.UpdateImage()
+			this.UpdateExtractor()
 		}
 	}
 	OnButton_OK(event:wx.CommandEvent) = {
@@ -2023,16 +2011,173 @@ ColorAdjustDialog = class(wx.Dialog) {
 		g.sepiaR				= this.sepiaR_init
 		g.sepiaG				= this.sepiaG_init
 		g.sepiaB				= this.sepiaB_init
-		this.UpdateImage()
+		this.UpdateExtractor()
 		this.EndModal(wx.ID_CANCEL)
 	}
 	UpdateSizePosInfo() = {
 		(this.IsIconized() || this.IsMaximized()) && return
 		[g.xColorAdjustDialog, g.yColorAdjustDialog] = this.GetScreenPositionXY()
 	}
-	UpdateImage() = {
+	UpdateExtractor() = {
 		!this.extractor && return
 		this.extractor.Refresh()
+	}
+}
+
+//-----------------------------------------------------------------------------
+// OutputOptionDialog
+//-----------------------------------------------------------------------------
+OutputOptionDialog = class(wx.Dialog) {
+	__init__(parent:wx.Window, productViewer) = {|parent, wx.ID_ANY, 'Output Option'$|
+		this.productViewer = productViewer
+		this.SetIcon(g.icon)
+		outerBox = wx.BoxSizer(wx.VERTICAL)
+		this.SetSizer(outerBox)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
+		vbox.AddSpacer(16)
+		this.orientation_init				= g.orientation
+		this.trimMarks_init					= g.trimMarks
+		this.trimMarksR_init				= g.trimMarksR
+		this.trimMarksG_init				= g.trimMarksG
+		this.trimMarksB_init				= g.trimMarksB
+		this.titleDispFlag_Size_init		= g.titleDispFlag_Size
+		this.titleDispFlag_ImageLabel_init	= g.titleDispFlag_ImageLabel
+		this.titleDispFlag_Purpose_init		= g.titleDispFlag_Purpose
+		wx.FlexGridSizer(nil, 2, 24, 24) {|gbox|
+			vbox.Add(gbox, wx.SizerFlags().Centre())
+			wx.StaticText(this, wx.ID_ANY, 'Paper Orientation'$) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+			}
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				gbox.Add(hbox, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				wx.RadioButton(this, wx.ID_ANY, 'Auto'$, style => wx.RB_GROUP) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre())
+					ctrl.SetValue(g.orientation == `auto)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						g.orientation = `auto
+						this.UpdateProduct()
+					}
+				}
+				wx.RadioButton(this, wx.ID_ANY, 'Vertical'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
+					ctrl.SetValue(g.orientation == `vertical)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						g.orientation = `vertical
+						this.UpdateProduct()
+					}
+				}
+				wx.RadioButton(this, wx.ID_ANY, 'Horizontal'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
+					ctrl.SetValue(g.orientation == `horizontal)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						g.orientation = `horizontal
+						this.UpdateProduct()
+					}
+				}
+			}
+			wx.StaticText(this, wx.ID_ANY, 'Trim Marks'$) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+			}
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				gbox.Add(hbox, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				wx.RadioButton(this, wx.ID_ANY, 'Outer'$, style => wx.RB_GROUP) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre())
+					ctrl.SetValue(g.trimMarks == `outer)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						g.trimMarks = `outer
+						this.UpdateProduct()
+					}
+				}
+				wx.RadioButton(this, wx.ID_ANY, 'Overwrite'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
+					ctrl.SetValue(g.trimMarks == `overwrite)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						g.trimMarks = `overwrite
+						this.UpdateProduct()
+					}
+				}
+				wx.RadioButton(this, wx.ID_ANY, 'None'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
+					ctrl.SetValue(g.trimMarks == `none)
+					ctrl.Bind(wx.EVT_RADIOBUTTON) {
+						g.trimMarks = `none
+						this.UpdateProduct()
+					}
+				}
+				wx.StaticText(this, wx.ID_ANY, 'Line Color'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
+				}
+				wx.ColourPickerCtrl(this, wx.ID_ANY) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 12))
+					ctrl.SetColour(wx.Colour(g.trimMarksR, g.trimMarksG, g.trimMarksB))
+					ctrl.Bind(wx.EVT_COLOURPICKER_CHANGED) {
+						c = ctrl.GetColour()
+						g.trimMarksR = c.Red()
+						g.trimMarksG = c.Green()
+						g.trimMarksB = c.Blue()
+						this.UpdateProduct()
+					}
+				}
+			}
+			wx.StaticText(this, wx.ID_ANY, 'Title Output'$) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+			}
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				gbox.Add(hbox, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				wx.CheckBox(this, wx.ID_ANY, 'Size'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre())
+					ctrl.SetValue(g.titleDispFlag_Size)
+					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
+						g.titleDispFlag_Size = event.IsChecked()
+						this.UpdateProduct()
+					}
+				}
+				wx.CheckBox(this, wx.ID_ANY, 'Image Label'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
+					ctrl.SetValue(g.titleDispFlag_ImageLabel)
+					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
+						g.titleDispFlag_ImageLabel = event.IsChecked()
+						this.UpdateProduct()
+					}
+				}
+				wx.CheckBox(this, wx.ID_ANY, 'Purpose'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
+					ctrl.SetValue(g.titleDispFlag_Purpose)
+					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
+						g.titleDispFlag_Purpose = event.IsChecked()
+						this.UpdateProduct()
+					}
+				}
+			}
+		}
+		outerBox.AddSpacer(16)
+		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
+			outerBox.Add(ctrl, wx.SizerFlags().Expand())
+		}
+		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+			outerBox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
+			wx.Button(this, wx.ID_OK, 'OK'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags())
+			}
+			wx.Button(this, wx.ID_CANCEL, 'Cancel'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 24))
+			}
+		}
+		outerBox.AddSpacer(8)
+		this.Fit()
+		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
+	}
+	OnButton_CANCEL(event:wx.CommandEvent) = {
+		this.UpdateProduct()
+		this.EndModal(wx.ID_CANCEL)
+	}
+	UpdateProduct() = {
+		!this.productViewer && return
+		wx.BusyCursor {
+			//this.productViewer.UpdateContent(this)
+			this.productViewer.UpdateContent()
+		}
 	}
 }
 
@@ -2040,12 +2185,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 // PrintServiceDialog
 //-----------------------------------------------------------------------------
 PrintServiceDialog = class(wx.Dialog) {
-	textMsg1 = \
+	textMsg = \
 	'For exact sizing, enter numbers of adjustment lines printed alongside of long and short side of paper.'$
 	__init__(parent:wx.Window, nAdjLinesDrawn:number,
 			nAdjLines_a:number, nAdjLines_b:number,
-			nAdjLines_c:number, nAdjLines_d:number) = {|parent, wx.ID_ANY,
-								'Print Service'$|
+			nAdjLines_c:number, nAdjLines_d:number) = {|parent, wx.ID_ANY, 'Print Service'$|
 		this.SetIcon(g.icon)
 		this.nAdjLines_a:public = nAdjLines_a
 		this.nAdjLines_b:public = nAdjLines_b
@@ -2058,7 +2202,7 @@ PrintServiceDialog = class(wx.Dialog) {
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
 		vbox.AddSpacer(16)
-		wx.StaticText(this, wx.ID_ANY, textMsg1) {|ctrl|
+		wx.StaticText(this, wx.ID_ANY, textMsg) {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Centre())
 		}
 		vbox.AddSpacer(8)
@@ -2165,7 +2309,7 @@ PrintServiceDialog = class(wx.Dialog) {
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 			outerBox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
 			wx.Button(this, wx.ID_CANCEL, 'Close'$) {|ctrl|
-				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+				hbox.Add(ctrl, wx.SizerFlags())
 			}
 		}
 		outerBox.AddSpacer(8)
@@ -2288,6 +2432,11 @@ App = class(wx.App) {
 		LoadConfig()
 		InitializeResource()
 		UpdateImagePhoto()
+		
+		//dlg = OutputOptionDialog(nil, nil)
+		//dlg.ShowModal()
+		//return(false)
+		
 		frame = Frame('Gura Shot'$)
 		frame.Show()
 		g.frame = frame
