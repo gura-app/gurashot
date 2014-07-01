@@ -36,15 +36,15 @@ Version = '1.1.0'
 //-----------------------------------------------------------------------------
 // Layout
 //-----------------------------------------------------------------------------
-Layout = struct(purpose:string, htImg:number,
-			wdImg:number, htTop:number, htFace:number, userDefFlag:boolean) {
+Layout = struct(purpose:string, htFrame:number, wdFrame:number,
+						htTop:number, htFace:number, userDefFlag:boolean) {
 	CalcSizeEx() = {
-		[this.wdImg + g.wdEdgeMgn * 2,  this.htImg + g.htEdgeMgn * 2]
+		[this.wdFrame + g.wdEdgeMgn * 2,  this.htFrame + g.htEdgeMgn * 2]
 	}
 	CalcImageGrid(wdCanvas:number, htCanvas:number) = {
-		[wdImgEx, htImgEx] = this.CalcSizeEx()
-		nx = int((wdCanvas - g.wdTrimMark) / (wdImgEx + g.wdTrimMark))
-		ny = int((htCanvas - g.htTrimMark - g.htMessage) / (htImgEx + g.htTrimMark))
+		[wdFrameEx, htFrameEx] = this.CalcSizeEx()
+		nx = int((wdCanvas - g.wdTrimMark) / (wdFrameEx + g.wdTrimMark))
+		ny = int((htCanvas - g.htTrimMark - g.htMessage) / (htFrameEx + g.htTrimMark))
 		[nx, ny]
 	}
 }
@@ -140,7 +140,7 @@ ImageInfo = class {
 		this.imgPhotoRaw	= nil
 	}
 	CalcFrameCoord(rcImg:wx.Rect, layout:Layout) = {
-		htBtm = layout.htImg - layout.htTop - layout.htFace
+		htBtm = layout.htFrame - layout.htTop - layout.htFace
 		xrateDiff = this.xrateBtm - this.xrateTop
 		yrateDiff = this.yrateBtm - this.yrateTop
 		xMarkTop = rcImg.x + rcImg.width * this.xrateTop
@@ -152,7 +152,7 @@ ImageInfo = class {
 		yTop = rcImg.y + rcImg.height * (this.yrateTop - yrateDiff * layout.htTop / layout.htFace)
 		yBtm = rcImg.y + rcImg.height * (this.yrateBtm + yrateDiff * htBtm / layout.htFace)
 		height = math.sqrt((xBtm - xTop) ** 2 + (yBtm - yTop) ** 2)
-		width = height * layout.wdImg / layout.htImg
+		width = height * layout.wdFrame / layout.htFrame
 		FrameCoord(xMarkTop, xMarkBtm, yMarkTop, yMarkBtm,
 										xTop, xBtm, yTop, yBtm, width, height)
 	}
@@ -302,11 +302,11 @@ g = module {
 	imgPhotoRaw:public				= imgBlank
 	imgPhotoHighRes:public			= nil
 	imgPhotoLowRes:public			= nil
-	frame:public					= nil
-	xFrame:public					= -1
-	yFrame:public					= -1
-	wdFrame:public					= 800
-	htFrame:public					= 730
+	mainWindow:public				= nil
+	xMainWindow:public				= -1
+	yMainWindow:public				= -1
+	wdMainWindow:public				= 800
+	htMainWindow:public				= 730
 	wdSashLeft:public				= 320
 	htSashTop:public				= 300
 	xImageListDialog:public			= -1
@@ -351,10 +351,10 @@ g = module {
 LoadConfig() = {
 	try {
 		g.cfg = yaml.read(g.fileNameCfg)
-		g.xFrame:number				= g.cfg['xFrame']
-		g.yFrame:number				= g.cfg['yFrame']
-		g.wdFrame:number			= g.cfg['wdFrame']
-		g.htFrame:number			= g.cfg['htFrame']
+		g.xMainWindow:number		= g.cfg['xMainWindow']
+		g.yMainWindow:number		= g.cfg['yMainWindow']
+		g.wdMainWindow:number		= g.cfg['wdMainWindow']
+		g.htMainWindow:number		= g.cfg['htMainWindow']
 		g.wdSashLeft:number			= g.cfg['wdSashLeft']
 		g.htSashTop:number			= g.cfg['htSashTop']
 		g.xImageListDialog:number	= g.cfg['xImageListDialog']
@@ -386,8 +386,8 @@ LoadConfig() = {
 		g.htEdgeMgn:number			= g.cfg['htEdgeMgn']
 		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
 		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
-		g.layoutUserDef.htImg:number	= g.cfg['htImgUserDef']
-		g.layoutUserDef.wdImg:number	= g.cfg['wdImgUserDef']
+		g.layoutUserDef.htFrame:number	= g.cfg['htFrameUserDef']
+		g.layoutUserDef.wdFrame:number	= g.cfg['wdFrameUserDef']
 		g.layoutUserDef.htTop:number	= g.cfg['htTopUserDef']
 		g.layoutUserDef.htFace:number	= g.cfg['htFaceUserDef']
 		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
@@ -431,10 +431,10 @@ LoadConfig() = {
 }
 
 SaveConfig() = {
-	g.cfg['xFrame']						= g.xFrame
-	g.cfg['yFrame']						= g.yFrame
-	g.cfg['wdFrame']					= g.wdFrame
-	g.cfg['htFrame']					= g.htFrame
+	g.cfg['xMainWindow']				= g.xMainWindow
+	g.cfg['yMainWindow']				= g.yMainWindow
+	g.cfg['wdMainWindow']				= g.wdMainWindow
+	g.cfg['htMainWindow']				= g.htMainWindow
 	g.cfg['wdSashLeft']					= g.wdSashLeft
 	g.cfg['htSashTop']					= g.htSashTop
 	g.cfg['xImageListDialog']			= g.xImageListDialog
@@ -463,8 +463,8 @@ SaveConfig() = {
 	g.cfg['wdEdgeMgn']					= g.wdEdgeMgn
 	g.cfg['htEdgeMgn']					= g.htEdgeMgn
 	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.paperSizeCur):index || 0
-	g.cfg['htImgUserDef']				= g.layoutUserDef.htImg
-	g.cfg['wdImgUserDef']				= g.layoutUserDef.wdImg
+	g.cfg['htFrameUserDef']				= g.layoutUserDef.htFrame
+	g.cfg['wdFrameUserDef']				= g.layoutUserDef.wdFrame
 	g.cfg['htTopUserDef']				= g.layoutUserDef.htTop
 	g.cfg['htFaceUserDef']				= g.layoutUserDef.htFace
 	g.cfg['idxImgInfoCur']				= g.imgInfos.find(g.imgInfoCur):index || -1
@@ -600,7 +600,7 @@ ExtractImage(imgPhoto:image, layout:Layout, wdEdgeMgn:number, htEdgeMgn:number) 
 	imgSrc.paste(wdDummy + imgPhoto.width, htDummy + imgPhoto.height,
 		imgPhoto.crop(imgPhoto.width - wdDummy, imgPhoto.height - htDummy, wdDummy, htDummy).rotate(180))
 	f = g.imgInfoCur.CalcFrameCoord(wx.Rect(wdDummy, htDummy, imgPhoto.width, imgPhoto.height), layout)
-	[wdDotMgn, htDotMgn] = f.height * [wdEdgeMgn, htEdgeMgn] / layout.htImg
+	[wdDotMgn, htDotMgn] = f.height * [wdEdgeMgn, htEdgeMgn] / layout.htFrame
 	if (g.imgInfoCur.tiltAdjFlag) {
 		angleAdj = math.atan2(f.xBtm - f.xTop, f.yBtm - f.yTop):deg
 		[xCenter, yCenter] = [imgSrc.width / 2, imgSrc.height / 2]
@@ -630,7 +630,7 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 		cr.move_to(0, htCanvas - 1)
 		text = ''
 		if (g.titleDispFlag_Size) {
-			text += format('[%d x %dmm]', layout.htImg, layout.wdImg)
+			text += format('[%d x %dmm]', layout.htFrame, layout.wdFrame)
 		}
 		if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
 			if (!text.isempty()) { text += ' ' }
@@ -647,38 +647,38 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 	cairo.pattern.create_for_surface(imgExtract) {|pattern|
 		cr.set_line_width(.1)
 		cr.set_source_rgb(([g.trimMarkR, g.trimMarkG, g.trimMarkB] / 255)*)
-		[wdImgEx, htImgEx] = layout.CalcSizeEx()
+		[wdFrameEx, htFrameEx] = layout.CalcSizeEx()
 		[nx, ny] = layout.CalcImageGrid(wdCanvas, htCanvas)
-		wdFrame = wdCanvas / nx
-		htFrame = (htCanvas - g.htMessage) / ny
+		wdSlot = wdCanvas / nx
+		htSlot = (htCanvas - g.htMessage) / ny
 		drawTrimMarks() = {
 			repeat(nx) {|ix|
-				xFrame = wdFrame * ix
-				x = xFrame + (wdFrame - wdImgEx) / 2
+				xSlot = wdSlot * ix
+				x = xSlot + (wdSlot - wdFrameEx) / 2
 				cr.move_to(x + g.wdEdgeMgn, 0)
 				cr.line_to(x + g.wdEdgeMgn, htCanvas - g.htMessage)
-				cr.move_to(x + wdImgEx - g.wdEdgeMgn, 0)
-				cr.line_to(x + wdImgEx - g.wdEdgeMgn, htCanvas - g.htMessage)
+				cr.move_to(x + wdFrameEx - g.wdEdgeMgn, 0)
+				cr.line_to(x + wdFrameEx - g.wdEdgeMgn, htCanvas - g.htMessage)
 				cr.stroke()
 			}
 			repeat(ny) {|iy|
-				yFrame = htFrame * iy
-				y = yFrame + (htFrame - htImgEx) / 2
+				ySlot = htSlot * iy
+				y = ySlot + (htSlot - htFrameEx) / 2
 				cr.move_to(0, y + g.htEdgeMgn)
 				cr.line_to(wdCanvas, y + g.htEdgeMgn)
-				cr.move_to(0, y + htImgEx - g.htEdgeMgn)
-				cr.line_to(wdCanvas, y + htImgEx - g.htEdgeMgn)
+				cr.move_to(0, y + htFrameEx - g.htEdgeMgn)
+				cr.line_to(wdCanvas, y + htFrameEx - g.htEdgeMgn)
 				cr.stroke()
 			}
 		}
 		drawFaceImages() = {
 			cross(ix in range(nx), iy in range(ny)) {
-				xFrame = wdFrame * ix
-				yFrame = htFrame * iy
-				x = xFrame + (wdFrame - wdImgEx) / 2
-				y = yFrame + (htFrame - htImgEx) / 2
+				xSlot = wdSlot * ix
+				ySlot = htSlot * iy
+				x = xSlot + (wdSlot - wdFrameEx) / 2
+				y = ySlot + (htSlot - htFrameEx) / 2
 				cr.save {
-					scale = htImgEx / imgExtract.height
+					scale = htFrameEx / imgExtract.height
 					cr.translate(x, y)
 					cr.scale(scale, scale)
 					cr.set_source(pattern)
@@ -1132,11 +1132,11 @@ wx.Menu.AppendEx(id:number, text:string, img:image, kind:number => wx.ITEM_NORMA
 }
 
 //-----------------------------------------------------------------------------
-// Frame
+// MainWindow
 //-----------------------------------------------------------------------------
-Frame = class(wx.Frame) {
-	__init__(title:string, pos:wx.Point => wx.Point(g.xFrame, g.yFrame),
-			size:wx.Size => wx.Size(g.wdFrame, g.htFrame)) = {|nil, wx.ID_ANY, title, pos, size|
+MainWindow = class(wx.Frame) {
+	__init__(title:string, pos:wx.Point => wx.Point(g.xMainWindow, g.yMainWindow),
+			size:wx.Size => wx.Size(g.wdMainWindow, g.htMainWindow)) = {|nil, wx.ID_ANY, title, pos, size|
 		this.SetIcon(g.icon)
 		menuBar = wx.MenuBar()
 		wx.Menu {|m|
@@ -1243,7 +1243,7 @@ Frame = class(wx.Frame) {
 			g.layoutTbl.each {|layout, idx|
 				wx.ListItem {|item|
 					item.SetId(idx)
-					item.SetText('%d x %dmm' % [layout.htImg, layout.wdImg])
+					item.SetText('%d x %dmm' % [layout.htFrame, layout.wdFrame])
 					ctrl.InsertItem(item)
 				}
 				wx.ListItem {|item|
@@ -1357,8 +1357,8 @@ Frame = class(wx.Frame) {
 	}
 	UpdateSizePosInfo() = {
 		(this.IsIconized() || this.IsMaximized()) && return
-		[g.xFrame, g.yFrame] = this.GetScreenPositionXY()
-		[g.wdFrame, g.htFrame] = this.GetSizeWH()
+		[g.xMainWindow, g.yMainWindow] = this.GetScreenPositionXY()
+		[g.wdMainWindow, g.htMainWindow] = this.GetSizeWH()
 	}
 	UpdateWholeContent(blankFlag:boolean => false) = {
 		this.extractor.UpdateContent(blankFlag)
@@ -2126,13 +2126,65 @@ ColorAdjustDialog = class(wx.Dialog) {
 }
 
 //-----------------------------------------------------------------------------
+// LayoutEditorDialog
+//-----------------------------------------------------------------------------
+LayoutEditorDialog = class(wx.Dialog) {
+	__init__(parent:wx.Window, extractor) = {|parent, wx.ID_ANY, 'Layout Editor'$|
+		this.extractor = extractor
+		this.SetIcon(g.icon)
+		outerBox = wx.BoxSizer(wx.VERTICAL)
+		this.SetSizer(outerBox)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
+		wx.FlexGridSizer(nil, 2, 16, 16) {|gbox|
+			vbox.Add(gbox, wx.SizerFlags().Border(wx.TOP, 16))
+			wx.StaticText(this, wx.ID_ANY, 'Image Size'$) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags())
+			}
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				gbox.Add(hbox, wx.SizerFlags())
+			}
+			wx.RadioButton(this, wx.ID_ANY, 'Image Size'$, style => wx.RB_GROUP) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags())
+			}
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				gbox.Add(hbox, wx.SizerFlags())
+			}
+			wx.RadioButton(this, wx.ID_ANY, 'Image Size'$) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags())
+			}
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				gbox.Add(hbox, wx.SizerFlags())
+			}
+		}
+		outerBox.AddSpacer(16)
+		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
+			outerBox.Add(ctrl, wx.SizerFlags().Expand())
+		}
+		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+			outerBox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
+			wx.Button(this, wx.ID_OK, 'OK'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags())
+			}
+			wx.Button(this, wx.ID_CANCEL, 'Cancel'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+				ctrl.SetDefault()
+				ctrl.SetFocus()
+			}
+		}
+		outerBox.AddSpacer(8)
+		this.Fit()
+	}
+}
+
+//-----------------------------------------------------------------------------
 // OutputOptionDialog
 //-----------------------------------------------------------------------------
 OutputOptionDialog = class(wx.Dialog) {
-	__init__(parent:wx.Window, productViewer) = {|parent, wx.ID_ANY, 'Output Option'$,
+	wdSpin = 60
+	__init__(parent:wx.Window, productViewer:ProductViewer) = {|parent, wx.ID_ANY, 'Output Option'$,
 				pos => wx.Point(g.xOutputOptionDialog, g.yOutputOptionDialog),
 				style => (wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP)|
-		wdSpin = 60
 		this.productViewer = productViewer
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
@@ -2622,13 +2674,13 @@ App = class(wx.App) {
 		InitializeResource()
 		UpdateImagePhoto()
 		
-		//dlg = OutputOptionDialog(nil, nil)
+		//dlg = LayoutEditorDialog(nil, nil)
 		//dlg.ShowModal()
 		//return(false)
 		
-		frame = Frame('Gura Shot'$)
-		frame.Show()
-		g.frame = frame
+		mainWindow = MainWindow('Gura Shot'$)
+		mainWindow.Show()
+		g.mainWindow = mainWindow
 		true
 	}
 	OnExit() = {
