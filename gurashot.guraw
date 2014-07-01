@@ -36,7 +36,8 @@ Version = '1.1.0'
 //-----------------------------------------------------------------------------
 // Layout
 //-----------------------------------------------------------------------------
-Layout = struct(purpose:string, htImg:number, wdImg:number, htTop:number, htFace:number) {
+Layout = struct(purpose:string, htImg:number,
+			wdImg:number, htTop:number, htFace:number, userDefFlag:boolean) {
 	CalcSizeEx() = {
 		[this.wdImg + g.wdEdgeMgn * 2,  this.htImg + g.htEdgeMgn * 2]
 	}
@@ -270,22 +271,23 @@ g = module {
 	imgColorTone:public		= I(resource.color_swatch_png)
 	imgPrintServiceAdjust:public = I(resource.print_service_adjust_png)
 	layoutTbl:public = @(Layout) {
-		{ 'Driver\'s license etc.'$,				30, 24, 2, 23 }
-		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23 }
-		{ 'Qualifications'$,						30, 30, 2, 23 }
-		{ 'Qualifications'$,						35, 24, 2, 26 }
-		{ 'Qualifications'$,						36, 24, 2, 27 }
-		{ 'Qualifications'$,						36, 25, 2, 27 }
-		{ 'Resume etc.'$,							40, 30, 2, 30 }
-		{ 'Qualifications'$,						40, 40, 3, 31 }
-		{ 'Passport etc.'$,							45, 35, 4, 34 }
-		{ 'International driver\'s license etc.'$,	50, 40, 4, 38 }
-		{ 'Visa etc.'$,								50, 50, 4, 35 }
-		{ 'Qualifications'$,						55, 40, 2, 41 }
-		{ 'Qualifications'$,						55, 45, 2, 41 }
-		{ 'Qualifications'$,						60, 45, 2, 45 }
+		{ 'Driver\'s license etc.'$,				30, 24, 2, 23, false }
+		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23, false }
+		{ 'Qualifications'$,						30, 30, 2, 23, false }
+		{ 'Qualifications'$,						35, 24, 2, 26, false }
+		{ 'Qualifications'$,						36, 24, 2, 27, false }
+		{ 'Qualifications'$,						36, 25, 2, 27, false }
+		{ 'Resume etc.'$,							40, 30, 2, 30, false }
+		{ 'Qualifications'$,						40, 40, 3, 31, false }
+		{ 'Passport etc.'$,							45, 35, 4, 34, false }
+		{ 'International driver\'s license etc.'$,	50, 40, 4, 38, false }
+		{ 'Visa etc.'$,								50, 50, 4, 35, false }
+		{ 'Qualifications'$,						55, 40, 2, 41, false }
+		{ 'Qualifications'$,						55, 45, 2, 41, false }
+		{ 'Qualifications'$,						60, 45, 2, 45, false }
 	}
 	layoutCur:public		= layoutTbl[0]
+	layoutUserDef:public	= nil
 	paperSizeTbl:public = @(PaperSize) {
 		{ 'L'$,				127,  89, true }
 		{ 'KG'$,			152, 102, false }
@@ -333,6 +335,8 @@ g = module {
 	paperSizeCur:public				= paperSizeTbl[0]
 	imgInfos:public					= []
 	imgInfoCur:public				= nil
+	layoutUserDef:public = Layout('User defined (double-click to edit)'$,
+														40, 30, 2, 30, true)
 	wdEdgeMgn:public				= 2	// unit: mm
 	htEdgeMgn:public				= 2	// unit: mm
 	wdTrimMark:public				= 2	// unit: mm
@@ -382,6 +386,10 @@ LoadConfig() = {
 		g.htEdgeMgn:number			= g.cfg['htEdgeMgn']
 		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
 		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
+		g.layoutUserDef.htImg:number	= g.cfg['htImgUserDef']
+		g.layoutUserDef.wdImg:number	= g.cfg['wdImgUserDef']
+		g.layoutUserDef.htTop:number	= g.cfg['htTopUserDef']
+		g.layoutUserDef.htFace:number	= g.cfg['htFaceUserDef']
 		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
 			imgInfo = ImageInfo()
 			imgInfo.label				= dict['label']
@@ -402,6 +410,7 @@ LoadConfig() = {
 			imgInfo
 		}
 	} catch {}
+	g.layoutTbl.add(g.layoutUserDef)
 	if (g.imgInfos.isempty()) {
 		g.imgInfoCur = ImageInfo()
 	} else {
@@ -454,6 +463,10 @@ SaveConfig() = {
 	g.cfg['wdEdgeMgn']					= g.wdEdgeMgn
 	g.cfg['htEdgeMgn']					= g.htEdgeMgn
 	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.paperSizeCur):index || 0
+	g.cfg['htImgUserDef']				= g.layoutUserDef.htImg
+	g.cfg['wdImgUserDef']				= g.layoutUserDef.wdImg
+	g.cfg['htTopUserDef']				= g.layoutUserDef.htTop
+	g.cfg['htFaceUserDef']				= g.layoutUserDef.htFace
 	g.cfg['idxImgInfoCur']				= g.imgInfos.find(g.imgInfoCur):index || -1
 	g.cfg['imgInfos'] = g.imgInfos.each():list {|imgInfo|
 		%{
@@ -623,7 +636,7 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 			if (!text.isempty()) { text += ' ' }
 			text += g.imgInfoCur.label
 		}
-		if (g.titleDispFlag_Purpose && !layout.purpose.isempty()) {
+		if (g.titleDispFlag_Purpose && !layout.userDefFlag && !layout.purpose.isempty()) {
 			if (!text.isempty()) { text += ' ' }
 			text += format('for %s', layout.purpose)
 		}
@@ -1244,6 +1257,7 @@ Frame = class(wx.Frame) {
 					wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED,
 					wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED)
 			ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED) {|event| this.OnListItemSelected(event) }
+			ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED) {|event| this.OnListItemActivated(event) }
 			this.listCtrlLayout = ctrl
 		}
 		this.dlgOutputOption = OutputOptionDialog(this, this.productViewer)
@@ -1386,6 +1400,13 @@ Frame = class(wx.Frame) {
 		wx.BusyCursor {
 			this.UpdateWholeContent()
 		}
+	}
+	OnListItemActivated(event:wx.ListEvent) = {
+		idx = event.GetIndex()
+		(idx < 0) && return
+		layout = g.layoutTbl[idx]
+		!layout.userDefFlag && return
+		println('hello')
 	}
 	OnRightDown_Label(event:wx.MouseEvent) = {
 		wx.Menu() {|m|
@@ -1775,15 +1796,14 @@ ImageListDialog = class(wx.Dialog) {
 //-----------------------------------------------------------------------------
 ColorAdjustDialog = class(wx.Dialog) {
 	wdLabel = 80
+	wdSlider = 260
 	wdText = 60
 	wdButton = 80
 	__init__(parent:wx.Window, extractor:Extractor, productViewer:ProductViewer) = {|parent, wx.ID_ANY,
 				'Color Adjustment'$,
-				pos => wx.Point(g.xColorAdjustDialog, g.yColorAdjustDialog),
-				size => wx.Size(560, 350)|
+				pos => wx.Point(g.xColorAdjustDialog, g.yColorAdjustDialog)|
 		this.extractor = extractor
 		this.productViewer = productViewer
-		
 		this.imgInfo = g.imgInfoCur
 		this.colorTone_init		= this.imgInfo.colorTone
 		this.brightness_init	= this.imgInfo.brightness
@@ -1800,7 +1820,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.TOP | wx.BOTTOM, 8))
-		vbox.AddStretchSpacer(1)
+		vbox.AddSpacer(8)
 		wx.BoxSizer(wx.VERTICAL) {|vboxIn|
 			vbox.Add(vboxIn, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
 			vbox:local = vboxIn
@@ -1812,7 +1832,8 @@ ColorAdjustDialog = class(wx.Dialog) {
 				wx.StaticText(this, wx.ID_ANY, 'Brightness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
-				wx.Slider(this, wx.ID_ANY, this.imgInfo.brightness, -100, 100) {|ctrl|
+				wx.Slider(this, wx.ID_ANY, this.imgInfo.brightness,
+									-100, 100, size => wx.Size(wdSlider, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
 					this.sldrBrightness = ctrl
 					ctrl.Bind(wx.EVT_SCROLL) {|event|
@@ -1847,7 +1868,8 @@ ColorAdjustDialog = class(wx.Dialog) {
 				wx.StaticText(this, wx.ID_ANY, 'Contrast'$, size => wx.Size(wdLabel, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
-				wx.Slider(this, wx.ID_ANY, this.imgInfo.contrast, -100, 100) {|ctrl|
+				wx.Slider(this, wx.ID_ANY, this.imgInfo.contrast,
+									-100, 100, size => wx.Size(wdSlider, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
 					this.sldrContrast = ctrl
 					ctrl.Bind(wx.EVT_SCROLL) {|event|
@@ -1874,11 +1896,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 			}
 		}
-		vbox.AddStretchSpacer(1)
+		vbox.AddSpacer(16)
 		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Expand())
 		}
-		vbox.AddStretchSpacer(1)
+		vbox.AddSpacer(16)
 		wx.BoxSizer(wx.VERTICAL) {|vboxIn|
 			vbox.Add(vboxIn, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
 			vbox:local = vboxIn
@@ -1890,7 +1912,8 @@ ColorAdjustDialog = class(wx.Dialog) {
 				wx.StaticText(this, wx.ID_ANY, 'Redness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
-				wx.Slider(this, wx.ID_ANY, this.imgInfo.redness, -100, 100) {|ctrl|
+				wx.Slider(this, wx.ID_ANY, this.imgInfo.redness,
+									-100, 100, size => wx.Size(wdSlider, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
 					this.sldrRedness = ctrl
 					ctrl.Bind(wx.EVT_SCROLL) {|event|
@@ -1925,7 +1948,8 @@ ColorAdjustDialog = class(wx.Dialog) {
 				wx.StaticText(this, wx.ID_ANY, 'Greenness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
-				wx.Slider(this, wx.ID_ANY, this.imgInfo.greenness, -100, 100) {|ctrl|
+				wx.Slider(this, wx.ID_ANY, this.imgInfo.greenness,
+									-100, 100, size => wx.Size(wdSlider, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
 					this.sldrGreenness = ctrl
 					ctrl.Bind(wx.EVT_SCROLL) {|event|
@@ -1960,7 +1984,8 @@ ColorAdjustDialog = class(wx.Dialog) {
 				wx.StaticText(this, wx.ID_ANY, 'Blueness'$, size => wx.Size(wdLabel, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL).Border(wx.LEFT, 4))
 				}
-				wx.Slider(this, wx.ID_ANY, this.imgInfo.blueness, -100, 100) {|ctrl|
+				wx.Slider(this, wx.ID_ANY, this.imgInfo.blueness,
+									-100, 100, size => wx.Size(wdSlider, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Expand())
 					this.sldrBlueness = ctrl
 					ctrl.Bind(wx.EVT_SCROLL) {|event|
@@ -1987,11 +2012,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 			}
 		}
-		vbox.AddStretchSpacer(1)
+		vbox.AddSpacer(16)
 		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Expand())
 		}
-		vbox.AddStretchSpacer(1)
+		vbox.AddSpacer(16)
 		wx.BoxSizer(wx.VERTICAL) {|vboxIn|
 			vbox.Add(vboxIn, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT, 8))
 			vbox:local = vboxIn
@@ -2033,7 +2058,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 				}
 			}
 		}
-		vbox.AddStretchSpacer(1)
+		vbox.AddSpacer(16)
 		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Expand())
 		}
@@ -2048,6 +2073,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 				ctrl.SetFocus()
 			}
 		}
+		this.Fit()
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_BUTTON, ID_Adjust) {|event| this.OnButton_Adjust(event)}
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
@@ -2485,34 +2511,32 @@ PrintServiceDialog = class(wx.Dialog) {
 // RenameLabelDialog
 //-----------------------------------------------------------------------------
 RenameLabelDialog = class(wx.Dialog) {
-	__init__(parent:wx.Window, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
-									'Rename Label'$, size => wx.Size(320, 140)|
+	wdText = 200
+	__init__(parent:wx.Window, imgInfo:ImageInfo) = {|parent, wx.ID_ANY, 'Rename Label'$|
 		this.imgInfo = imgInfo
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.ALL, 8))
-		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-			vbox.Add(hbox, wx.SizerFlags().Expand().Border(wx.TOP, 8))
-			wx.StaticText(this, wx.ID_ANY, 'Original Name'$, size => wx.Size(80, -1)) {|ctrl|
-				hbox.Add(ctrl, wx.SizerFlags().Centre())
+		wx.FlexGridSizer(nil, 2, 8, 16) {|gbox|
+			vbox.Add(gbox, wx.SizerFlags().Expand().Border(wx.TOP, 8))
+			wx.StaticText(this, wx.ID_ANY, 'Original Name'$) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 			}
-			wx.StaticText(this, wx.ID_ANY, imgInfo.label, style => wx.BORDER_SUNKEN) {|ctrl|
-				hbox.Add(ctrl, wx.SizerFlags(1).Border(wx.LEFT, 8))
+			wx.StaticText(this, wx.ID_ANY, imgInfo.label,
+						size => wx.Size(wdText, -1), style => wx.BORDER_SUNKEN) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 			}
-		}
-		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-			vbox.Add(hbox, wx.SizerFlags().Expand().Border(wx.TOP, 8))
-			wx.StaticText(this, wx.ID_ANY, 'Modified Name'$, size => wx.Size(80, -1)) {|ctrl|
-				hbox.Add(ctrl, wx.SizerFlags().Centre())
+			wx.StaticText(this, wx.ID_ANY, 'Modified Name'$) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 			}
-			wx.TextCtrl(this, wx.ID_ANY, imgInfo.label) {|ctrl|
-				hbox.Add(ctrl, wx.SizerFlags(1).Border(wx.LEFT, 8))
+			wx.TextCtrl(this, wx.ID_ANY, imgInfo.label, size => wx.Size(wdText, -1)) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 				this.ctrlText = ctrl
 			}
 		}
-		vbox.AddStretchSpacer(1)
+		vbox.AddSpacer(16)
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 			vbox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP | wx.BOTTOM, 4))
 			wx.Button(this, wx.ID_OK, 'OK'$) {|ctrl|
@@ -2523,6 +2547,7 @@ RenameLabelDialog = class(wx.Dialog) {
 				hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 8))
 			}
 		}
+		this.Fit()
 		this.ctrlText.SetFocus()
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
 	}

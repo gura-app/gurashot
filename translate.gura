@@ -124,6 +124,7 @@ It will not delete the original file.''' => \
 	選択した画像を一覧から削除しますか?
 	
 	もとのファイルは削除されません'''
+'User defined (double-click to edit)'	=> 'ユーザ定義 (ダブルクリックで編集)'
 }
 }
 
