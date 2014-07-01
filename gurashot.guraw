@@ -786,6 +786,7 @@ ProductViewer = class(wx.Panel) {
 		this.Bind(wx.EVT_SIZE) {|event| this.OnSize(event)}
 		this.Bind(wx.EVT_PAINT) {|event| this.OnPaint(event)}
 		this.Bind(wx.EVT_SCROLLWIN) {|event| this.OnScrollWin(event)}
+		this.Bind(wx.EVT_MOUSEWHEEL) {|event| this.OnMouseWheel(event)}
 	}
 	// methods
 	UpdateContent(blankFlag:boolean => false) = {
@@ -858,6 +859,18 @@ ProductViewer = class(wx.Panel) {
 		}
 		this.SetScrollPos(orientation, pos)
 		this.Refresh()
+	}
+	OnMouseWheel(event:wx.MouseEvent) = {
+		orientation = wx.VERTICAL
+		rot = event.GetWheelRotation()
+		pos = this.GetScrollPos(orientation)
+		if (rot < 0) {
+			this.SetScrollPos(orientation, pos + 10)
+			this.Refresh()
+		} elsif (rot > 0) {
+			this.SetScrollPos(orientation, pos - 10)
+			this.Refresh()
+		}
 	}
 }
 
@@ -1117,26 +1130,11 @@ Frame = class(wx.Frame) {
 		}
 		wx.Menu {|m|
 			menuBar.Append(m, '&Image'$)
-			m.AppendEx(ID_RenameLabel,			'&Rename Label...'$,		g.imgRenameLabel)
-			m.AppendEx(ID_RotateL,				'Rotate &Left\tCtrl-L'$,	g.imgRotateL)
-			m.AppendEx(ID_RotateR,				'Rotate R&ight\tCtrl-I'$,	g.imgRotateR)
-			m.AppendEx(ID_ColorAdjust,			'Color &Adjustment...'$,	g.imgColorAdjust)
-			m.AppendSeparator()
-			m.AppendCheckItem(ID_TiltAdj,		'&Tilt Adjust&t\tCtrl-T'$)
-			m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
-			m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
-			m.AppendSeparator()
-			m.Append(ID_CopyExtractedImage,		'&Copy Extracted Image\tCtrl-C'$)
-			m.Append(ID_SaveExtractedImage,		'&Save Extracted Image...'$)
+			this.PrepareMenu_Image(m)
 		}
 		wx.Menu {|m|
 			menuBar.Append(m, '&Output'$)
-			m.AppendEx(ID_OutputOption,			'&Output Option...'$,		g.imgOutputOption)
-			m.AppendSeparator()
-			m.AppendEx(ID_OutputPDF,			'O&utput PDF...'$,			g.imgOutputPDF)
-			m.AppendEx(ID_LaunchPDFViewer,		'Launch PDF &Viewer...'$,	g.imgLaunchPDFViewer)
-			m.AppendSeparator()
-			m.AppendEx(ID_PrintService,			'&Print Service...'$,		g.imgPrintService)
+			this.PrepareMenu_Output(m)
 		}
 		wx.Menu {|m|
 			menuBar.Append(m, '&Help'$)
@@ -1160,7 +1158,7 @@ Frame = class(wx.Frame) {
 			tb.AddTool(ID_FrostFrame,	'Frost Frame'$,		g.imgFrostFrame,	wx.NullBitmap, wx.ITEM_CHECK,	'Frost Frame'$)
 			tb.AddTool(ID_CenterGuide,	'Center Guide'$,	g.imgCenterGuide,	wx.NullBitmap, wx.ITEM_CHECK,	'Center Guide'$)
 			tb.AddSeparator()
-			tb.AddTool(ID_OutputOption,	'Output Option'$,	g.imgOutputOption,	wx.NullBitmap, wx.ITEM_NORMAL,	'Output Option'$)
+			tb.AddTool(ID_OutputOption,	'Output Option'$,	g.imgOutputOption,	wx.NullBitmap, wx.ITEM_CHECK,	'Output Option'$)
 			tb.AddStretchableSpace()
 			wx.ComboBox(tb, wx.ID_ANY, size => wx.Size(200, -1), style => wx.CB_READONLY) {|ctrl|
 				tb.AddControl(ctrl, 'Paper Size')
@@ -1190,9 +1188,14 @@ Frame = class(wx.Frame) {
 			this.sashLeft = sash
 		}
 		this.panelLeft = wx.Panel(this.sashLeft)
-		this.productViewer = ProductViewer(this, wx.BORDER_SUNKEN)
-		this.extractor = Extractor(this.panelLeft, wx.BORDER_SUNKEN, this.productViewer)
-		this.extractor.Bind(wx.EVT_RIGHT_DOWN) {|event| this.OnRightDown_Label(event)}
+		ProductViewer(this, wx.BORDER_SUNKEN) {|ctrl|
+			ctrl.Bind(wx.EVT_RIGHT_DOWN) {|event| this.OnRightDown_ProductViewer(event)}
+			this.productViewer = ctrl
+		}
+		Extractor(this.panelLeft, wx.BORDER_SUNKEN, this.productViewer) {|ctrl|
+			ctrl.Bind(wx.EVT_RIGHT_DOWN) {|event| this.OnRightDown_Label(event)}
+			this.extractor = ctrl
+		}
 		wx.BoxSizer(wx.VERTICAL) {|vbox|
 			this.panelLeft.SetSizer(vbox)
 			vbox.Add(this.extractor, wx.SizerFlags(1).Expand())
@@ -1235,6 +1238,7 @@ Frame = class(wx.Frame) {
 			ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED) {|event| this.OnListItemSelected(event) }
 			this.listCtrlLayout = ctrl
 		}
+		this.dlgOutputOption = OutputOptionDialog(this, this.productViewer)
 		this.listCtrlLayout.SetFocus()
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_MENU, wx.ID_CLOSE)			{|event| this.Close()}
@@ -1322,6 +1326,9 @@ Frame = class(wx.Frame) {
 		this.Bind(wx.EVT_UPDATE_UI,	ID_CenterGuide) {|event|
 			event.Check(g.centerGuideFlag)
 		}
+		this.Bind(wx.EVT_UPDATE_UI,	ID_OutputOption) {|event|
+			event.Check(this.dlgOutputOption.IsShown())
+		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_PrintService) {|event|
 			event.Enable(g.paperSizeCur.printServiceFlag)
 		}
@@ -1342,6 +1349,27 @@ Frame = class(wx.Frame) {
 			this.UpdateWholeContent()
 		}
 	}
+	PrepareMenu_Image(m:wx.Menu) = {
+		m.AppendEx(ID_RenameLabel,			'&Rename Label...'$,		g.imgRenameLabel)
+		m.AppendEx(ID_RotateL,				'Rotate &Left\tCtrl-L'$,	g.imgRotateL)
+		m.AppendEx(ID_RotateR,				'Rotate R&ight\tCtrl-I'$,	g.imgRotateR)
+		m.AppendEx(ID_ColorAdjust,			'Color &Adjustment...'$,	g.imgColorAdjust)
+		m.AppendSeparator()
+		m.AppendCheckItem(ID_TiltAdj,		'&Tilt Adjust&t\tCtrl-T'$)
+		m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
+		m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
+		m.AppendSeparator()
+		m.Append(ID_CopyExtractedImage,		'&Copy Extracted Image\tCtrl-C'$)
+		m.Append(ID_SaveExtractedImage,		'&Save Extracted Image...'$)
+	}
+	PrepareMenu_Output(m:wx.Menu) = {
+		m.AppendCheckItem(ID_OutputOption,	'&Output Option...'$)
+		m.AppendSeparator()
+		m.AppendEx(ID_OutputPDF,			'O&utput PDF...'$,			g.imgOutputPDF)
+		m.AppendEx(ID_LaunchPDFViewer,		'Launch PDF &Viewer...'$,	g.imgLaunchPDFViewer)
+		m.AppendSeparator()
+		m.AppendEx(ID_PrintService,			'&Print Service...'$,		g.imgPrintService)
+	}
 	OnListItemSelected(event:wx.ListEvent) = {
 		idx = event.GetIndex()
 		(idx < 0) && return
@@ -1353,17 +1381,13 @@ Frame = class(wx.Frame) {
 	}
 	OnRightDown_Label(event:wx.MouseEvent) = {
 		wx.Menu() {|m|
-			m.AppendEx(ID_RenameLabel,			'&Rename Label...'$,		g.imgRenameLabel)
-			m.AppendEx(ID_RotateL,				'Rotate &Left\tCtrl-L'$,	g.imgRotateL)
-			m.AppendEx(ID_RotateR,				'Rotate R&ight\tCtrl-I'$,	g.imgRotateR)
-			m.AppendEx(ID_ColorAdjust,			'Color &Adjustment...'$,	g.imgColorAdjust)
-			m.AppendSeparator()
-			m.AppendCheckItem(ID_TiltAdj,		'&Tilt Adjust&t\tCtrl-T'$)
-			m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
-			m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
-			m.AppendSeparator()
-			m.Append(ID_CopyExtractedImage,		'&Copy Extracted Image\tCtrl-C'$)
-			m.Append(ID_SaveExtractedImage,		'&Save Extracted Image...'$)
+			this.PrepareMenu_Image(m)
+			this.PopupMenu(m)
+		}
+	}
+	OnRightDown_ProductViewer(event:wx.MouseEvent) = {
+		wx.Menu() {|m|
+			this.PrepareMenu_Output(m)
 			this.PopupMenu(m)
 		}
 	}
@@ -1436,8 +1460,12 @@ Frame = class(wx.Frame) {
 		}
 	}
 	OnMenu_OutputOption(event:wx.CommandEvent) = {
-		dlg = OutputOptionDialog(this, this.productViewer)
-		dlg.ShowModal()
+		if (event.IsChecked()) {
+			this.dlgOutputOption.InitWindowValues()
+			this.dlgOutputOption.Show(true)
+		} else {
+			this.dlgOutputOption.Show(false)
+		}
 	}
 	OnMenu_OutputPDF(event:wx.CommandEvent) = {
 		filter = 'PDF file (*.pdf)|*.pdf|All files (*.*)|*.*'$
@@ -1507,13 +1535,8 @@ Frame = class(wx.Frame) {
 		}
 	}
 	OnMenu_ColorAdjust(event:wx.CommandEvent) = {
-		dlg = ColorAdjustDialog(this, this.extractor, g.imgInfoCur)
-		if (dlg.ShowModal() == wx.ID_OK) {
-			wx.BusyCursor {
-				this.productViewer.UpdateContent(this)
-				this.productViewer.UpdateContent()
-			}
-		}
+		dlg = ColorAdjustDialog(this, this.extractor, this.productViewer)
+		dlg.ShowModal()
 	}
 	OnMenu_TiltAdj(event:wx.CommandEvent) = {
 		g.imgInfoCur.tiltAdjFlag = event.IsChecked()
@@ -1746,12 +1769,14 @@ ColorAdjustDialog = class(wx.Dialog) {
 	wdLabel = 80
 	wdText = 60
 	wdButton = 80
-	__init__(parent:wx.Window, extractor:Extractor, imgInfo:ImageInfo) = {|parent, wx.ID_ANY,
+	__init__(parent:wx.Window, extractor:Extractor, productViewer:ProductViewer) = {|parent, wx.ID_ANY,
 				'Color Adjustment'$,
 				pos => wx.Point(g.xColorAdjustDialog, g.yColorAdjustDialog),
 				size => wx.Size(560, 350)|
 		this.extractor = extractor
-		this.imgInfo = imgInfo
+		this.productViewer = productViewer
+		
+		this.imgInfo = g.imgInfoCur
 		this.colorTone_init		= this.imgInfo.colorTone
 		this.brightness_init	= this.imgInfo.brightness
 		this.contrast_init		= this.imgInfo.contrast
@@ -1761,6 +1786,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 		this.sepiaR_init		= g.sepiaR
 		this.sepiaG_init		= g.sepiaG
 		this.sepiaB_init		= g.sepiaB
+		
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
@@ -2033,9 +2059,17 @@ ColorAdjustDialog = class(wx.Dialog) {
 		}
 	}
 	OnButton_OK(event:wx.CommandEvent) = {
+		wx.BusyCursor {
+			this.productViewer.UpdateContent(this)
+			this.productViewer.UpdateContent()
+		}
 		this.EndModal(wx.ID_OK)
 	}
 	OnButton_CANCEL(event:wx.CommandEvent) = {
+		this.CancelModification()
+		this.EndModal(wx.ID_CANCEL)
+	}
+	CancelModification() = {
 		this.imgInfo.colorTone	= this.colorTone_init
 		this.imgInfo.brightness	= this.brightness_init
 		this.imgInfo.contrast	= this.contrast_init
@@ -2046,7 +2080,6 @@ ColorAdjustDialog = class(wx.Dialog) {
 		g.sepiaG				= this.sepiaG_init
 		g.sepiaB				= this.sepiaB_init
 		this.UpdateExtractor()
-		this.EndModal(wx.ID_CANCEL)
 	}
 	UpdateSizePosInfo() = {
 		(this.IsIconized() || this.IsMaximized()) && return
@@ -2063,7 +2096,8 @@ ColorAdjustDialog = class(wx.Dialog) {
 //-----------------------------------------------------------------------------
 OutputOptionDialog = class(wx.Dialog) {
 	__init__(parent:wx.Window, productViewer) = {|parent, wx.ID_ANY, 'Output Option'$,
-				pos => wx.Point(g.xOutputOptionDialog, g.yOutputOptionDialog)|
+				pos => wx.Point(g.xOutputOptionDialog, g.yOutputOptionDialog),
+				style => (wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP)|
 		wdSpin = 60
 		this.productViewer = productViewer
 		this.SetIcon(g.icon)
@@ -2091,7 +2125,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				gbox.Add(hbox, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 				wx.RadioButton(this, wx.ID_ANY, 'Auto'$, style => wx.RB_GROUP) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre())
-					ctrl.SetValue(g.orientation == `auto)
+					this.rbPaperOrient_Auto = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.orientation = `auto
 						this.UpdateProduct()
@@ -2099,7 +2133,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Vertical'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
-					ctrl.SetValue(g.orientation == `vertical)
+					this.rbPaperOrient_Vertical = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.orientation = `vertical
 						this.UpdateProduct()
@@ -2107,7 +2141,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Horizontal'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
-					ctrl.SetValue(g.orientation == `horizontal)
+					this.rbPaperOrient_Horizontal = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.orientation = `horizontal
 						this.UpdateProduct()
@@ -2124,8 +2158,9 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 								style => wx.ALIGN_CENTRE_HORIZONTAL,
-								min => 0, max => 3, initial => g.wdMgn) {|ctrl|
+								min => 0, max => 3, initial => 0) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
+					this.spinEdgeMgn_Horizontal = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
 						g.wdMgn = ctrl.GetValue()
@@ -2140,8 +2175,9 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 								style => wx.ALIGN_CENTRE_HORIZONTAL,
-								min => 0, max => 3, initial => g.htMgn) {|ctrl|
+								min => 0, max => 3, initial => 0) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
+					this.spinEdgeMgn_Vertical = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
 						g.htMgn = ctrl.GetValue()
@@ -2159,7 +2195,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				gbox.Add(hbox, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 				wx.RadioButton(this, wx.ID_ANY, 'Outer'$, style => wx.RB_GROUP) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre())
-					ctrl.SetValue(g.trimMarks == `outer)
+					this.rbTrimMarks_Outer = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.trimMarks = `outer
 						this.UpdateProduct()
@@ -2167,7 +2203,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'Overwrite'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
-					ctrl.SetValue(g.trimMarks == `overwrite)
+					this.rbTrimMarks_Overwrite = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.trimMarks = `overwrite
 						this.UpdateProduct()
@@ -2175,7 +2211,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.RadioButton(this, wx.ID_ANY, 'None'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
-					ctrl.SetValue(g.trimMarks == `none)
+					this.rbTrimMarks_None = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.trimMarks = `none
 						this.UpdateProduct()
@@ -2186,7 +2222,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.ColourPickerCtrl(this, wx.ID_ANY) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 12))
-					ctrl.SetColour(wx.Colour(g.trimMarksR, g.trimMarksG, g.trimMarksB))
+					this.clrPickerTrimMarksLineColor = ctrl
 					ctrl.Bind(wx.EVT_COLOURPICKER_CHANGED) {
 						c = ctrl.GetColour()
 						g.trimMarksR = c.Red()
@@ -2203,7 +2239,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				gbox.Add(hbox, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 				wx.CheckBox(this, wx.ID_ANY, 'Size'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre())
-					ctrl.SetValue(g.titleDispFlag_Size)
+					this.chkTitle_Size = ctrl
 					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
 						g.titleDispFlag_Size = event.IsChecked()
 						this.UpdateProduct()
@@ -2211,7 +2247,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.CheckBox(this, wx.ID_ANY, 'Image Label'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
-					ctrl.SetValue(g.titleDispFlag_ImageLabel)
+					this.chkTitle_ImageLabel = ctrl
 					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
 						g.titleDispFlag_ImageLabel = event.IsChecked()
 						this.UpdateProduct()
@@ -2219,7 +2255,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.CheckBox(this, wx.ID_ANY, 'Purpose'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
-					ctrl.SetValue(g.titleDispFlag_Purpose)
+					this.chkTitle_Purpose = ctrl
 					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
 						g.titleDispFlag_Purpose = event.IsChecked()
 						this.UpdateProduct()
@@ -2237,15 +2273,45 @@ OutputOptionDialog = class(wx.Dialog) {
 				hbox.Add(ctrl, wx.SizerFlags())
 			}
 			wx.Button(this, wx.ID_CANCEL, 'Cancel'$) {|ctrl|
-				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 24))
+				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+				ctrl.SetDefault()
+				ctrl.SetFocus()
 			}
 		}
 		outerBox.AddSpacer(8)
 		this.Fit()
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
+		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
 		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
+		this.Bind(wx.EVT_CLOSE) {|event| this.OnClose(event)}
+	}
+	InitWindowValues() = {
+		this.rbPaperOrient_Auto.SetValue(g.orientation == `auto)
+		this.rbPaperOrient_Vertical.SetValue(g.orientation == `vertical)
+		this.rbPaperOrient_Horizontal.SetValue(g.orientation == `horizontal)
+		this.spinEdgeMgn_Horizontal.SetValue(g.wdMgn)
+		this.spinEdgeMgn_Vertical.SetValue(g.htMgn)
+		this.rbTrimMarks_Outer.SetValue(g.trimMarks == `outer)
+		this.rbTrimMarks_Overwrite.SetValue(g.trimMarks == `overwrite)
+		this.rbTrimMarks_None.SetValue(g.trimMarks == `none)
+		this.clrPickerTrimMarksLineColor.SetColour(
+					wx.Colour(g.trimMarksR, g.trimMarksG, g.trimMarksB))
+		this.chkTitle_Size.SetValue(g.titleDispFlag_Size)
+		this.chkTitle_ImageLabel.SetValue(g.titleDispFlag_ImageLabel)
+		this.chkTitle_Purpose.SetValue(g.titleDispFlag_Purpose)
+	}
+	OnClose(event:wx.CloseEvent) = {
+		this.CancelModification()
+		this.Show(false)
+	}
+	OnButton_OK(event:wx.CommandEvent) = {
+		this.Show(false)
 	}
 	OnButton_CANCEL(event:wx.CommandEvent) = {
+		this.CancelModification()
+		this.Show(false)
+	}
+	CancelModification() = {
 		g.orientation				= this.orientation_init
 		g.wdMgn						= this.wdMgn_init
 		g.htMgn						= this.htMgn_init
@@ -2257,7 +2323,6 @@ OutputOptionDialog = class(wx.Dialog) {
 		g.titleDispFlag_ImageLabel	= this.titleDispFlag_ImageLabel_init
 		g.titleDispFLag_Purpose		= this.titleDispFlag_Purpose_init
 		this.UpdateProduct()
-		this.EndModal(wx.ID_CANCEL)
 	}
 	UpdateSizePosInfo() = {
 		(this.IsIconized() || this.IsMaximized()) && return
