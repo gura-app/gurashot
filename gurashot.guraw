@@ -251,6 +251,9 @@ g = module {
 	imgTick:public			= I(resource.tick_png)
 	imgRenameLabel:public	= I(resource.tag_blue_edit_png)
 	imgOutputOption:public	= I(resource.page_white_database_png)
+	imgOutputPDF:public		= I(resource.page_white_acrobat_png)
+	imgLaunchPDFViewer:public = I(resource.page_white_acrobat_png)
+	imgPrintService:public	= I(resource.photo_png)
 	imgBrightness:public	= I(resource.weather_sun_png)
 	imgContrast:public		= I(resource.contrast_png)
 	imgBoxRed:public		= I(resource.box_red_png)
@@ -298,6 +301,8 @@ g = module {
 	htSashTop:public				= 300
 	xImageListDialog:public			= -1
 	yImageListDialog:public			= -1
+	xOutputOptionDialog:public		= -1
+	yOutputOptionDialog:public		= -1
 	xColorAdjustDialog:public		= -1
 	yColorAdjustDialog:public		= -1
 	sepiaR:public					= 255
@@ -342,6 +347,8 @@ LoadConfig() = {
 		g.htSashTop:number			= g.cfg['htSashTop']
 		g.xImageListDialog:number	= g.cfg['xImageListDialog']
 		g.yImageListDialog:number	= g.cfg['yImageListDialog']
+		g.xOutputOptionDialog:number= g.cfg['xOutputOptionDialog']
+		g.yOutputOptionDialog:number= g.cfg['yOutputOptionDialog']
 		g.xColorAdjustDialog:number	= g.cfg['xColorAdjustDialog']
 		g.yColorAdjustDialog:number	= g.cfg['yColorAdjustDialog']
 		g.sepiaR:number				= g.cfg['sepiaR']
@@ -413,6 +420,8 @@ SaveConfig() = {
 	g.cfg['htSashTop']					= g.htSashTop
 	g.cfg['xImageListDialog']			= g.xImageListDialog
 	g.cfg['yImageListDialog']			= g.yImageListDialog
+	g.cfg['xOutputOptionDialog']		= g.xOutputOptionDialog
+	g.cfg['yOutputOptionDialog']		= g.yOutputOptionDialog
 	g.cfg['xColorAdjustDialog']			= g.xColorAdjustDialog
 	g.cfg['yColorAdjustDialog']			= g.yColorAdjustDialog
 	g.cfg['sepiaR']						= g.sepiaR
@@ -1100,10 +1109,10 @@ Frame = class(wx.Frame) {
 			menuBar.Append(m, '&Output'$)
 			m.AppendEx(ID_OutputOption,			'&Output Option...'$,		g.imgOutputOption)
 			m.AppendSeparator()
-			m.Append(ID_OutputPDF,				'O&utput PDF...'$)
-			m.Append(ID_LaunchPDFViewer,		'Launch PDF &Viewer...'$)
+			m.AppendEx(ID_OutputPDF,			'O&utput PDF...'$,			g.imgOutputPDF)
+			m.AppendEx(ID_LaunchPDFViewer,		'Launch PDF &Viewer...'$,	g.imgLaunchPDFViewer)
 			m.AppendSeparator()
-			m.Append(ID_PrintService,			'&Print Service...'$)
+			m.AppendEx(ID_PrintService,			'&Print Service...'$,		g.imgPrintService)
 		}
 		wx.Menu {|m|
 			menuBar.Append(m, '&Help'$)
@@ -1403,7 +1412,8 @@ Frame = class(wx.Frame) {
 		}
 	}
 	OnMenu_OutputOption(event:wx.CommandEvent) = {
-		
+		dlg = OutputOptionDialog(this, this.productViewer)
+		dlg.ShowModal()
 	}
 	OnMenu_OutputPDF(event:wx.CommandEvent) = {
 		filter = 'PDF file (*.pdf)|*.pdf|All files (*.*)|*.*'$
@@ -2028,7 +2038,8 @@ ColorAdjustDialog = class(wx.Dialog) {
 // OutputOptionDialog
 //-----------------------------------------------------------------------------
 OutputOptionDialog = class(wx.Dialog) {
-	__init__(parent:wx.Window, productViewer) = {|parent, wx.ID_ANY, 'Output Option'$|
+	__init__(parent:wx.Window, productViewer) = {|parent, wx.ID_ANY, 'Output Option'$,
+				pos => wx.Point(g.xOutputOptionDialog, g.yOutputOptionDialog)|
 		this.productViewer = productViewer
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
@@ -2166,11 +2177,24 @@ OutputOptionDialog = class(wx.Dialog) {
 		}
 		outerBox.AddSpacer(8)
 		this.Fit()
+		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
 	}
 	OnButton_CANCEL(event:wx.CommandEvent) = {
+		g.orientation				= this.orientation_init
+		g.trimMarks					= this.trimMarks_init
+		g.trimMarksR				= this.trimMarksR_init
+		g.trimMarksG				= this.trimMarksG_init
+		g.trimMakrsB				= this.trimMarksB_init
+		g.titleDispFlag_Size		= this.titleDispFlag_Size_init
+		g.titleDispFlag_ImageLabel	= this.titleDispFlag_ImageLabel_init
+		g.titleDispFLag_Purpose		= this.titleDispFlag_Purpose_init
 		this.UpdateProduct()
 		this.EndModal(wx.ID_CANCEL)
+	}
+	UpdateSizePosInfo() = {
+		(this.IsIconized() || this.IsMaximized()) && return
+		[g.xOutputOptionDialog, g.yOutputOptionDialog] = this.GetScreenPositionXY()
 	}
 	UpdateProduct() = {
 		!this.productViewer && return
