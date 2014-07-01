@@ -18,7 +18,7 @@ import(mswin)
 import(units)
 import(translate)
 
-Version = '1.0.5'
+Version = '1.1.0'
 
 //-----------------------------------------------------------------------------
 // Control ID
@@ -325,11 +325,11 @@ g = module {
 	paperSizeCur:public				= paperSizeTbl[0]
 	imgInfos:public					= []
 	imgInfoCur:public				= nil
-	wdMgn:public					= 2
-	htMgn:public					= 2
-	wdGuide:public					= 2
-	htGuide:public					= 2
-	htMessage:public				= 5
+	wdMgn:public					= 2	// unit: mm
+	htMgn:public					= 2	// unit: mm
+	wdGuide:public					= 2	// unit: mm
+	htGuide:public					= 2	// unit: mm
+	htMessage:public				= 5	// unit: mm
 	icon:public						= nil
 }
 
@@ -2060,6 +2060,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 OutputOptionDialog = class(wx.Dialog) {
 	__init__(parent:wx.Window, productViewer) = {|parent, wx.ID_ANY, 'Output Option'$,
 				pos => wx.Point(g.xOutputOptionDialog, g.yOutputOptionDialog)|
+		wdSpin = 60
 		this.productViewer = productViewer
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
@@ -2105,6 +2106,44 @@ OutputOptionDialog = class(wx.Dialog) {
 						g.orientation = `horizontal
 						this.UpdateProduct()
 					}
+				}
+			}
+			wx.StaticText(this, wx.ID_ANY, 'Edge Margin'$) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+			}
+			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+				gbox.Add(hbox, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				wx.StaticText(this, wx.ID_ANY, 'Horizontal'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				}
+				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+								style => wx.ALIGN_CENTRE_HORIZONTAL,
+								min => 0, max => 3, initial => g.wdMgn) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
+					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+						// you can't use event.GetPosition() with Gura v0.5.1
+						g.wdMgn = ctrl.GetValue()
+						this.UpdateProduct()
+					}
+				}
+				wx.StaticText(this, wx.ID_ANY, 'mm'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Align(wx.ALIGN_CENTRE_VERTICAL))
+				}
+				wx.StaticText(this, wx.ID_ANY, 'Vertical'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16).Align(wx.ALIGN_CENTRE_VERTICAL))
+				}
+				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+								style => wx.ALIGN_CENTRE_HORIZONTAL,
+								min => 0, max => 3, initial => g.htMgn) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
+					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+						// you can't use event.GetPosition() with Gura v0.5.1
+						g.htMgn = ctrl.GetValue()
+						this.UpdateProduct()
+					}
+				}
+				wx.StaticText(this, wx.ID_ANY, 'mm'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Align(wx.ALIGN_CENTRE_VERTICAL))
 				}
 			}
 			wx.StaticText(this, wx.ID_ANY, 'Trim Marks'$) {|ctrl|
