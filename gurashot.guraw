@@ -2129,6 +2129,8 @@ ColorAdjustDialog = class(wx.Dialog) {
 // LayoutEditorDialog
 //-----------------------------------------------------------------------------
 LayoutEditorDialog = class(wx.Dialog) {
+	wdSpin = 60
+	wdUnit = 20
 	__init__(parent:wx.Window, extractor) = {|parent, wx.ID_ANY, 'Layout Editor'$|
 		this.extractor = extractor
 		this.SetIcon(g.icon)
@@ -2138,23 +2140,96 @@ LayoutEditorDialog = class(wx.Dialog) {
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
 		wx.FlexGridSizer(nil, 2, 16, 16) {|gbox|
 			vbox.Add(gbox, wx.SizerFlags().Border(wx.TOP, 16))
-			wx.StaticText(this, wx.ID_ANY, 'Image Size'$) {|ctrl|
-				gbox.Add(ctrl, wx.SizerFlags())
+			wx.StaticText(this, wx.ID_ANY, 'Frame Size'$) {|ctrl|
+				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 			}
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				gbox.Add(hbox, wx.SizerFlags())
+				wx.StaticText(this, wx.ID_ANY, 'Height'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre())
+				}
+				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+								style => wx.ALIGN_CENTRE_HORIZONTAL,
+								min => 0, max => 10, initial => 0) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+				}
+				wx.StaticText(this, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
+				}
+				wx.StaticText(this, wx.ID_ANY, 'Width'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16).Centre())
+				}
+				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+								style => wx.ALIGN_CENTRE_HORIZONTAL,
+								min => 0, max => 10, initial => 0) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+				}
+				wx.StaticText(this, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
+				}
 			}
-			wx.RadioButton(this, wx.ID_ANY, 'Image Size'$, style => wx.RB_GROUP) {|ctrl|
-				gbox.Add(ctrl, wx.SizerFlags())
-			}
-			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-				gbox.Add(hbox, wx.SizerFlags())
-			}
-			wx.RadioButton(this, wx.ID_ANY, 'Image Size'$) {|ctrl|
-				gbox.Add(ctrl, wx.SizerFlags())
-			}
-			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-				gbox.Add(hbox, wx.SizerFlags())
+		}
+		wx.StaticBox(this, wx.ID_ANY, 'Upper Margin and Face Part'$) {|stb|
+			vboxIn = wx.StaticBoxSizer(stb, wx.VERTICAL)
+			vbox.Add(vboxIn, wx.SizerFlags().Border(wx.TOP, 16))
+			wx.FlexGridSizer(nil, 2, 16, 16) {|gbox|
+				vboxIn.Add(gbox, wx.SizerFlags().Border(wx.ALL, 8))
+				wx.RadioButton(stb, wx.ID_ANY, 'Setting by Proportion'$, style => wx.RB_GROUP) {|ctrl|
+					gbox.Add(ctrl, wx.SizerFlags())
+				}
+				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+					gbox.Add(hbox, wx.SizerFlags())
+					wx.StaticText(stb, wx.ID_ANY, 'Upper Margin'$) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Centre())
+					}
+					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+									style => wx.ALIGN_CENTRE_HORIZONTAL,
+									min => 0, max => 10, initial => 0) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+					}
+					wx.StaticText(stb, wx.ID_ANY, '%'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
+					}
+					wx.StaticText(stb, wx.ID_ANY, 'Face Part'$) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16).Centre())
+					}
+					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+									style => wx.ALIGN_CENTRE_HORIZONTAL,
+									min => 0, max => 10, initial => 0) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+					}
+					wx.StaticText(stb, wx.ID_ANY, '%'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
+					}
+				}
+				wx.RadioButton(stb, wx.ID_ANY, 'Setting by Length'$) {|ctrl|
+					gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+				}
+				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+					gbox.Add(hbox, wx.SizerFlags())
+					wx.StaticText(stb, wx.ID_ANY, 'Upper Margin'$) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Centre())
+					}
+					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+									style => wx.ALIGN_CENTRE_HORIZONTAL,
+									min => 0, max => 10, initial => 0) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+					}
+					wx.StaticText(stb, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
+					}
+					wx.StaticText(stb, wx.ID_ANY, 'Face Part'$) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16).Centre())
+					}
+					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+									style => wx.ALIGN_CENTRE_HORIZONTAL,
+									min => 0, max => 10, initial => 0) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+					}
+					wx.StaticText(stb, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
+					}
+				}
 			}
 		}
 		outerBox.AddSpacer(16)
@@ -2674,9 +2749,9 @@ App = class(wx.App) {
 		InitializeResource()
 		UpdateImagePhoto()
 		
-		//dlg = LayoutEditorDialog(nil, nil)
-		//dlg.ShowModal()
-		//return(false)
+		dlg = LayoutEditorDialog(nil, nil)
+		dlg.ShowModal()
+		return(false)
 		
 		mainWindow = MainWindow('Gura Shot'$)
 		mainWindow.Show()
