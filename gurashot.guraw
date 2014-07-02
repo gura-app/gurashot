@@ -1287,7 +1287,7 @@ MainWindow = class(wx.Frame) {
 			this.listCtrlLayout = ctrl
 		}
 		this.dlgOutputOption = OutputOptionDialog(this, this.productViewer)
-		this.noteBook.SetFocus()
+		this.listCtrlLayout.SetFocus()
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_MENU, wx.ID_CLOSE)			{|event| this.Close()}
 		this.Bind(wx.EVT_MENU, ID_Open)				{|event| this.OnMenu_Open(event)}
