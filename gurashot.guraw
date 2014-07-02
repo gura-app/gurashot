@@ -2168,7 +2168,6 @@ ColorAdjustDialog = class(wx.Dialog) {
 //-----------------------------------------------------------------------------
 LayoutFrameEditorDialog = class(wx.Dialog) {
 	wdSpin = 80
-	wdUnit = 20
 	htFrameMax = 100	// unit: mm
 	wdFrameMax = 60		// unit: mm
 	__init__(parent:wx.Window, extractor:Extractor,  productViewer:ProductViewer,
@@ -2230,7 +2229,7 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 						this.CheckValidity()
 					}
 				}
-				wx.StaticText(stb, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+				wx.StaticText(stb, wx.ID_ANY, 'mm'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
 				}
 				wx.StaticText(stb, wx.ID_ANY, 'Width'$) {|ctrl|
@@ -2247,7 +2246,7 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 						this.UpdateExtractor()
 					}
 				}
-				wx.StaticText(stb, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+				wx.StaticText(stb, wx.ID_ANY, 'mm'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
 				}
 			}
@@ -2256,10 +2255,10 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 		wx.StaticBox(this, wx.ID_ANY, 'Allocation of Upper Margin and Face Part'$) {|stb|
 			vboxIn = wx.StaticBoxSizer(stb, wx.VERTICAL)
 			vbox.Add(vboxIn, wx.SizerFlags())
-			wx.FlexGridSizer(nil, 2, 16, 16) {|gbox|
+			wx.FlexGridSizer(nil, 3, 16, 16) {|gbox|
 				vboxIn.Add(gbox, wx.SizerFlags().Border(wx.ALL, 8))
 				wx.RadioButton(stb, wx.ID_ANY, 'Setting by Proportion'$, style => wx.RB_GROUP) {|ctrl|
-					gbox.Add(ctrl, wx.SizerFlags())
+					gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 					this.rbSettingByProportion = ctrl
 				}
 				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
@@ -2284,11 +2283,14 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 							event.Enable(this.rbSettingByProportion.GetValue())
 						}
 					}
-					wx.StaticText(stb, wx.ID_ANY, '%'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+					wx.StaticText(stb, wx.ID_ANY, '%'$) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
 					}
+				}
+				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+					gbox.Add(hbox, wx.SizerFlags())
 					wx.StaticText(stb, wx.ID_ANY, 'Face Part'$) {|ctrl|
-						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16).Centre())
+						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
@@ -2307,7 +2309,7 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 							event.Enable(this.rbSettingByProportion.GetValue())
 						}
 					}
-					wx.StaticText(stb, wx.ID_ANY, '%'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+					wx.StaticText(stb, wx.ID_ANY, '%'$) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
 					}
 				}
@@ -2338,11 +2340,14 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 							event.Enable(this.rbSettingByLength.GetValue())
 						}
 					}
-					wx.StaticText(stb, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+					wx.StaticText(stb, wx.ID_ANY, 'mm'$) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
 					}
+				}
+				wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+					gbox.Add(hbox, wx.SizerFlags())
 					wx.StaticText(stb, wx.ID_ANY, 'Face Part'$) {|ctrl|
-						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16).Centre())
+						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
@@ -2362,7 +2367,7 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 							event.Enable(this.rbSettingByLength.GetValue())
 						}
 					}
-					wx.StaticText(stb, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+					wx.StaticText(stb, wx.ID_ANY, 'mm'$) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
 					}
 				}
