@@ -1240,11 +1240,13 @@ MainWindow = class(wx.Frame) {
 				ctrl.Bind(wx.EVT_RIGHT_DOWN) {|event| this.OnRightDown_Label(event)}
 			}
 		}
-		wx.ListCtrl(this.panelTop, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
+		this.noteBook = wx.Notebook(this.panelTop, wx.ID_ANY, style => wx.NB_BOTTOM)
+		wx.ListCtrl(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
+			this.noteBook.AddPage(ctrl, 'Frame Size List'$)
 			font = ctrl.GetFont()
-			font.SetPointSize(11)
+			font.SetPointSize(font.GetPointSize() + 2)
 			ctrl.SetFont(font)
-			ctrl.InsertColumn(0.., ['Size'$, 'Purpose'$])
+			ctrl.InsertColumn(0.., ['Frame Size'$, 'Purpose'$])
 			ctrl.Bind(wx.EVT_SIZE) {|event|
 				size = event.GetSize()
 				width = size.GetWidth() - 25
@@ -1285,7 +1287,7 @@ MainWindow = class(wx.Frame) {
 			this.listCtrlLayout = ctrl
 		}
 		this.dlgOutputOption = OutputOptionDialog(this, this.productViewer)
-		this.listCtrlLayout.SetFocus()
+		this.noteBook.SetFocus()
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_MENU, wx.ID_CLOSE)			{|event| this.Close()}
 		this.Bind(wx.EVT_MENU, ID_Open)				{|event| this.OnMenu_Open(event)}
@@ -1324,7 +1326,7 @@ MainWindow = class(wx.Frame) {
 			}
 		}
 		this.panelTop.Bind(wx.EVT_SIZE) {|event|
-			wx.LayoutAlgorithm().LayoutWindow(this.panelTop, this.listCtrlLayout)
+			wx.LayoutAlgorithm().LayoutWindow(this.panelTop, this.noteBook)
 			event.Skip()
 		}
 		this.panelTop.Bind(wx.EVT_SASH_DRAGGED) {|event|
@@ -1334,8 +1336,8 @@ MainWindow = class(wx.Frame) {
 					g.wdSashLeft = event.GetDragRect().GetWidth() + 2
 					this.sashLeft.SetDefaultSize(wx.Size(g.wdSashLeft, 1000))
 				}
-				wx.LayoutAlgorithm().LayoutWindow(this.panelTop, this.listCtrlLayout)
-				this.listCtrlLayout.Refresh()
+				wx.LayoutAlgorithm().LayoutWindow(this.panelTop, this.noteBook)
+				this.noteBook.Refresh()
 			}
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_Label) {|event|

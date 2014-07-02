@@ -137,6 +137,7 @@ It will not delete the original file.''' => \
 'Face Part'								=> '顔部分'
 'The length of upper margin and face part exceeds the whole frame.' => \
 	'上マージンと顔部分の長さが全体のフレームを超えています'
+'Frame Size List'						=> 'フレームサイズ一覧'
 }
 }
 
