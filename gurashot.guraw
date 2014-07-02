@@ -37,7 +37,7 @@ Version = '1.1.0'
 // Layout
 //-----------------------------------------------------------------------------
 Layout = struct(purpose:string, htFrame:number, wdFrame:number,
-						htTop:number, htFace:number, userDefFlag:boolean) {
+					htUpperMgn:number, htFacePart:number, userDefFlag:boolean) {
 	CalcSizeEx() = {
 		[this.wdFrame + g.wdEdgeMgn * 2,  this.htFrame + g.htEdgeMgn * 2]
 	}
@@ -140,17 +140,17 @@ ImageInfo = class {
 		this.imgPhotoRaw	= nil
 	}
 	CalcFrameCoord(rcImg:wx.Rect, layout:Layout) = {
-		htBtm = layout.htFrame - layout.htTop - layout.htFace
+		htBtm = layout.htFrame - layout.htUpperMgn - layout.htFacePart
 		xrateDiff = this.xrateBtm - this.xrateTop
 		yrateDiff = this.yrateBtm - this.yrateTop
 		xMarkTop = rcImg.x + rcImg.width * this.xrateTop
 		xMarkBtm = rcImg.x + rcImg.width * this.xrateBtm
 		yMarkTop = rcImg.y + rcImg.height * this.yrateTop
 		yMarkBtm = rcImg.y + rcImg.height * this.yrateBtm
-		xTop = rcImg.x + rcImg.width * (this.xrateTop - xrateDiff * layout.htTop / layout.htFace)
-		xBtm = rcImg.x + rcImg.width * (this.xrateBtm + xrateDiff * htBtm / layout.htFace)
-		yTop = rcImg.y + rcImg.height * (this.yrateTop - yrateDiff * layout.htTop / layout.htFace)
-		yBtm = rcImg.y + rcImg.height * (this.yrateBtm + yrateDiff * htBtm / layout.htFace)
+		xTop = rcImg.x + rcImg.width * (this.xrateTop - xrateDiff * layout.htUpperMgn / layout.htFacePart)
+		xBtm = rcImg.x + rcImg.width * (this.xrateBtm + xrateDiff * htBtm / layout.htFacePart)
+		yTop = rcImg.y + rcImg.height * (this.yrateTop - yrateDiff * layout.htUpperMgn / layout.htFacePart)
+		yBtm = rcImg.y + rcImg.height * (this.yrateBtm + yrateDiff * htBtm / layout.htFacePart)
 		height = math.sqrt((xBtm - xTop) ** 2 + (yBtm - yTop) ** 2)
 		width = height * layout.wdFrame / layout.htFrame
 		FrameCoord(xMarkTop, xMarkBtm, yMarkTop, yMarkBtm,
@@ -335,8 +335,7 @@ g = module {
 	paperSizeCur:public				= paperSizeTbl[0]
 	imgInfos:public					= []
 	imgInfoCur:public				= nil
-	layoutUserDef:public = Layout('User defined (double-click to edit)'$,
-														40, 30, 2, 30, true)
+	layoutUserDef:public = Layout('', 40, 30, 2, 30, true)
 	wdEdgeMgn:public				= 2	// unit: mm
 	htEdgeMgn:public				= 2	// unit: mm
 	wdTrimMark:public				= 2	// unit: mm
@@ -386,10 +385,10 @@ LoadConfig() = {
 		g.htEdgeMgn:number			= g.cfg['htEdgeMgn']
 		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
 		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
-		g.layoutUserDef.htFrame:number	= g.cfg['htFrameUserDef']
-		g.layoutUserDef.wdFrame:number	= g.cfg['wdFrameUserDef']
-		g.layoutUserDef.htTop:number	= g.cfg['htTopUserDef']
-		g.layoutUserDef.htFace:number	= g.cfg['htFaceUserDef']
+		g.layoutUserDef.htFrame:number		= g.cfg['htFrameUserDef']
+		g.layoutUserDef.wdFrame:number		= g.cfg['wdFrameUserDef']
+		g.layoutUserDef.htUpperMgn:number	= g.cfg['htUpperMgnUserDef']
+		g.layoutUserDef.htFacePart:number	= g.cfg['htFacePartUserDef']
 		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
 			imgInfo = ImageInfo()
 			imgInfo.label				= dict['label']
@@ -465,8 +464,8 @@ SaveConfig() = {
 	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.paperSizeCur):index || 0
 	g.cfg['htFrameUserDef']				= g.layoutUserDef.htFrame
 	g.cfg['wdFrameUserDef']				= g.layoutUserDef.wdFrame
-	g.cfg['htTopUserDef']				= g.layoutUserDef.htTop
-	g.cfg['htFaceUserDef']				= g.layoutUserDef.htFace
+	g.cfg['htUpperMgnUserDef']			= g.layoutUserDef.htUpperMgn
+	g.cfg['htFacePartUserDef']			= g.layoutUserDef.htFacePart
 	g.cfg['idxImgInfoCur']				= g.imgInfos.find(g.imgInfoCur):index || -1
 	g.cfg['imgInfos'] = g.imgInfos.each():list {|imgInfo|
 		%{
@@ -636,7 +635,7 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 			if (!text.isempty()) { text += ' ' }
 			text += g.imgInfoCur.label
 		}
-		if (g.titleDispFlag_Purpose && !layout.userDefFlag && !layout.purpose.isempty()) {
+		if (g.titleDispFlag_Purpose && !layout.purpose.isempty()) {
 			if (!text.isempty()) { text += ' ' }
 			text += format('for %s', layout.purpose)
 		}
@@ -1249,8 +1248,18 @@ MainWindow = class(wx.Frame) {
 				wx.ListItem {|item|
 					item.SetId(idx)
 					item.SetColumn(1)
-					item.SetText(layout.purpose)
+					if (layout.userDefFlag && layout.purpose.isempty()) {
+						item.SetText('User defined (double-click to edit)'$)
+					} else {
+						item.SetText(layout.purpose)
+					}
 					ctrl.SetItem(item)
+				}
+				if (layout.userDefFlag) {
+					ctrl.GetFont {|font|
+						font.SetWeight(wx.FONTWEIGHT_BOLD)
+						ctrl.SetItemFont(idx, font)
+					}
 				}
 			}
 			ctrl.SetItemState(0,
@@ -2132,58 +2141,76 @@ ColorAdjustDialog = class(wx.Dialog) {
 LayoutEditorDialog = class(wx.Dialog) {
 	wdSpin = 80
 	wdUnit = 20
-	__init__(parent:wx.Window, extractor, layout:Layout) = {|parent, wx.ID_ANY, 'Layout Editor'$|
+	htFrameMax = 100	// unit: mm
+	wdFrameMax = 80		// unit: mm
+	__init__(parent:wx.Window, extractor:Extractor, layout:Layout) = {|parent, wx.ID_ANY, 'Layout Editor'$|
 		this.extractor = extractor
 		this.layout = layout
+		this.purpose_init		= this.layout.purpose
+		this.htFrame_init		= this.layout.htFrame
+		this.wdFrame_init		= this.layout.wdFrame
+		this.htUpperMgn_init	= this.layout.htUpperMgn
+		this.htFacePart_init	= this.layout.htFacePart
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
-		wx.FlexGridSizer(nil, 2, 16, 16) {|gbox|
-			vbox.Add(gbox, wx.SizerFlags().Border(wx.TOP, 16))
-			wx.StaticText(this, wx.ID_ANY, 'Frame Size'$) {|ctrl|
-				gbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
-			}
+		vbox.AddSpacer(16)
+		wx.StaticBox(this, wx.ID_ANY, 'Frame Size'$) {|stb|
+			vboxIn = wx.StaticBoxSizer(stb, wx.VERTICAL)
+			vbox.Add(vboxIn, wx.SizerFlags().Expand())
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-				gbox.Add(hbox, wx.SizerFlags())
-				wx.StaticText(this, wx.ID_ANY, 'Height'$) {|ctrl|
+				vboxIn.Add(hbox, wx.SizerFlags().Border(wx.ALL, 8))
+				wx.StaticText(stb, wx.ID_ANY, 'Height'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre())
 				}
-				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-								style => wx.ALIGN_CENTRE_HORIZONTAL,
-								min => 10, max => 100, initial => layout.htFrame) {|ctrl|
+				wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+						style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
+						min => 10, max => htFrameMax, initial => layout.htFrame) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+					this.spinFrameHeight = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
 						this.layout.htFrame = ctrl.GetValue()
+						if (this.rbSettingByProportion.GetValue()) {
+							this.layout.htUpperMgn = int(this.layout.htFrame * \
+										this.spinPropUpperMgn.GetValue() / 100)
+							this.layout.htFacePart = max(int(this.layout.htFrame * \
+										this.spinPropFacePart.GetValue() / 100), 1)
+							this.spinLengthUpperMgn.SetValue(this.layout.htUpperMgn)
+							this.spinLengthFacePart.SetValue(this.layout.htFacePart)
+						}
 						this.UpdateExtractor()
+						this.CheckValidity()
 					}
 				}
-				wx.StaticText(this, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+				wx.StaticText(stb, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
 				}
-				wx.StaticText(this, wx.ID_ANY, 'Width'$) {|ctrl|
+				wx.StaticText(stb, wx.ID_ANY, 'Width'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16).Centre())
 				}
-				wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-								style => wx.ALIGN_CENTRE_HORIZONTAL,
-								min => 0, max => 80, initial => layout.wdFrame) {|ctrl|
+				wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
+						style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
+						min => 10, max => wdFrameMax, initial => layout.wdFrame) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+					this.spinFrameWidth = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
 						this.layout.wdFrame = ctrl.GetValue()
 						this.UpdateExtractor()
 					}
 				}
-				wx.StaticText(this, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
+				wx.StaticText(stb, wx.ID_ANY, 'mm'$, size => wx.Size(wdUnit, -1)) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Centre())
 				}
 			}
 		}
+		vbox.AddSpacer(16)
 		wx.StaticBox(this, wx.ID_ANY, 'Upper Margin and Face Part'$) {|stb|
 			vboxIn = wx.StaticBoxSizer(stb, wx.VERTICAL)
-			vbox.Add(vboxIn, wx.SizerFlags().Border(wx.TOP, 16))
+			vbox.Add(vboxIn, wx.SizerFlags())
 			wx.FlexGridSizer(nil, 2, 16, 16) {|gbox|
 				vboxIn.Add(gbox, wx.SizerFlags().Border(wx.ALL, 8))
 				wx.RadioButton(stb, wx.ID_ANY, 'Setting by Proportion'$, style => wx.RB_GROUP) {|ctrl|
@@ -2196,14 +2223,17 @@ LayoutEditorDialog = class(wx.Dialog) {
 						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => 100,
-							initial => this.layout.htTop * 100 / this.layout.htFrame) {|ctrl|
+							initial => int(layout.htUpperMgn * 100 / layout.htFrame)) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+						this.spinPropUpperMgn = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
-							this.layout.htTop = this.layout.htFrame * ctrl.GetValue() / 100
+							this.layout.htUpperMgn = int(this.layout.htFrame * ctrl.GetValue() / 100)
+							this.spinLengthUpperMgn.SetValue(this.layout.htUpperMgn)
 							this.UpdateExtractor()
+							this.CheckValidity()
 						}
 						ctrl.Bind(wx.EVT_UPDATE_UI) {|event|
 							event.Enable(this.rbSettingByProportion.GetValue())
@@ -2216,14 +2246,17 @@ LayoutEditorDialog = class(wx.Dialog) {
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16).Centre())
 					}
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-							style => wx.ALIGN_CENTRE_HORIZONTAL,
-							min => 0, max => 100,
-							initial => this.layout.htFace * 100 / this.layout.htFrame) {|ctrl|
+							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
+							min => 1, max => 100,
+							initial => int(layout.htFacePart * 100 / layout.htFrame)) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+						this.spinPropFacePart = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
-							this.layout.htFace = this.layout.htFrame * ctrl.GetValue() / 100
+							this.layout.htFacePart = max(int(this.layout.htFrame * ctrl.GetValue() / 100), 1)
+							this.spinLengthFacePart.SetValue(this.layout.htFacePart)
 							this.UpdateExtractor()
+							this.CheckValidity()
 						}
 						ctrl.Bind(wx.EVT_UPDATE_UI) {|event|
 							event.Enable(this.rbSettingByProportion.GetValue())
@@ -2243,9 +2276,19 @@ LayoutEditorDialog = class(wx.Dialog) {
 						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-									style => wx.ALIGN_CENTRE_HORIZONTAL,
-									min => 0, max => 10, initial => 0) {|ctrl|
+							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
+							min => 0, max => htFrameMax,
+							initial => layout.htUpperMgn) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+						this.spinLengthUpperMgn = ctrl
+						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+							// you can't use event.GetPosition() with Gura v0.5.1
+							this.layout.htUpperMgn = ctrl.GetValue()
+							ratio = int(this.layout.htUpperMgn * 100 / this.layout.htFrame)
+							this.spinPropUpperMgn.SetValue(ratio)
+							this.UpdateExtractor()
+							this.CheckValidity()
+						}
 						ctrl.Bind(wx.EVT_UPDATE_UI) {|event|
 							event.Enable(this.rbSettingByLength.GetValue())
 						}
@@ -2257,9 +2300,19 @@ LayoutEditorDialog = class(wx.Dialog) {
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16).Centre())
 					}
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-									style => wx.ALIGN_CENTRE_HORIZONTAL,
-									min => 0, max => 10, initial => 0) {|ctrl|
+							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
+							min => 1, max => htFrameMax,
+							initial => layout.htFacePart) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+						this.spinLengthFacePart = ctrl
+						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
+							// you can't use event.GetPosition() with Gura v0.5.1
+							this.layout.htFacePart = ctrl.GetValue()
+							ratio = int(this.layout.htFacePart * 100 / this.layout.htFrame)
+							this.spinPropFacePart.SetValue(ratio)
+							this.UpdateExtractor()
+							this.CheckValidity()
+						}
 						ctrl.Bind(wx.EVT_UPDATE_UI) {|event|
 							event.Enable(this.rbSettingByLength.GetValue())
 						}
@@ -2278,6 +2331,7 @@ LayoutEditorDialog = class(wx.Dialog) {
 			outerBox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
 			wx.Button(this, wx.ID_OK, 'OK'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags())
+				this.btnOK = ctrl
 			}
 			wx.Button(this, wx.ID_CANCEL, 'Cancel'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
@@ -2285,12 +2339,38 @@ LayoutEditorDialog = class(wx.Dialog) {
 				ctrl.SetFocus()
 			}
 		}
+		this.Bind(wx.EVT_CLOSE) {|event| this.OnClose(event)}
+		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
+		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
 		outerBox.AddSpacer(8)
 		this.Fit()
+	}
+	OnClose(event:wx.CloseEvent) = {
+		this.CancelModification()
+		this.EndModal(wx.ID_CANCEL)
+	}
+	OnButton_OK(event:wx.CommandEvent) = {
+		this.EndModal(wx.ID_OK)
+	}
+	OnButton_CANCEL(event:wx.CommandEvent) = {
+		this.CancelModification()
+		this.EndModal(wx.ID_CANCEL)
+	}
+	CancelModification() = {
+		this.layout.purpose		= this.purpose_init
+		this.layout.htFrame		= this.htFrame_init
+		this.layout.wdFrame		= this.wdFrame_init
+		this.layout.htUpperMgn	= this.htUpperMgn_init
+		this.layout.htFacePart	= this.htFacePart_init
+		this.UpdateExtractor()
 	}
 	UpdateExtractor() = {
 		!this.extractor && return
 		this.extractor.Refresh()
+	}
+	CheckValidity() = {
+		validFlag = (this.layout.htUpperMgn + this.layout.htFacePart <= this.layout.htFrame)
+		this.btnOK.Enable(validFlag)
 	}
 }
 
@@ -2360,8 +2440,8 @@ OutputOptionDialog = class(wx.Dialog) {
 					hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
 				}
 				wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-								style => wx.ALIGN_CENTRE_HORIZONTAL,
-								min => 0, max => 10, initial => 0) {|ctrl|
+						style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
+						min => 0, max => 10, initial => 0) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
 					this.spinEdgeMgn_Horizontal = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
@@ -2377,8 +2457,8 @@ OutputOptionDialog = class(wx.Dialog) {
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16).Align(wx.ALIGN_CENTRE_VERTICAL))
 				}
 				wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-								style => wx.ALIGN_CENTRE_HORIZONTAL,
-								min => 0, max => 10, initial => 0) {|ctrl|
+						style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
+						min => 0, max => 10, initial => 0) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
 					this.spinEdgeMgn_Vertical = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
@@ -2600,7 +2680,7 @@ PrintServiceDialog = class(wx.Dialog) {
 						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_a) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
@@ -2615,7 +2695,7 @@ PrintServiceDialog = class(wx.Dialog) {
 						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_b) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
@@ -2633,7 +2713,7 @@ PrintServiceDialog = class(wx.Dialog) {
 						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_c) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
@@ -2648,7 +2728,7 @@ PrintServiceDialog = class(wx.Dialog) {
 						hbox.Add(ctrl, wx.SizerFlags().Centre())
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
-							style => wx.ALIGN_CENTRE_HORIZONTAL,
+							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_d) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
