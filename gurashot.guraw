@@ -1242,24 +1242,22 @@ MainWindow = class(wx.Frame) {
 			g.layoutTbl.each {|layout, idx|
 				wx.ListItem {|item|
 					item.SetId(idx)
-					item.SetText('%d x %dmm' % [layout.htFrame, layout.wdFrame])
+					if (layout.userDefFlag) {
+						item.SetText('User defined'$)
+					} else {
+						item.SetText('%d x %dmm' % [layout.htFrame, layout.wdFrame])
+					}
 					ctrl.InsertItem(item)
 				}
 				wx.ListItem {|item|
 					item.SetId(idx)
 					item.SetColumn(1)
 					if (layout.userDefFlag && layout.purpose.isempty()) {
-						item.SetText('User defined (double-click to edit)'$)
+						item.SetText('(double-click to edit)'$)
 					} else {
 						item.SetText(layout.purpose)
 					}
 					ctrl.SetItem(item)
-				}
-				if (layout.userDefFlag) {
-					ctrl.GetFont {|font|
-						font.SetWeight(wx.FONTWEIGHT_BOLD)
-						ctrl.SetItemFont(idx, font)
-					}
 				}
 			}
 			ctrl.SetItemState(0,
