@@ -126,7 +126,7 @@ It will not delete the original file.''' => \
 	もとのファイルは削除されません'''
 'User defined'							=> 'ユーザ定義'
 '(double-click to edit)'				=> '(ダブルクリックで編集)'
-'Layout Editor'							=> 'レイアウト編集'
+'Frame Editor'							=> 'フレーム編集'
 'Frame Size'							=> 'フレームサイズ'
 'Height'								=> '高さ'
 'Width'									=> '幅'

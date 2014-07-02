@@ -310,8 +310,8 @@ g = module {
 	htSashTop:public				= 300
 	xImageListDialog:public			= -1
 	yImageListDialog:public			= -1
-	xLayoutEditorDialog:public			= -1
-	yLayoutEditorDialog:public			= -1
+	xFrameEditorDialog:public		= -1
+	yFrameEditorDialog:public		= -1
 	xOutputOptionDialog:public		= -1
 	yOutputOptionDialog:public		= -1
 	xColorAdjustDialog:public		= -1
@@ -359,8 +359,8 @@ LoadConfig() = {
 		g.htSashTop:number			= g.cfg['htSashTop']
 		g.xImageListDialog:number	= g.cfg['xImageListDialog']
 		g.yImageListDialog:number	= g.cfg['yImageListDialog']
-		g.xLayoutEditorDialog:number= g.cfg['xLayoutEditorDialog']
-		g.yLayoutEditorDialog:number= g.cfg['yLayoutEditorDialog']
+		g.xFrameEditorDialog:number	= g.cfg['xFrameEditorDialog']
+		g.yFrameEditorDialog:number	= g.cfg['yFrameEditorDialog']
 		g.xOutputOptionDialog:number= g.cfg['xOutputOptionDialog']
 		g.yOutputOptionDialog:number= g.cfg['yOutputOptionDialog']
 		g.xColorAdjustDialog:number	= g.cfg['xColorAdjustDialog']
@@ -445,8 +445,8 @@ SaveConfig() = {
 	g.cfg['htSashTop']					= g.htSashTop
 	g.cfg['xImageListDialog']			= g.xImageListDialog
 	g.cfg['yImageListDialog']			= g.yImageListDialog
-	g.cfg['xLayoutEditorDialog']		= g.xLayoutEditorDialog
-	g.cfg['yLayoutEditorDialog']		= g.yLayoutEditorDialog
+	g.cfg['xFrameEditorDialog']			= g.xFrameEditorDialog
+	g.cfg['yFrameEditorDialog']			= g.yFrameEditorDialog
 	g.cfg['xOutputOptionDialog']		= g.xOutputOptionDialog
 	g.cfg['yOutputOptionDialog']		= g.yOutputOptionDialog
 	g.cfg['xColorAdjustDialog']			= g.xColorAdjustDialog
@@ -1432,7 +1432,7 @@ MainWindow = class(wx.Frame) {
 		(idx < 0) && return
 		layout = g.layoutTbl[idx]
 		!layout.userDefFlag && return
-		dlg = LayoutEditorDialog(this, this.extractor, this.productViewer, layout)
+		dlg = FrameEditorDialog(this, this.extractor, this.productViewer, layout)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			wx.ListItem {|item|
 				item.SetId(idx)
@@ -2164,16 +2164,16 @@ ColorAdjustDialog = class(wx.Dialog) {
 }
 
 //-----------------------------------------------------------------------------
-// LayoutEditorDialog
+// FrameEditorDialog
 //-----------------------------------------------------------------------------
-LayoutEditorDialog = class(wx.Dialog) {
+FrameEditorDialog = class(wx.Dialog) {
 	wdSpin = 80
 	wdUnit = 20
 	htFrameMax = 100	// unit: mm
 	wdFrameMax = 60		// unit: mm
 	__init__(parent:wx.Window, extractor:Extractor,  productViewer:ProductViewer,
-				layout:Layout) = {|parent, wx.ID_ANY, 'Layout Editor'$,
-						 pos => wx.Point(g.xLayoutEditorDialog, g.yLayoutEditorDialog),|
+				layout:Layout) = {|parent, wx.ID_ANY, 'Frame Editor'$,
+						 pos => wx.Point(g.xFrameEditorDialog, g.yFrameEditorDialog),|
 		this.extractor = extractor
 		this.productViewer = productViewer
 		this.layout = layout
@@ -2417,7 +2417,7 @@ LayoutEditorDialog = class(wx.Dialog) {
 	}
 	UpdateSizePosInfo() = {
 		(this.IsIconized() || this.IsMaximized()) && return
-		[g.xLayoutEditorDialog, g.yLayoutEditorDialog] = this.GetScreenPositionXY()
+		[g.xFrameEditorDialog, g.yFrameEditorDialog] = this.GetScreenPositionXY()
 	}
 	CancelModification() = {
 		this.layout.purpose		= this.purpose_init
