@@ -224,7 +224,7 @@ ImageInfo = class {
 g = module {
 	fileNameTmpPDF:public	= path.join(sys.workdir, 'gurashot.pdf')
 	fileNameCfg:public		= path.join(sys.cfgdir, 'gurashot.yml')
-	//fileNameCfg:public	= 'gurashot.yml'
+	fileNameCfg:public	= 'gurashot.yml'
 	fileNameIcon:public		= 'gurashot.ico'
 	imgBlank:public = image(`rgba, 800, 800, color(240, 240, 255))
 	imgBlank.cairo {|cr|
@@ -287,7 +287,6 @@ g = module {
 		{ 'Qualifications'$,						60, 45, 2, 45, false }
 	}
 	layoutCur:public		= layoutTbl[0]
-	layoutUserDef:public	= nil
 	paperSizeTbl:public = @(PaperSize) {
 		{ 'L'$,				127,  89, true }
 		{ 'KG'$,			152, 102, false }
@@ -311,6 +310,8 @@ g = module {
 	htSashTop:public				= 300
 	xImageListDialog:public			= -1
 	yImageListDialog:public			= -1
+	xLayoutEditorDialog:public			= -1
+	yLayoutEditorDialog:public			= -1
 	xOutputOptionDialog:public		= -1
 	yOutputOptionDialog:public		= -1
 	xColorAdjustDialog:public		= -1
@@ -335,7 +336,6 @@ g = module {
 	paperSizeCur:public				= paperSizeTbl[0]
 	imgInfos:public					= []
 	imgInfoCur:public				= nil
-	layoutUserDef:public = Layout('', 40, 30, 2, 30, true)
 	wdEdgeMgn:public				= 2	// unit: mm
 	htEdgeMgn:public				= 2	// unit: mm
 	wdTrimMark:public				= 2	// unit: mm
@@ -348,6 +348,7 @@ g = module {
 // LoadConfig / SaveConfig
 //-----------------------------------------------------------------------------
 LoadConfig() = {
+	nLayoutsUserDef = 5
 	try {
 		g.cfg = yaml.read(g.fileNameCfg)
 		g.xMainWindow:number		= g.cfg['xMainWindow']
@@ -358,6 +359,8 @@ LoadConfig() = {
 		g.htSashTop:number			= g.cfg['htSashTop']
 		g.xImageListDialog:number	= g.cfg['xImageListDialog']
 		g.yImageListDialog:number	= g.cfg['yImageListDialog']
+		g.xLayoutEditorDialog:number= g.cfg['xLayoutEditorDialog']
+		g.yLayoutEditorDialog:number= g.cfg['yLayoutEditorDialog']
 		g.xOutputOptionDialog:number= g.cfg['xOutputOptionDialog']
 		g.yOutputOptionDialog:number= g.cfg['yOutputOptionDialog']
 		g.xColorAdjustDialog:number	= g.cfg['xColorAdjustDialog']
@@ -385,10 +388,12 @@ LoadConfig() = {
 		g.htEdgeMgn:number			= g.cfg['htEdgeMgn']
 		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
 		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
-		g.layoutUserDef.htFrame:number		= g.cfg['htFrameUserDef']
-		g.layoutUserDef.wdFrame:number		= g.cfg['wdFrameUserDef']
-		g.layoutUserDef.htUpperMgn:number	= g.cfg['htUpperMgnUserDef']
-		g.layoutUserDef.htFacePart:number	= g.cfg['htFacePartUserDef']
+		g.cfg['layoutsUserDef'].each():list {|dict|
+			g.layoutTbl.add(Layout(dict['purpose'],
+					dict['htFrame'], dict['wdFrame'],
+					dict['htUpperMgn'], dict['htFacePart'], true))
+			nLayoutsUserDef -= 1
+		}
 		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
 			imgInfo = ImageInfo()
 			imgInfo.label				= dict['label']
@@ -409,7 +414,9 @@ LoadConfig() = {
 			imgInfo
 		}
 	} catch {}
-	g.layoutTbl.add(g.layoutUserDef)
+	repeat (nLayoutsUserDef) {
+		g.layoutTbl.add(Layout('', 40, 30, 2, 30, true))
+	}
 	if (g.imgInfos.isempty()) {
 		g.imgInfoCur = ImageInfo()
 	} else {
@@ -438,6 +445,8 @@ SaveConfig() = {
 	g.cfg['htSashTop']					= g.htSashTop
 	g.cfg['xImageListDialog']			= g.xImageListDialog
 	g.cfg['yImageListDialog']			= g.yImageListDialog
+	g.cfg['xLayoutEditorDialog']		= g.xLayoutEditorDialog
+	g.cfg['yLayoutEditorDialog']		= g.yLayoutEditorDialog
 	g.cfg['xOutputOptionDialog']		= g.xOutputOptionDialog
 	g.cfg['yOutputOptionDialog']		= g.yOutputOptionDialog
 	g.cfg['xColorAdjustDialog']			= g.xColorAdjustDialog
@@ -462,10 +471,16 @@ SaveConfig() = {
 	g.cfg['wdEdgeMgn']					= g.wdEdgeMgn
 	g.cfg['htEdgeMgn']					= g.htEdgeMgn
 	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.paperSizeCur):index || 0
-	g.cfg['htFrameUserDef']				= g.layoutUserDef.htFrame
-	g.cfg['wdFrameUserDef']				= g.layoutUserDef.wdFrame
-	g.cfg['htUpperMgnUserDef']			= g.layoutUserDef.htUpperMgn
-	g.cfg['htFacePartUserDef']			= g.layoutUserDef.htFacePart
+	g.cfg['layoutsUserDef'] = g.layoutTbl.each():xlist {|layout|
+		!layout.userDefFlag && continue
+		%{
+			'purpose'		=> layout.purpose
+			'htFrame'		=> layout.htFrame
+			'wdFrame'		=> layout.wdFrame
+			'htUpperMgn'	=> layout.htUpperMgn
+			'htFacePart'	=> layout.htFacePart
+		}
+	}
 	g.cfg['idxImgInfoCur']				= g.imgInfos.find(g.imgInfoCur):index || -1
 	g.cfg['imgInfos'] = g.imgInfos.each():list {|imgInfo|
 		%{
@@ -1239,11 +1254,13 @@ MainWindow = class(wx.Frame) {
 				ctrl.SetColumnWidth(1, width)
 				event.Skip()
 			}
+			nLayoutsUserDef = 0
 			g.layoutTbl.each {|layout, idx|
 				wx.ListItem {|item|
 					item.SetId(idx)
 					if (layout.userDefFlag) {
-						item.SetText('User defined'$)
+						nLayoutsUserDef += 1
+						item.SetText('User defined'$ + format(' %d', nLayoutsUserDef))
 					} else {
 						item.SetText('%d x %dmm' % [layout.htFrame, layout.wdFrame])
 					}
@@ -1413,8 +1430,19 @@ MainWindow = class(wx.Frame) {
 		(idx < 0) && return
 		layout = g.layoutTbl[idx]
 		!layout.userDefFlag && return
-		dlg = LayoutEditorDialog(this, this.extractor, layout)
-		dlg.ShowModal()
+		dlg = LayoutEditorDialog(this, this.extractor, this.productViewer, layout)
+		if (dlg.ShowModal() == wx.ID_OK) {
+			wx.ListItem {|item|
+				item.SetId(idx)
+				item.SetColumn(1)
+				if (layout.purpose.isempty()) {
+					item.SetText('(double-click to edit)'$)
+				} else {
+					item.SetText(layout.purpose)
+				}
+				this.listCtrlLayout.SetItem(item)
+			}
+		}
 	}
 	OnRightDown_Label(event:wx.MouseEvent) = {
 		wx.Menu() {|m|
@@ -2140,9 +2168,12 @@ LayoutEditorDialog = class(wx.Dialog) {
 	wdSpin = 80
 	wdUnit = 20
 	htFrameMax = 100	// unit: mm
-	wdFrameMax = 80		// unit: mm
-	__init__(parent:wx.Window, extractor:Extractor, layout:Layout) = {|parent, wx.ID_ANY, 'Layout Editor'$|
+	wdFrameMax = 60		// unit: mm
+	__init__(parent:wx.Window, extractor:Extractor,  productViewer:ProductViewer,
+				layout:Layout) = {|parent, wx.ID_ANY, 'Layout Editor'$,
+						 pos => wx.Point(g.xLayoutEditorDialog, g.yLayoutEditorDialog),|
 		this.extractor = extractor
+		this.productViewer = productViewer
 		this.layout = layout
 		this.purpose_init		= this.layout.purpose
 		this.htFrame_init		= this.layout.htFrame
@@ -2154,6 +2185,20 @@ LayoutEditorDialog = class(wx.Dialog) {
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
+		vbox.AddSpacer(16)
+		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+			vbox.Add(hbox, wx.SizerFlags().Expand())
+			wx.StaticText(this, wx.ID_ANY, 'Purpose'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Centre())
+			}
+			wx.TextCtrl(this, wx.ID_ANY, layout.purpose) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags(1).Centre().Border(wx.LEFT, 16))
+				this.textPurpose = ctrl
+				ctrl.Bind(wx.EVT_TEXT) {
+					this.layout.purpose = this.textPurpose.GetValue()
+				}
+			}
+		}
 		vbox.AddSpacer(16)
 		wx.StaticBox(this, wx.ID_ANY, 'Frame Size'$) {|stb|
 			vboxIn = wx.StaticBoxSizer(stb, wx.VERTICAL)
@@ -2206,7 +2251,7 @@ LayoutEditorDialog = class(wx.Dialog) {
 			}
 		}
 		vbox.AddSpacer(16)
-		wx.StaticBox(this, wx.ID_ANY, 'Upper Margin and Face Part'$) {|stb|
+		wx.StaticBox(this, wx.ID_ANY, 'Allocation of Upper Margin and Face Part'$) {|stb|
 			vboxIn = wx.StaticBoxSizer(stb, wx.VERTICAL)
 			vbox.Add(vboxIn, wx.SizerFlags())
 			wx.FlexGridSizer(nil, 2, 16, 16) {|gbox|
@@ -2321,7 +2366,12 @@ LayoutEditorDialog = class(wx.Dialog) {
 				}
 			}
 		}
-		outerBox.AddSpacer(16)
+		outerBox.AddSpacer(12)
+		wx.StaticText(this, wx.ID_ANY, '', style => wx.ST_NO_AUTORESIZE) {|ctrl|
+			outerBox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.LEFT | wx.RIGHT , 8))
+			this.labelIndicator = ctrl
+		}
+		outerBox.AddSpacer(12)
 		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
 			outerBox.Add(ctrl, wx.SizerFlags().Expand())
 		}
@@ -2329,30 +2379,43 @@ LayoutEditorDialog = class(wx.Dialog) {
 			outerBox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
 			wx.Button(this, wx.ID_OK, 'OK'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags())
+				ctrl.SetDefault()
 				this.btnOK = ctrl
 			}
 			wx.Button(this, wx.ID_CANCEL, 'Cancel'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
-				ctrl.SetDefault()
-				ctrl.SetFocus()
 			}
 		}
+		this.textPurpose.SetFocus()
+		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_CLOSE) {|event| this.OnClose(event)}
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
 		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
 		outerBox.AddSpacer(8)
 		this.Fit()
+		this.frostFrameFlagSaved = g.frostFrameFlag
+		g.frostFrameFlag = true
+		this.UpdateExtractor()
 	}
 	OnClose(event:wx.CloseEvent) = {
+		g.frostFrameFlag = this.frostFrameFlagSaved
 		this.CancelModification()
 		this.EndModal(wx.ID_CANCEL)
 	}
 	OnButton_OK(event:wx.CommandEvent) = {
+		g.frostFrameFlag = this.frostFrameFlagSaved
+		this.UpdateExtractor()
+		this.UpdateProductViewer()
 		this.EndModal(wx.ID_OK)
 	}
 	OnButton_CANCEL(event:wx.CommandEvent) = {
+		g.frostFrameFlag = this.frostFrameFlagSaved
 		this.CancelModification()
 		this.EndModal(wx.ID_CANCEL)
+	}
+	UpdateSizePosInfo() = {
+		(this.IsIconized() || this.IsMaximized()) && return
+		[g.xLayoutEditorDialog, g.yLayoutEditorDialog] = this.GetScreenPositionXY()
 	}
 	CancelModification() = {
 		this.layout.purpose		= this.purpose_init
@@ -2366,9 +2429,17 @@ LayoutEditorDialog = class(wx.Dialog) {
 		!this.extractor && return
 		this.extractor.Refresh()
 	}
+	UpdateProductViewer() = {
+		!this.productViewer && return
+		wx.BusyCursor {
+			this.productViewer.UpdateContent()
+		}
+	}
 	CheckValidity() = {
 		validFlag = (this.layout.htUpperMgn + this.layout.htFacePart <= this.layout.htFrame)
 		this.btnOK.Enable(validFlag)
+		this.labelIndicator.SetLabel(cond(validFlag, '',
+			'The length of upper margin and face part exceeds the whole frame.'$))
 	}
 }
 
@@ -2407,7 +2478,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.rbPaperOrient_Auto = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.orientation = `auto
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 				wx.RadioButton(stb, wx.ID_ANY, 'Vertical'$) {|ctrl|
@@ -2415,7 +2486,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.rbPaperOrient_Vertical = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.orientation = `vertical
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 				wx.RadioButton(stb, wx.ID_ANY, 'Horizontal'$) {|ctrl|
@@ -2423,7 +2494,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.rbPaperOrient_Horizontal = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.orientation = `horizontal
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 			}
@@ -2445,7 +2516,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
 						g.wdEdgeMgn = ctrl.GetValue()
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 				wx.StaticText(stb, wx.ID_ANY, 'mm'$) {|ctrl|
@@ -2462,7 +2533,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
 						g.htEdgeMgn = ctrl.GetValue()
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 				wx.StaticText(stb, wx.ID_ANY, 'mm'$) {|ctrl|
@@ -2481,7 +2552,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.rbTrimMark_Outer = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.trimMark = `outer
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 				wx.RadioButton(stb, wx.ID_ANY, 'Overwrite'$) {|ctrl|
@@ -2489,7 +2560,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.rbTrimMark_Overwrite = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.trimMark = `overwrite
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 				wx.RadioButton(stb, wx.ID_ANY, 'None'$) {|ctrl|
@@ -2497,7 +2568,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.rbTrimMark_None = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.trimMark = `none
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 				wx.StaticText(stb, wx.ID_ANY, 'Line Color'$) {|ctrl|
@@ -2511,7 +2582,7 @@ OutputOptionDialog = class(wx.Dialog) {
 						g.trimMarkR = c.Red()
 						g.trimMarkG = c.Green()
 						g.trimMarkB = c.Blue()
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 			}
@@ -2527,7 +2598,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.chkTitle_Size = ctrl
 					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
 						g.titleDispFlag_Size = event.IsChecked()
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 				wx.CheckBox(stb, wx.ID_ANY, 'Image Label'$) {|ctrl|
@@ -2535,7 +2606,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.chkTitle_ImageLabel = ctrl
 					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
 						g.titleDispFlag_ImageLabel = event.IsChecked()
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 				wx.CheckBox(stb, wx.ID_ANY, 'Purpose'$) {|ctrl|
@@ -2543,7 +2614,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.chkTitle_Purpose = ctrl
 					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
 						g.titleDispFlag_Purpose = event.IsChecked()
-						this.UpdateProduct()
+						this.UpdateProductViewer()
 					}
 				}
 			}
@@ -2607,16 +2678,15 @@ OutputOptionDialog = class(wx.Dialog) {
 		g.titleDispFlag_Size		= this.titleDispFlag_Size_init
 		g.titleDispFlag_ImageLabel	= this.titleDispFlag_ImageLabel_init
 		g.titleDispFLag_Purpose		= this.titleDispFlag_Purpose_init
-		this.UpdateProduct()
+		this.UpdateProductViewer()
 	}
 	UpdateSizePosInfo() = {
 		(this.IsIconized() || this.IsMaximized()) && return
 		[g.xOutputOptionDialog, g.yOutputOptionDialog] = this.GetScreenPositionXY()
 	}
-	UpdateProduct() = {
+	UpdateProductViewer() = {
 		!this.productViewer && return
 		wx.BusyCursor {
-			//this.productViewer.UpdateContent(this)
 			this.productViewer.UpdateContent()
 		}
 	}
@@ -2872,11 +2942,6 @@ App = class(wx.App) {
 		LoadConfig()
 		InitializeResource()
 		UpdateImagePhoto()
-		/*
-		dlg = LayoutEditorDialog(nil, nil, g.layoutUserDef)
-		dlg.ShowModal()
-		return(false)
-		*/
 		mainWindow = MainWindow('Gura Shot'$)
 		mainWindow.Show()
 		g.mainWindow = mainWindow

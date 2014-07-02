@@ -132,9 +132,11 @@ It will not delete the original file.''' => \
 'Width'									=> '幅'
 'Setting by Proportion'					=> '比率による設定'
 'Setting by Length'						=> '長さによる設定'
-'Upper Margin and Face Part'			=> '上マージンと顔部分'
+'Allocation of Upper Margin and Face Part' => '上マージンと顔部分の配分'
 'Upper Margin'							=> '上マージン'
 'Face Part'								=> '顔部分'
+'The length of upper margin and face part exceeds the whole frame.' => \
+	'上マージンと顔部分の長さが全体のフレームを超えています'
 }
 }
 
