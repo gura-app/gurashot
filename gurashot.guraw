@@ -34,9 +34,9 @@ Version = '1.1.0'
 ] = wx.ID_HIGHEST..
 
 //-----------------------------------------------------------------------------
-// Layout
+// LayoutFrame
 //-----------------------------------------------------------------------------
-Layout = struct(purpose:string, htFrame:number, wdFrame:number,
+LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 					htUpperMgn:number, htFacePart:number, userDefFlag:boolean) {
 	CalcSizeEx() = {
 		[this.wdFrame + g.wdEdgeMgn * 2,  this.htFrame + g.htEdgeMgn * 2]
@@ -60,12 +60,12 @@ PaperSize = struct(name:string, longSide:number, shortSide:number, printServiceF
 	GetCanvasHeight(orientation:symbol) = {
 		cond(orientation == `horizontal, this.shortSide - margin * 2, this.longSide - margin * 2)
 	}
-	GetBetterOrientation(layout:Layout, orientation:symbol) = {
+	GetBetterOrientation(layoutFrame:LayoutFrame, orientation:symbol) = {
 		(orientation != `auto) && return(orientation)
-		[nx1, ny1] = layout.CalcImageGrid(this.GetCanvasWidth(`horizontal),
+		[nx1, ny1] = layoutFrame.CalcImageGrid(this.GetCanvasWidth(`horizontal),
 									this.GetCanvasHeight(`horizontal))
 		n1 = nx1 * ny1
-		[nx2, ny2] = layout.CalcImageGrid(this.GetCanvasWidth(`vertical),
+		[nx2, ny2] = layoutFrame.CalcImageGrid(this.GetCanvasWidth(`vertical),
 									this.GetCanvasHeight(`vertical))
 		n2 = nx2 * ny2
 		if (n1 > n2) {
@@ -139,20 +139,20 @@ ImageInfo = class {
 		this.blueness		= blueness_init
 		this.imgPhotoRaw	= nil
 	}
-	CalcFrameCoord(rcImg:wx.Rect, layout:Layout) = {
-		htBtm = layout.htFrame - layout.htUpperMgn - layout.htFacePart
+	CalcFrameCoord(rcImg:wx.Rect, layoutFrame:LayoutFrame) = {
+		htBtm = layoutFrame.htFrame - layoutFrame.htUpperMgn - layoutFrame.htFacePart
 		xrateDiff = this.xrateBtm - this.xrateTop
 		yrateDiff = this.yrateBtm - this.yrateTop
 		xMarkTop = rcImg.x + rcImg.width * this.xrateTop
 		xMarkBtm = rcImg.x + rcImg.width * this.xrateBtm
 		yMarkTop = rcImg.y + rcImg.height * this.yrateTop
 		yMarkBtm = rcImg.y + rcImg.height * this.yrateBtm
-		xTop = rcImg.x + rcImg.width * (this.xrateTop - xrateDiff * layout.htUpperMgn / layout.htFacePart)
-		xBtm = rcImg.x + rcImg.width * (this.xrateBtm + xrateDiff * htBtm / layout.htFacePart)
-		yTop = rcImg.y + rcImg.height * (this.yrateTop - yrateDiff * layout.htUpperMgn / layout.htFacePart)
-		yBtm = rcImg.y + rcImg.height * (this.yrateBtm + yrateDiff * htBtm / layout.htFacePart)
+		xTop = rcImg.x + rcImg.width * (this.xrateTop - xrateDiff * layoutFrame.htUpperMgn / layoutFrame.htFacePart)
+		xBtm = rcImg.x + rcImg.width * (this.xrateBtm + xrateDiff * htBtm / layoutFrame.htFacePart)
+		yTop = rcImg.y + rcImg.height * (this.yrateTop - yrateDiff * layoutFrame.htUpperMgn / layoutFrame.htFacePart)
+		yBtm = rcImg.y + rcImg.height * (this.yrateBtm + yrateDiff * htBtm / layoutFrame.htFacePart)
 		height = math.sqrt((xBtm - xTop) ** 2 + (yBtm - yTop) ** 2)
-		width = height * layout.wdFrame / layout.htFrame
+		width = height * layoutFrame.wdFrame / layoutFrame.htFrame
 		FrameCoord(xMarkTop, xMarkBtm, yMarkTop, yMarkBtm,
 										xTop, xBtm, yTop, yBtm, width, height)
 	}
@@ -270,7 +270,7 @@ g = module {
 	imgBoxBlue:public		= I(resource.box_blue_png)
 	imgColorTone:public		= I(resource.color_swatch_png)
 	imgPrintServiceAdjust:public = I(resource.print_service_adjust_png)
-	layoutTbl:public = @(Layout) {
+	layoutFrameTbl:public = @(LayoutFrame) {
 		{ 'Driver\'s license etc.'$,				30, 24, 2, 23, false }
 		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23, false }
 		{ 'Qualifications'$,						30, 30, 2, 23, false }
@@ -286,7 +286,7 @@ g = module {
 		{ 'Qualifications'$,						55, 45, 2, 41, false }
 		{ 'Qualifications'$,						60, 45, 2, 45, false }
 	}
-	layoutCur:public		= layoutTbl[0]
+	layoutFrameCur:public		= layoutFrameTbl[0]
 	paperSizeTbl:public = @(PaperSize) {
 		{ 'L'$,				127,  89, true }
 		{ 'KG'$,			152, 102, false }
@@ -310,8 +310,8 @@ g = module {
 	htSashTop:public				= 300
 	xImageListDialog:public			= -1
 	yImageListDialog:public			= -1
-	xFrameEditorDialog:public		= -1
-	yFrameEditorDialog:public		= -1
+	xLayoutFrameEditorDialog:public	= -1
+	yLayoutFrameEditorDialog:public	= -1
 	xOutputOptionDialog:public		= -1
 	yOutputOptionDialog:public		= -1
 	xColorAdjustDialog:public		= -1
@@ -348,7 +348,7 @@ g = module {
 // LoadConfig / SaveConfig
 //-----------------------------------------------------------------------------
 LoadConfig() = {
-	nLayoutsUserDef = 5
+	nLayoutFramesUserDef = 5
 	try {
 		g.cfg = yaml.read(g.fileNameCfg)
 		g.xMainWindow:number		= g.cfg['xMainWindow']
@@ -359,8 +359,8 @@ LoadConfig() = {
 		g.htSashTop:number			= g.cfg['htSashTop']
 		g.xImageListDialog:number	= g.cfg['xImageListDialog']
 		g.yImageListDialog:number	= g.cfg['yImageListDialog']
-		g.xFrameEditorDialog:number	= g.cfg['xFrameEditorDialog']
-		g.yFrameEditorDialog:number	= g.cfg['yFrameEditorDialog']
+		g.xLayoutFrameEditorDialog:number = g.cfg['xLayoutFrameEditorDialog']
+		g.yLayoutFrameEditorDialog:number = g.cfg['yLayoutFrameEditorDialog']
 		g.xOutputOptionDialog:number= g.cfg['xOutputOptionDialog']
 		g.yOutputOptionDialog:number= g.cfg['yOutputOptionDialog']
 		g.xColorAdjustDialog:number	= g.cfg['xColorAdjustDialog']
@@ -388,11 +388,11 @@ LoadConfig() = {
 		g.htEdgeMgn:number			= g.cfg['htEdgeMgn']
 		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
 		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
-		g.cfg['layoutsUserDef'].each():list {|dict|
-			g.layoutTbl.add(Layout(dict['purpose'],
+		g.cfg['layoutFramesUserDef'].each():list {|dict|
+			g.layoutFrameTbl.add(LayoutFrame(dict['purpose'],
 					dict['htFrame'], dict['wdFrame'],
 					dict['htUpperMgn'], dict['htFacePart'], true))
-			nLayoutsUserDef -= 1
+			nLayoutFramesUserDef -= 1
 		}
 		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
 			imgInfo = ImageInfo()
@@ -414,8 +414,8 @@ LoadConfig() = {
 			imgInfo
 		}
 	} catch {}
-	repeat (nLayoutsUserDef) {
-		g.layoutTbl.add(Layout('', 40, 30, 2, 30, true))
+	repeat (nLayoutFramesUserDef) {
+		g.layoutFrameTbl.add(LayoutFrame('', 40, 30, 2, 30, true))
 	}
 	if (g.imgInfos.isempty()) {
 		g.imgInfoCur = ImageInfo()
@@ -445,8 +445,8 @@ SaveConfig() = {
 	g.cfg['htSashTop']					= g.htSashTop
 	g.cfg['xImageListDialog']			= g.xImageListDialog
 	g.cfg['yImageListDialog']			= g.yImageListDialog
-	g.cfg['xFrameEditorDialog']			= g.xFrameEditorDialog
-	g.cfg['yFrameEditorDialog']			= g.yFrameEditorDialog
+	g.cfg['xLayoutFrameEditorDialog']	= g.xLayoutFrameEditorDialog
+	g.cfg['yLayoutFrameEditorDialog']	= g.yLayoutFrameEditorDialog
 	g.cfg['xOutputOptionDialog']		= g.xOutputOptionDialog
 	g.cfg['yOutputOptionDialog']		= g.yOutputOptionDialog
 	g.cfg['xColorAdjustDialog']			= g.xColorAdjustDialog
@@ -471,14 +471,14 @@ SaveConfig() = {
 	g.cfg['wdEdgeMgn']					= g.wdEdgeMgn
 	g.cfg['htEdgeMgn']					= g.htEdgeMgn
 	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.paperSizeCur):index || 0
-	g.cfg['layoutsUserDef'] = g.layoutTbl.each():xlist {|layout|
-		!layout.userDefFlag && continue
+	g.cfg['layoutFramesUserDef'] = g.layoutFrameTbl.each():xlist {|layoutFrame|
+		!layoutFrame.userDefFlag && continue
 		%{
-			'purpose'		=> layout.purpose
-			'htFrame'		=> layout.htFrame
-			'wdFrame'		=> layout.wdFrame
-			'htUpperMgn'	=> layout.htUpperMgn
-			'htFacePart'	=> layout.htFacePart
+			'purpose'		=> layoutFrame.purpose
+			'htFrame'		=> layoutFrame.htFrame
+			'wdFrame'		=> layoutFrame.wdFrame
+			'htUpperMgn'	=> layoutFrame.htUpperMgn
+			'htFacePart'	=> layoutFrame.htFacePart
 		}
 	}
 	g.cfg['idxImgInfoCur']				= g.imgInfos.find(g.imgInfoCur):index || -1
@@ -577,7 +577,7 @@ OpenWithApp(fileName:string) = {
 //-----------------------------------------------------------------------------
 // ExtractImage
 //-----------------------------------------------------------------------------
-ExtractImage(imgPhoto:image, layout:Layout, wdEdgeMgn:number, htEdgeMgn:number) = {
+ExtractImage(imgPhoto:image, layoutFrame:LayoutFrame, wdEdgeMgn:number, htEdgeMgn:number) = {
 	bgColor = `gray
 	[wdDummy, htDummy] = int([imgPhoto.width / 2, imgPhoto.height / 2])
 	imgSrc = image(`rgba, imgPhoto.width + wdDummy * 2, imgPhoto.height + htDummy * 2, bgColor)
@@ -613,8 +613,8 @@ ExtractImage(imgPhoto:image, layout:Layout, wdEdgeMgn:number, htEdgeMgn:number) 
 	// paste dummy on SE
 	imgSrc.paste(wdDummy + imgPhoto.width, htDummy + imgPhoto.height,
 		imgPhoto.crop(imgPhoto.width - wdDummy, imgPhoto.height - htDummy, wdDummy, htDummy).rotate(180))
-	f = g.imgInfoCur.CalcFrameCoord(wx.Rect(wdDummy, htDummy, imgPhoto.width, imgPhoto.height), layout)
-	[wdDotMgn, htDotMgn] = f.height * [wdEdgeMgn, htEdgeMgn] / layout.htFrame
+	f = g.imgInfoCur.CalcFrameCoord(wx.Rect(wdDummy, htDummy, imgPhoto.width, imgPhoto.height), layoutFrame)
+	[wdDotMgn, htDotMgn] = f.height * [wdEdgeMgn, htEdgeMgn] / layoutFrame.htFrame
 	if (g.imgInfoCur.tiltAdjFlag) {
 		angleAdj = math.atan2(f.xBtm - f.xTop, f.yBtm - f.yTop):deg
 		[xCenter, yCenter] = [imgSrc.width / 2, imgSrc.height / 2]
@@ -633,7 +633,7 @@ ExtractImage(imgPhoto:image, layout:Layout, wdEdgeMgn:number, htEdgeMgn:number) 
 //-----------------------------------------------------------------------------
 // ComposeProduct
 //-----------------------------------------------------------------------------
-ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
+ComposeProduct(cr:cairo.context, imgPhoto:image, layoutFrame:LayoutFrame,
 								paperSize:PaperSize, orientation:symbol) = {
 	fontName = 'Sans'
 	[wdCanvas, htCanvas] = [paperSize.GetCanvasWidth(orientation), paperSize.GetCanvasHeight(orientation)]
@@ -644,25 +644,25 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 		cr.move_to(0, htCanvas - 1)
 		text = ''
 		if (g.titleDispFlag_Size) {
-			text += format('[%d x %dmm]', layout.htFrame, layout.wdFrame)
+			text += format('[%d x %dmm]', layoutFrame.htFrame, layoutFrame.wdFrame)
 		}
 		if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
 			if (!text.isempty()) { text += ' ' }
 			text += g.imgInfoCur.label
 		}
-		if (g.titleDispFlag_Purpose && !layout.purpose.isempty()) {
+		if (g.titleDispFlag_Purpose && !layoutFrame.purpose.isempty()) {
 			if (!text.isempty()) { text += ' ' }
-			text += format('for %s', layout.purpose)
+			text += format('for %s', layoutFrame.purpose)
 		}
 		cr.show_text(text)
 	}
 	imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-								layout, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
+								layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
 	cairo.pattern.create_for_surface(imgExtract) {|pattern|
 		cr.set_line_width(.1)
 		cr.set_source_rgb(([g.trimMarkR, g.trimMarkG, g.trimMarkB] / 255)*)
-		[wdFrameEx, htFrameEx] = layout.CalcSizeEx()
-		[nx, ny] = layout.CalcImageGrid(wdCanvas, htCanvas)
+		[wdFrameEx, htFrameEx] = layoutFrame.CalcSizeEx()
+		[nx, ny] = layoutFrame.CalcImageGrid(wdCanvas, htCanvas)
 		wdSlot = wdCanvas / nx
 		htSlot = (htCanvas - g.htMessage) / ny
 		drawTrimMarks() = {
@@ -715,14 +715,14 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layout:Layout,
 //-----------------------------------------------------------------------------
 // ComposeProductPDF
 //-----------------------------------------------------------------------------
-ComposeProductPDF(fileName:string, imgPhoto:image, layout:Layout,
+ComposeProductPDF(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
 									paperSize:PaperSize, orientation:symbol) = {
 	cairo.create(cairo.pdf_surface.create(fileName,
 					units.mm$pt(paperSize.GetCanvasWidth(orientation)),
 					units.mm$pt(paperSize.GetCanvasHeight(orientation)))) {|cr|
 		scale = 72 / 25.4
 		cr.scale(scale, scale)
-		ComposeProduct(cr, imgPhoto, layout, paperSize, orientation)
+		ComposeProduct(cr, imgPhoto, layoutFrame, paperSize, orientation)
 		cr.show_page()
 	}
 }
@@ -774,7 +774,7 @@ DrawAdjustLines(img:image, nAdjLinesDrawn:number,
 //-----------------------------------------------------------------------------
 // ComposeProductForPrintService
 //-----------------------------------------------------------------------------
-ComposeProductForPrintService(fileName:string, imgPhoto:image, layout:Layout,
+ComposeProductForPrintService(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
 		paperSize:PaperSize, orientation:symbol, dpi:number, nAdjLinesDrawn:number,
 		nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
 	nAdjLinesLongSide = nAdjLines_c + nAdjLines_d
@@ -802,7 +802,7 @@ ComposeProductForPrintService(fileName:string, imgPhoto:image, layout:Layout,
 		cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
 		scale = wdInner / wdOuter * dpi / 25.4
 		cr.scale(scale, scale)
-		ComposeProduct(cr, imgPhoto, layout, paperSize, orientation)
+		ComposeProduct(cr, imgPhoto, layoutFrame, paperSize, orientation)
 		cr.show_page()
 	}
 	img.write(fileName)
@@ -826,7 +826,7 @@ ProductViewer = class(wx.Panel) {
 	// methods
 	UpdateContent(blankFlag:boolean => false) = {
 		[wdScreenMgn, htScreenMgn] = [8, 8]
-		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
+		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 		wdCanvas = g.paperSizeCur.GetCanvasWidth(orientation)
 		htCanvas = g.paperSizeCur.GetCanvasHeight(orientation)
 		if (wdCanvas < htCanvas) {
@@ -840,7 +840,7 @@ ProductViewer = class(wx.Panel) {
 				scale = wdImg / wdCanvas
 				cr.scale(scale, scale)
 				ComposeProduct(cr, g.imgPhotoLowRes,
-								g.layoutCur, g.paperSizeCur, orientation)
+								g.layoutFrameCur, g.paperSizeCur, orientation)
 			}
 		}
 		[wdClient, htClient] = this.GetClientSizeWH()
@@ -938,7 +938,7 @@ Extractor = class(wx.Panel) {
 	}
 	// methods
 	SenseBox(pt:wx.Point) = {
-		f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.layoutCur)
+		f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.layoutFrameCur)
 		if (g.imgInfoCur.tiltAdjFlag) {
 			[wdSense, htSense] = [6, 6]
 			wx.Rect(f.xMarkTop - wdSense / 2, f.yMarkTop - htSense / 2, wdSense, htSense).Contains(pt) && return (`topPoint)
@@ -980,7 +980,7 @@ Extractor = class(wx.Panel) {
 			dc.Clear()
 			if (g.frostFrameFlag) {
 				dc.DrawBitmap(imgFrosted, xOffset, yOffset, false)
-				f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.layoutCur)
+				f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.layoutFrameCur)
 				angle = math.atan2(f.yBtm - f.yTop, f.xBtm - f.xTop)
 				[xOffset1, yOffset1, xOffset2, yOffset2] = [
 					math.cos(angle - math.pi / 2)
@@ -1008,7 +1008,7 @@ Extractor = class(wx.Panel) {
 		dc = wx.PaintDC(this)
 		this.UpdateImageScreen()
 		dc.DrawBitmap(this.bmpScreen, 0, 0, false)
-		f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.layoutCur)
+		f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.layoutFrameCur)
 		dc.SetPen(this.penCursor)
 		dc.SetBrush(this.brushCursor)
 		angle = math.atan2(f.yMarkBtm - f.yMarkTop, f.xMarkBtm - f.xMarkTop)
@@ -1242,7 +1242,7 @@ MainWindow = class(wx.Frame) {
 		}
 		this.noteBook = wx.Notebook(this.panelTop, wx.ID_ANY, style => wx.NB_BOTTOM)
 		wx.ListCtrl(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
-			this.noteBook.AddPage(ctrl, 'Frame Size List'$)
+			this.noteBook.AddPage(ctrl, 'Layout Frame List'$)
 			font = ctrl.GetFont()
 			font.SetPointSize(font.GetPointSize() + 2)
 			ctrl.SetFont(font)
@@ -1256,25 +1256,25 @@ MainWindow = class(wx.Frame) {
 				ctrl.SetColumnWidth(1, width)
 				event.Skip()
 			}
-			nLayoutsUserDef = 0
-			g.layoutTbl.each {|layout, idx|
+			nLayoutFramesUserDef = 0
+			g.layoutFrameTbl.each {|layoutFrame, idx|
 				wx.ListItem {|item|
 					item.SetId(idx)
-					if (layout.userDefFlag) {
-						nLayoutsUserDef += 1
-						item.SetText('User defined'$ + format(' %d', nLayoutsUserDef))
+					if (layoutFrame.userDefFlag) {
+						nLayoutFramesUserDef += 1
+						item.SetText('User defined'$ + format(' %d', nLayoutFramesUserDef))
 					} else {
-						item.SetText('%d x %dmm' % [layout.htFrame, layout.wdFrame])
+						item.SetText('%d x %dmm' % [layoutFrame.htFrame, layoutFrame.wdFrame])
 					}
 					ctrl.InsertItem(item)
 				}
 				wx.ListItem {|item|
 					item.SetId(idx)
 					item.SetColumn(1)
-					if (layout.userDefFlag && layout.purpose.isempty()) {
+					if (layoutFrame.userDefFlag && layoutFrame.purpose.isempty()) {
 						item.SetText('(double-click to edit)'$)
 					} else {
-						item.SetText(layout.purpose)
+						item.SetText(layoutFrame.purpose)
 					}
 					ctrl.SetItem(item)
 				}
@@ -1284,10 +1284,10 @@ MainWindow = class(wx.Frame) {
 					wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED)
 			ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED) {|event| this.OnListItemSelected(event) }
 			ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED) {|event| this.OnListItemActivated(event) }
-			this.listCtrlLayout = ctrl
+			this.listCtrlLayoutFrame = ctrl
 		}
 		this.dlgOutputOption = OutputOptionDialog(this, this.productViewer)
-		this.listCtrlLayout.SetFocus()
+		this.listCtrlLayoutFrame.SetFocus()
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_MENU, wx.ID_CLOSE)			{|event| this.Close()}
 		this.Bind(wx.EVT_MENU, ID_Open)				{|event| this.OnMenu_Open(event)}
@@ -1421,7 +1421,7 @@ MainWindow = class(wx.Frame) {
 	OnListItemSelected(event:wx.ListEvent) = {
 		idx = event.GetIndex()
 		(idx < 0) && return
-		g.layoutCur = g.layoutTbl[idx]
+		g.layoutFrameCur = g.layoutFrameTbl[idx]
 		this.Update()
 		wx.BusyCursor {
 			this.UpdateWholeContent()
@@ -1430,19 +1430,19 @@ MainWindow = class(wx.Frame) {
 	OnListItemActivated(event:wx.ListEvent) = {
 		idx = event.GetIndex()
 		(idx < 0) && return
-		layout = g.layoutTbl[idx]
-		!layout.userDefFlag && return
-		dlg = FrameEditorDialog(this, this.extractor, this.productViewer, layout)
+		layoutFrame = g.layoutFrameTbl[idx]
+		!layoutFrame.userDefFlag && return
+		dlg = LayoutFrameEditorDialog(this, this.extractor, this.productViewer, layoutFrame)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			wx.ListItem {|item|
 				item.SetId(idx)
 				item.SetColumn(1)
-				if (layout.purpose.isempty()) {
+				if (layoutFrame.purpose.isempty()) {
 					item.SetText('(double-click to edit)'$)
 				} else {
-					item.SetText(layout.purpose)
+					item.SetText(layoutFrame.purpose)
 				}
-				this.listCtrlLayout.SetItem(item)
+				this.listCtrlLayoutFrame.SetItem(item)
 			}
 		}
 	}
@@ -1540,15 +1540,15 @@ MainWindow = class(wx.Frame) {
 							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNamePDF = dlg.GetPath()
-			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
+			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 			ComposeProductPDF(fileNamePDF, g.imgPhotoHighRes,
-								g.layoutCur, g.paperSizeCur, orientation)
+								g.layoutFrameCur, g.paperSizeCur, orientation)
 		}
 	}
 	OnMenu_LaunchPDFViewer(event:wx.CommandEvent) = {
-		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
+		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 		ComposeProductPDF(g.fileNameTmpPDF, g.imgPhotoHighRes,
-							g.layoutCur, g.paperSizeCur, orientation)
+							g.layoutFrameCur, g.paperSizeCur, orientation)
 		try {
 			OpenWithApp(g.fileNameTmpPDF)
 		} catch {
@@ -1574,9 +1574,9 @@ MainWindow = class(wx.Frame) {
 							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		(dlg.ShowModal() != wx.ID_OK) && return
 		fileName = dlg.GetPath()
-		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutCur, g.orientation)
+		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 		wx.BusyCursor {
-			ComposeProductForPrintService(fileName, g.imgPhotoHighRes, g.layoutCur,
+			ComposeProductForPrintService(fileName, g.imgPhotoHighRes, g.layoutFrameCur,
 					g.paperSizeCur, orientation, dpi, nAdjLinesDrawn,
 					g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
 		}
@@ -1628,7 +1628,7 @@ MainWindow = class(wx.Frame) {
 		this.extractor.Refresh()
 	}
 	OnMenu_CopyExtractedImage(event:wx.CommandEvent) = {
-		imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutCur, 0, 0)
+		imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
 		if (wx.TheClipboard.Open()) {
 			wx.TheClipboard.SetData(wx.BitmapDataObject(imgExtract))
 			wx.TheClipboard.Close()
@@ -1640,7 +1640,7 @@ MainWindow = class(wx.Frame) {
 							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileName = dlg.GetPath()
-			imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutCur, 0, 0)
+			imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
 			try {
 				wx.BusyCursor {
 					imgExtract.write(fileName)
@@ -2164,24 +2164,24 @@ ColorAdjustDialog = class(wx.Dialog) {
 }
 
 //-----------------------------------------------------------------------------
-// FrameEditorDialog
+// LayoutFrameEditorDialog
 //-----------------------------------------------------------------------------
-FrameEditorDialog = class(wx.Dialog) {
+LayoutFrameEditorDialog = class(wx.Dialog) {
 	wdSpin = 80
 	wdUnit = 20
 	htFrameMax = 100	// unit: mm
 	wdFrameMax = 60		// unit: mm
 	__init__(parent:wx.Window, extractor:Extractor,  productViewer:ProductViewer,
-				layout:Layout) = {|parent, wx.ID_ANY, 'Frame Editor'$,
-						 pos => wx.Point(g.xFrameEditorDialog, g.yFrameEditorDialog),|
+				layoutFrame:LayoutFrame) = {|parent, wx.ID_ANY, 'Layout Frame Editor'$,
+						 pos => wx.Point(g.xLayoutFrameEditorDialog, g.yLayoutFrameEditorDialog),|
 		this.extractor = extractor
 		this.productViewer = productViewer
-		this.layout = layout
-		this.purpose_init		= this.layout.purpose
-		this.htFrame_init		= this.layout.htFrame
-		this.wdFrame_init		= this.layout.wdFrame
-		this.htUpperMgn_init	= this.layout.htUpperMgn
-		this.htFacePart_init	= this.layout.htFacePart
+		this.layoutFrame = layoutFrame
+		this.purpose_init		= this.layoutFrame.purpose
+		this.htFrame_init		= this.layoutFrame.htFrame
+		this.wdFrame_init		= this.layoutFrame.wdFrame
+		this.htUpperMgn_init	= this.layoutFrame.htUpperMgn
+		this.htFacePart_init	= this.layoutFrame.htFacePart
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		this.SetSizer(outerBox)
@@ -2193,11 +2193,11 @@ FrameEditorDialog = class(wx.Dialog) {
 			wx.StaticText(this, wx.ID_ANY, 'Purpose'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags().Centre())
 			}
-			wx.TextCtrl(this, wx.ID_ANY, layout.purpose) {|ctrl|
+			wx.TextCtrl(this, wx.ID_ANY, layoutFrame.purpose) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags(1).Centre().Border(wx.LEFT, 16))
 				this.textPurpose = ctrl
 				ctrl.Bind(wx.EVT_TEXT) {
-					this.layout.purpose = this.textPurpose.GetValue()
+					this.layoutFrame.purpose = this.textPurpose.GetValue()
 				}
 			}
 		}
@@ -2212,19 +2212,19 @@ FrameEditorDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 						style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-						min => 10, max => htFrameMax, initial => layout.htFrame) {|ctrl|
+						min => 10, max => htFrameMax, initial => layoutFrame.htFrame) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
 					this.spinFrameHeight = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
-						this.layout.htFrame = ctrl.GetValue()
+						this.layoutFrame.htFrame = ctrl.GetValue()
 						if (this.rbSettingByProportion.GetValue()) {
-							this.layout.htUpperMgn = int(this.layout.htFrame * \
+							this.layoutFrame.htUpperMgn = int(this.layoutFrame.htFrame * \
 										this.spinPropUpperMgn.GetValue() / 100)
-							this.layout.htFacePart = max(int(this.layout.htFrame * \
+							this.layoutFrame.htFacePart = max(int(this.layoutFrame.htFrame * \
 										this.spinPropFacePart.GetValue() / 100), 1)
-							this.spinLengthUpperMgn.SetValue(this.layout.htUpperMgn)
-							this.spinLengthFacePart.SetValue(this.layout.htFacePart)
+							this.spinLengthUpperMgn.SetValue(this.layoutFrame.htUpperMgn)
+							this.spinLengthFacePart.SetValue(this.layoutFrame.htFacePart)
 						}
 						this.UpdateExtractor()
 						this.CheckValidity()
@@ -2238,12 +2238,12 @@ FrameEditorDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 						style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-						min => 10, max => wdFrameMax, initial => layout.wdFrame) {|ctrl|
+						min => 10, max => wdFrameMax, initial => layoutFrame.wdFrame) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
 					this.spinFrameWidth = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
-						this.layout.wdFrame = ctrl.GetValue()
+						this.layoutFrame.wdFrame = ctrl.GetValue()
 						this.UpdateExtractor()
 					}
 				}
@@ -2270,13 +2270,13 @@ FrameEditorDialog = class(wx.Dialog) {
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => 100,
-							initial => int(layout.htUpperMgn * 100 / layout.htFrame)) {|ctrl|
+							initial => int(layoutFrame.htUpperMgn * 100 / layoutFrame.htFrame)) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
 						this.spinPropUpperMgn = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
-							this.layout.htUpperMgn = int(this.layout.htFrame * ctrl.GetValue() / 100)
-							this.spinLengthUpperMgn.SetValue(this.layout.htUpperMgn)
+							this.layoutFrame.htUpperMgn = int(this.layoutFrame.htFrame * ctrl.GetValue() / 100)
+							this.spinLengthUpperMgn.SetValue(this.layoutFrame.htUpperMgn)
 							this.UpdateExtractor()
 							this.CheckValidity()
 						}
@@ -2293,13 +2293,13 @@ FrameEditorDialog = class(wx.Dialog) {
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 1, max => 100,
-							initial => int(layout.htFacePart * 100 / layout.htFrame)) {|ctrl|
+							initial => int(layoutFrame.htFacePart * 100 / layoutFrame.htFrame)) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
 						this.spinPropFacePart = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
-							this.layout.htFacePart = max(int(this.layout.htFrame * ctrl.GetValue() / 100), 1)
-							this.spinLengthFacePart.SetValue(this.layout.htFacePart)
+							this.layoutFrame.htFacePart = max(int(this.layoutFrame.htFrame * ctrl.GetValue() / 100), 1)
+							this.spinLengthFacePart.SetValue(this.layoutFrame.htFacePart)
 							this.UpdateExtractor()
 							this.CheckValidity()
 						}
@@ -2323,13 +2323,13 @@ FrameEditorDialog = class(wx.Dialog) {
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => htFrameMax,
-							initial => layout.htUpperMgn) {|ctrl|
+							initial => layoutFrame.htUpperMgn) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
 						this.spinLengthUpperMgn = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
-							this.layout.htUpperMgn = ctrl.GetValue()
-							ratio = int(this.layout.htUpperMgn * 100 / this.layout.htFrame)
+							this.layoutFrame.htUpperMgn = ctrl.GetValue()
+							ratio = int(this.layoutFrame.htUpperMgn * 100 / this.layoutFrame.htFrame)
 							this.spinPropUpperMgn.SetValue(ratio)
 							this.UpdateExtractor()
 							this.CheckValidity()
@@ -2347,13 +2347,13 @@ FrameEditorDialog = class(wx.Dialog) {
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 1, max => htFrameMax,
-							initial => layout.htFacePart) {|ctrl|
+							initial => layoutFrame.htFacePart) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
 						this.spinLengthFacePart = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
-							this.layout.htFacePart = ctrl.GetValue()
-							ratio = int(this.layout.htFacePart * 100 / this.layout.htFrame)
+							this.layoutFrame.htFacePart = ctrl.GetValue()
+							ratio = int(this.layoutFrame.htFacePart * 100 / this.layoutFrame.htFrame)
 							this.spinPropFacePart.SetValue(ratio)
 							this.UpdateExtractor()
 							this.CheckValidity()
@@ -2417,14 +2417,14 @@ FrameEditorDialog = class(wx.Dialog) {
 	}
 	UpdateSizePosInfo() = {
 		(this.IsIconized() || this.IsMaximized()) && return
-		[g.xFrameEditorDialog, g.yFrameEditorDialog] = this.GetScreenPositionXY()
+		[g.xLayoutFrameEditorDialog, g.yLayoutFrameEditorDialog] = this.GetScreenPositionXY()
 	}
 	CancelModification() = {
-		this.layout.purpose		= this.purpose_init
-		this.layout.htFrame		= this.htFrame_init
-		this.layout.wdFrame		= this.wdFrame_init
-		this.layout.htUpperMgn	= this.htUpperMgn_init
-		this.layout.htFacePart	= this.htFacePart_init
+		this.layoutFrame.purpose	= this.purpose_init
+		this.layoutFrame.htFrame	= this.htFrame_init
+		this.layoutFrame.wdFrame	= this.wdFrame_init
+		this.layoutFrame.htUpperMgn	= this.htUpperMgn_init
+		this.layoutFrame.htFacePart	= this.htFacePart_init
 		this.UpdateExtractor()
 	}
 	UpdateExtractor() = {
@@ -2438,7 +2438,7 @@ FrameEditorDialog = class(wx.Dialog) {
 		}
 	}
 	CheckValidity() = {
-		validFlag = (this.layout.htUpperMgn + this.layout.htFacePart <= this.layout.htFrame)
+		validFlag = (this.layoutFrame.htUpperMgn + this.layoutFrame.htFacePart <= this.layoutFrame.htFrame)
 		this.btnOK.Enable(validFlag)
 		this.labelIndicator.SetLabel(cond(validFlag, '',
 			'The length of upper margin and face part exceeds the whole frame.'$))
