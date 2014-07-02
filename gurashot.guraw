@@ -2549,6 +2549,24 @@ OutputOptionDialog = class(wx.Dialog) {
 			vbox.Add(vboxIn, wx.SizerFlags().Expand())
 			wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 				vboxIn.Add(hbox, wx.SizerFlags().Border(wx.ALL, 8))
+				wx.StaticText(stb, wx.ID_ANY, 'Line Color'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre())
+				}
+				wx.ColourPickerCtrl(stb, wx.ID_ANY) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 12))
+					this.clrPickerTrimMarkLineColor = ctrl
+					ctrl.Bind(wx.EVT_UPDATE_UI) {|event|
+						event.Enable(g.trimMark != `none)
+					}
+					ctrl.Bind(wx.EVT_COLOURPICKER_CHANGED) {
+						c = ctrl.GetColour()
+						g.trimMarkR = c.Red()
+						g.trimMarkG = c.Green()
+						g.trimMarkB = c.Blue()
+						this.UpdateProductViewer()
+					}
+				}
+				hbox.AddSpacer(20)
 				wx.RadioButton(stb, wx.ID_ANY, 'Outer'$, style => wx.RB_GROUP) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre())
 					this.rbTrimMark_Outer = ctrl
@@ -2570,20 +2588,6 @@ OutputOptionDialog = class(wx.Dialog) {
 					this.rbTrimMark_None = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
 						g.trimMark = `none
-						this.UpdateProductViewer()
-					}
-				}
-				wx.StaticText(stb, wx.ID_ANY, 'Line Color'$) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
-				}
-				wx.ColourPickerCtrl(stb, wx.ID_ANY) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 12))
-					this.clrPickerTrimMarkLineColor = ctrl
-					ctrl.Bind(wx.EVT_COLOURPICKER_CHANGED) {
-						c = ctrl.GetColour()
-						g.trimMarkR = c.Red()
-						g.trimMarkG = c.Green()
-						g.trimMarkB = c.Blue()
 						this.UpdateProductViewer()
 					}
 				}
