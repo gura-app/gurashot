@@ -2104,11 +2104,11 @@ ColorAdjustDialog = class(wx.Dialog) {
 			vbox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
 			wx.Button(this, wx.ID_OK, 'OK'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags())
+				ctrl.SetDefault()
+				ctrl.SetFocus()
 			}
 			wx.Button(this, wx.ID_CANCEL, 'Cancel'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
-				ctrl.SetDefault()
-				ctrl.SetFocus()
 			}
 		}
 		this.Fit()
@@ -2638,11 +2638,11 @@ OutputOptionDialog = class(wx.Dialog) {
 			outerBox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
 			wx.Button(this, wx.ID_OK, 'OK'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags())
+				ctrl.SetDefault()
+				ctrl.SetFocus()
 			}
 			wx.Button(this, wx.ID_CANCEL, 'Cancel'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
-				ctrl.SetDefault()
-				ctrl.SetFocus()
 			}
 		}
 		outerBox.AddSpacer(8)
