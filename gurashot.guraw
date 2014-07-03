@@ -786,8 +786,9 @@ DrawAdjustLines(img:image, nAdjLinesDrawn:number, printServiceName:string,
 			if (fields.len() > 1) {
 				text += ' [' + fields[1].strip() + ']'
 			}
-			x = nAdjLinesDrawn * 10 + 10
-			y = nAdjLinesDrawn * 10 - 10
+			extText = cr.text_extents(text)
+			x = width - nAdjLinesDrawn * 10 - extText.x_advance - 10
+			y = height - nAdjLinesDrawn * 10 + extText.height
 			cr.move_to(x, y)
 			cr.show_text(text)
 		}
@@ -795,7 +796,6 @@ DrawAdjustLines(img:image, nAdjLinesDrawn:number, printServiceName:string,
 			text = format('a = %d, b = %d, c = %d, d = %d',
 								nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
 			extText = cr.text_extents(text)
-			extFont = cr.font_extents()
 			x = width - nAdjLinesDrawn * 10 - extText.x_advance - 10
 			y = nAdjLinesDrawn * 10 - 10
 			cr.move_to(x, y)
