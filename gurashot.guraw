@@ -778,13 +778,27 @@ DrawAdjustLines(img:image, nAdjLinesDrawn:number, printServiceName:string,
 		cr.set_source_rgb(0, .7, 0)
 		cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
 		cr.set_font_size(50)
-		text = format('a = %d, b = %d, c = %d, d = %d', nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
-		extText = cr.text_extents(text)
-		extFont = cr.font_extents()
-		x = width - nAdjLinesDrawn * 10 - extText.x_advance - 10
-		y = nAdjLinesDrawn * 10 - 10
-		cr.move_to(x, y)
-		cr.show_text(text)
+		if (!printServiceName.isempty()) {
+			fields = printServiceName.split('|'):list
+			text = fields[0].strip()
+			if (fields.len() > 1) {
+				text += ' [' + fields[1].strip() + ']'
+			}
+			x = nAdjLinesDrawn * 10 + 10
+			y = nAdjLinesDrawn * 10 - 10
+			cr.move_to(x, y)
+			cr.show_text(text)
+		}
+		scope {
+			text = format('a = %d, b = %d, c = %d, d = %d',
+								nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
+			extText = cr.text_extents(text)
+			extFont = cr.font_extents()
+			x = width - nAdjLinesDrawn * 10 - extText.x_advance - 10
+			y = nAdjLinesDrawn * 10 - 10
+			cr.move_to(x, y)
+			cr.show_text(text)
+		}
 	}
 }
 
