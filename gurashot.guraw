@@ -1380,7 +1380,7 @@ MainWindow = class(wx.Frame) {
 			text = if (g.imgInfoCur.fileName.isempty()) {
 				'(drag image into above area)'$
 			} else {
-				g.imgInfoCur.label
+				g.imgInfoCur.label.replace('&', '&&')
 			}
 			event.SetText(text)
 		}
@@ -1608,13 +1608,13 @@ MainWindow = class(wx.Frame) {
 		g.nAdjLines_d		= dlg.nAdjLines_d
 		dirName = ''
 		fileName = ''
+		if (!g.imgInfoCur.label.isempty()) {
+			fileName += g.imgInfoCur.label
+		}
 		if (!g.printServiceName.isempty()) {
 			fields = g.printServiceName.split('|'):list
+			fileName += '@'
 			fileName += fields[0].strip()
-		}
-		if (!g.imgInfoCur.label.isempty()) {
-			if (!fileName.isempty()) { fileName += '-' }
-			fileName += g.imgInfoCur.label
 		}
 		fileName = fileName.sub('[!"\'%&|\\/<>: ]', '_')
 		filter = 'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif'$
