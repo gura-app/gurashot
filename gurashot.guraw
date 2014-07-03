@@ -50,6 +50,13 @@ LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 }
 
 //-----------------------------------------------------------------------------
+// PrintServiceInfo
+//-----------------------------------------------------------------------------
+PrintServiceInfo = struct(printServiceName:string,
+						nAdjLines_a:number, nAdjLines_b:number,
+						nAdjLines_c:number, nAdjLines_d:number)
+
+//-----------------------------------------------------------------------------
 // PaperSize
 //-----------------------------------------------------------------------------
 PaperSize = struct(name:string, longSide:number, shortSide:number, printServiceFlag:boolean) {
@@ -270,6 +277,13 @@ g = module {
 	imgBoxBlue:public		= I(resource.box_blue_png)
 	imgColorTone:public		= I(resource.color_swatch_png)
 	imgPrintServiceAdjust:public = I(resource.print_service_adjust_png)
+	printServiceInfoTbl:public = @(PrintServiceInfo) {
+		{ 'Circle K Sunkus'$ +		' | SHARP MX-4500DS',	11, 10,  7, 10 }
+		{ 'Three F'$ +				' | SHARP MX-4500DS',	11, 10,  8,  8 }
+		{ 'Seven-Eleven Japan'$ +	' | Fuji Xerox',		10,  7,  7,  6 }
+		{ 'FamilyMart'$ +			' | SHARP MX-3610DS',	13, 12, 13, 12 }
+		{ 'LAWSON'$ +				' | SHARP MX-3610DS',	13, 12, 13, 12 }
+	}
 	layoutFrameTbl:public = @(LayoutFrame) {
 		{ 'Driver\'s license etc.'$,				30, 24, 2, 23, false }
 		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23, false }
@@ -319,6 +333,7 @@ g = module {
 	sepiaR:public					= 255
 	sepiaG:public					= 200
 	sepiaB:public					= 150
+	printServiceName:public			= ''
 	nAdjLines_a:public				= 8
 	nAdjLines_b:public				= 8
 	nAdjLines_c:public				= 8
@@ -368,6 +383,7 @@ LoadConfig() = {
 		g.sepiaR:number				= g.cfg['sepiaR']
 		g.sepiaG:number				= g.cfg['sepiaG']
 		g.sepiaB:number				= g.cfg['sepiaB']
+		g.printServiceName			= g.cfg['printServiceName']
 		g.nAdjLines_a:number		= g.cfg['nAdjLines_a']
 		g.nAdjLines_b:number		= g.cfg['nAdjLines_b']
 		g.nAdjLines_c:number		= g.cfg['nAdjLines_c']
@@ -454,6 +470,7 @@ SaveConfig() = {
 	g.cfg['sepiaR']						= g.sepiaR
 	g.cfg['sepiaG']						= g.sepiaG
 	g.cfg['sepiaB']						= g.sepiaB
+	g.cfg['printServiceName']			= g.printServiceName
 	g.cfg['nAdjLines_a']				= g.nAdjLines_a
 	g.cfg['nAdjLines_b']				= g.nAdjLines_b
 	g.cfg['nAdjLines_c']				= g.nAdjLines_c
@@ -730,7 +747,7 @@ ComposeProductPDF(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
 //-----------------------------------------------------------------------------
 // DrawAdjustLines
 //-----------------------------------------------------------------------------
-DrawAdjustLines(img:image, nAdjLinesDrawn:number,
+DrawAdjustLines(img:image, nAdjLinesDrawn:number, printServiceName:string,
 		nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
 	fontName = 'Sans'
 	[width, height] = [img.width, img.height]
@@ -775,7 +792,8 @@ DrawAdjustLines(img:image, nAdjLinesDrawn:number,
 // ComposeProductForPrintService
 //-----------------------------------------------------------------------------
 ComposeProductForPrintService(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
-		paperSize:PaperSize, orientation:symbol, dpi:number, nAdjLinesDrawn:number,
+		paperSize:PaperSize, orientation:symbol, dpi:number,
+		nAdjLinesDrawn:number, printServiceName:string,
 		nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
 	nAdjLinesLongSide = nAdjLines_c + nAdjLines_d
 	nAdjLinesShortSide = nAdjLines_a + nAdjLines_b
@@ -796,7 +814,7 @@ ComposeProductForPrintService(fileName:string, imgPhoto:image, layoutFrame:Layou
 		[wdCanvas, htCanvas] = [shortSideCanvas, longSideCanvas]
 	}
 	img = image(`rgba, wdOuter, htOuter, `white)
-	DrawAdjustLines(img, nAdjLinesDrawn,
+	DrawAdjustLines(img, nAdjLinesDrawn, printServiceName,
 				nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
 	img.cairo {|cr|
 		cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
@@ -1561,14 +1579,15 @@ MainWindow = class(wx.Frame) {
 	OnMenu_PrintService(event:wx.CommandEvent) = {
 		nAdjLinesDrawn = 15
 		dpi = 600
-		dlg = PrintServiceDialog(this, nAdjLinesDrawn,
+		dlg = PrintServiceDialog(this, nAdjLinesDrawn, g.printServiceName,
 					g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
 		dlg.CentreOnParent()
 		(dlg.ShowModal() != wx.ID_OK) && return
-		g.nAdjLines_a = dlg.nAdjLines_a
-		g.nAdjLines_b = dlg.nAdjLines_b
-		g.nAdjLines_c = dlg.nAdjLines_c
-		g.nAdjLines_d = dlg.nAdjLines_d
+		g.printServiceName	= dlg.printServiceName
+		g.nAdjLines_a		= dlg.nAdjLines_a
+		g.nAdjLines_b		= dlg.nAdjLines_b
+		g.nAdjLines_c		= dlg.nAdjLines_c
+		g.nAdjLines_d		= dlg.nAdjLines_d
 		filter = 'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif'$
 		dlg = wx.FileDialog(this, 'Specify an image file to save'$,
 							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
@@ -1577,7 +1596,8 @@ MainWindow = class(wx.Frame) {
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 		wx.BusyCursor {
 			ComposeProductForPrintService(fileName, g.imgPhotoHighRes, g.layoutFrameCur,
-					g.paperSizeCur, orientation, dpi, nAdjLinesDrawn,
+					g.paperSizeCur, orientation, dpi,
+					nAdjLinesDrawn, g.printServiceName,
 					g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
 		}
 	}
@@ -2709,10 +2729,11 @@ OutputOptionDialog = class(wx.Dialog) {
 PrintServiceDialog = class(wx.Dialog) {
 	textMsg = \
 	'For exact sizing, enter numbers of adjustment lines printed alongside of long and short side of paper.'$
-	__init__(parent:wx.Window, nAdjLinesDrawn:number,
+	__init__(parent:wx.Window, nAdjLinesDrawn:number, printServiceName:string,
 			nAdjLines_a:number, nAdjLines_b:number,
 			nAdjLines_c:number, nAdjLines_d:number) = {|parent, wx.ID_ANY, 'Print Service'$|
 		this.SetIcon(g.icon)
+		this.printServiceName:public = printServiceName
 		this.nAdjLines_a:public = nAdjLines_a
 		this.nAdjLines_b:public = nAdjLines_b
 		this.nAdjLines_c:public = nAdjLines_c
@@ -2745,7 +2766,22 @@ PrintServiceDialog = class(wx.Dialog) {
 											style => wx.BORDER_STATIC) {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Centre())
 		}
-		vbox.AddSpacer(8)
+		vbox.AddSpacer(12)
+		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+			vbox.Add(hbox, wx.SizerFlags().Expand())
+			wx.StaticText(this, wx.ID_ANY, 'Name of Print Service'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Align(wx.ALIGN_CENTRE_VERTICAL))
+			}
+			wx.TextCtrl(this, wx.ID_ANY, this.printServiceName) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags(1).Border(wx.LEFT, 8).Align(wx.ALIGN_CENTRE_VERTICAL))
+				this.textPrintServiceName = ctrl
+			}
+			wx.Button(this, wx.ID_ANY, 'Browse'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Expand())
+				ctrl.Bind(wx.EVT_BUTTON) {|event| this.BrowsePrintService()}
+			}
+		}
+		vbox.AddSpacer(12)
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 			vbox.Add(hbox, wx.SizerFlags().Centre())
 			wx.FlexGridSizer(nil, 3, 8, 12) {|gbox|
@@ -2762,6 +2798,7 @@ PrintServiceDialog = class(wx.Dialog) {
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_a) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
+						this.spinAdjLines_a = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
 							this.nAdjLines_a = ctrl.GetValue()
@@ -2777,6 +2814,7 @@ PrintServiceDialog = class(wx.Dialog) {
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_b) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
+						this.spinAdjLines_b = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
 							this.nAdjLines_b = ctrl.GetValue()
@@ -2795,6 +2833,7 @@ PrintServiceDialog = class(wx.Dialog) {
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_c) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
+						this.spinAdjLines_c = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
 							this.nAdjLines_c = ctrl.GetValue()
@@ -2810,6 +2849,7 @@ PrintServiceDialog = class(wx.Dialog) {
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
 							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_d) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
+						this.spinAdjLines_d = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
 							this.nAdjLines_d = ctrl.GetValue()
@@ -2836,6 +2876,103 @@ PrintServiceDialog = class(wx.Dialog) {
 		}
 		outerBox.AddSpacer(8)
 		this.Fit()
+	}
+	BrowsePrintService() = {
+		dlg = PrintServiceBrowserDialog(this)
+		dlg.CentreOnParent()
+		if (dlg.ShowModal() == wx.ID_OK) {
+			this.printServiceName = dlg.printServiceInfo.printServiceName
+			this.nAdjLines_a = dlg.printServiceInfo.nAdjLines_a
+			this.nAdjLines_b = dlg.printServiceInfo.nAdjLines_b
+			this.nAdjLines_c = dlg.printServiceInfo.nAdjLines_c
+			this.nAdjLines_d = dlg.printServiceInfo.nAdjLines_d
+			this.textPrintServiceName.SetValue(this.printServiceName)
+			this.spinAdjLines_a.SetValue(this.nAdjLines_a)
+			this.spinAdjLines_b.SetValue(this.nAdjLines_b)
+			this.spinAdjLines_c.SetValue(this.nAdjLines_c)
+			this.spinAdjLines_d.SetValue(this.nAdjLines_d)
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// PrintServiceBrowserDialog
+//-----------------------------------------------------------------------------
+PrintServiceBrowserDialog = class(wx.Dialog) {
+	[wdList, htList] = [540, 300]
+	__init__(parent:wx.Window) = {|parent, wx.ID_ANY, 'Print Service Browser'$|
+		this.SetIcon(g.icon)
+		this.printServiceInfo:public = nil
+		outerBox = wx.BoxSizer(wx.VERTICAL)
+		this.SetSizer(outerBox)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		outerBox.Add(vbox, wx.SizerFlags().Border(wx.ALL, 8))
+		wx.ListView(this, wx.ID_ANY, size => wx.Size(wdList, htList),
+					style => wx.BORDER_SUNKEN | wx.LC_REPORT | wx.LC_SINGLE_SEL) {|ctrl|
+			font = ctrl.GetFont()
+			vbox.Add(ctrl, wx.SizerFlags())
+			font.SetPointSize(font.GetPointSize() + 2)
+			ctrl.SetFont(font)
+			ctrl.InsertColumn(0.., ['Print Service'$, 'Device Name etc.'$])
+			ctrl.Bind(wx.EVT_SIZE) {|event|
+				size = event.GetSize()
+				width = size.GetWidth() - 25
+				wdColumn = width / 2
+				ctrl.SetColumnWidth(0, wdColumn)
+				width -= wdColumn
+				ctrl.SetColumnWidth(1, width)
+				event.Skip()
+			}
+			g.printServiceInfoTbl.each {|printServiceInfo, idx|
+				fields = printServiceInfo.printServiceName.split('|'):list
+				wx.ListItem {|item|
+					item.SetId(idx)
+					item.SetText(fields[0].strip())
+					ctrl.InsertItem(item)
+				}
+				if (fields.len() > 1) {
+					wx.ListItem {|item|
+						item.SetId(idx)
+						item.SetColumn(1)
+						item.SetText(fields[1].strip())
+						ctrl.SetItem(item)
+					}
+				}
+			}
+			ctrl.SetItemState(0,
+					wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED,
+					wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED)
+			ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED) {|event| this.OnListItemActivated(event) }
+			this.listPrintService = ctrl
+		}
+		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
+			outerBox.Add(ctrl, wx.SizerFlags().Expand())
+		}
+		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
+			outerBox.Add(hbox, wx.SizerFlags().Centre().Border(wx.TOP, 8))
+			wx.Button(this, wx.ID_OK, 'OK'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags())
+				ctrl.SetDefault()
+				ctrl.SetFocus()
+			}
+			wx.Button(this, wx.ID_CANCEL, 'Cancel'$) {|ctrl|
+				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
+			}
+		}
+		outerBox.AddSpacer(8)
+		this.Fit()
+		this.listPrintService.SetFocus()
+		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
+	}
+	OnButton_OK(event:wx.CommandEvent) = {
+		((idx = this.listPrintService.GetFirstSelected()) < 0) && return
+		this.printServiceInfo = g.printServiceInfoTbl[idx]
+		this.EndModal(wx.ID_OK)
+	}
+	OnListItemActivated(event:wx.ListEvent) = {
+		((idx = event.GetIndex()) < 0) && return
+		this.printServiceInfo = g.printServiceInfoTbl[idx]
+		this.EndModal(wx.ID_OK)
 	}
 }
 

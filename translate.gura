@@ -109,6 +109,7 @@ transDicts = %{
 'Title Output'							=> 'タイトル出力'
 'Image Label'							=> '画像ラベル'
 'Print Service'							=> 'プリントサービス'
+'Device Name etc.'						=> '機種名など'
 'Print Service Function'				=> 'プリントサービス機能'
 'Num of Adjust Lines on Long Side'		=> '長辺沿いの調整用ラインの数'
 'Num of Adjust Lines on Short Side'	=> '短辺沿いの調整用ラインの数'
@@ -137,7 +138,15 @@ It will not delete the original file.''' => \
 'Face Part'								=> '顔部分'
 'The length of upper margin and face part exceeds the whole frame.' => \
 	'上マージンと顔部分の長さが全体のフレームを超えています'
+'Name of Print Service'					=> 'プリントサービス名'
+'Browse'								=> '検索'
+'Print Service Browser'					=> 'プリントサービス検索'
 'Layout Frame List'						=> '割り付けフレーム一覧'
+'Circle K Sunkus'						=> 'サークル K サンクス'
+'Three F'								=> 'スリーエフ'
+'Seven-Eleven Japan'					=> 'セブンイレブン'
+'FamilyMart'							=> 'ファミリーマート'
+'LAWSON'								=> 'ローソン'
 }
 }
 
