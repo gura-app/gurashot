@@ -278,11 +278,12 @@ g = module {
 	imgColorTone:public		= I(resource.color_swatch_png)
 	imgPrintServiceAdjust:public = I(resource.print_service_adjust_png)
 	printServiceInfoTbl:public = @(PrintServiceInfo) {
-		{ 'Circle K Sunkus'$ +		' | SHARP MX-4500DS',	11, 10,  7, 10 }
-		{ 'Three F'$ +				' | SHARP MX-4500DS',	11, 10,  8,  8 }
-		{ 'Seven-Eleven Japan'$ +	' | Fuji Xerox',		10,  7,  7,  6 }
-		{ 'FamilyMart'$ +			' | SHARP MX-3610DS',	13, 12, 13, 12 }
-		{ 'LAWSON'$ +				' | SHARP MX-3610DS',	13, 12, 13, 12 }
+		{ 'Circle K Sunkus'$ +			' | SHARP MX-4500DS',		11, 10,  7, 10 }
+		{ 'Three F'$ +					' | SHARP MX-4500DS',		11, 10,  8,  8 }
+		{ 'Seven-Eleven Japan'$ +		' | Fuji Xerox',			10,  7,  7,  6 }
+		{ 'FamilyMart'$ +				' | SHARP MX-3610DS',		13, 12, 13, 12 }
+		{ 'LAWSON'$ +					' | SHARP MX-3610DS',		13, 12, 13, 12 }
+		{ 'Mitsubishi Color Print'$ +	' | Mitsubishi Mikupuri',	11, 10,  7, 10 }
 	}
 	layoutFrameTbl:public = @(LayoutFrame) {
 		{ 'Driver\'s license etc.'$,				30, 24, 2, 23, false }
