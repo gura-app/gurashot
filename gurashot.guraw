@@ -1272,9 +1272,12 @@ MainWindow = class(wx.Frame) {
 				ctrl.Bind(wx.EVT_RIGHT_DOWN) {|event| this.OnRightDown_Label(event)}
 			}
 		}
-		this.noteBook = wx.Notebook(this.panelTop, wx.ID_ANY, style => wx.NB_BOTTOM)
+		wx.Notebook(this.panelTop, wx.ID_ANY, style => wx.NB_BOTTOM) {|ctrl|
+			//ctrl.SetPadding(wx.Size(8, 0))
+			this.noteBook = ctrl
+		}
 		wx.ListCtrl(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
-			this.noteBook.AddPage(ctrl, 'Layout Frame List'$)
+			this.noteBook.AddPage(ctrl, '  ' + 'Layout Frame List'$ + '  ')
 			font = ctrl.GetFont()
 			font.SetPointSize(font.GetPointSize() + 2)
 			ctrl.SetFont(font)
