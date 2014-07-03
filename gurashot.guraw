@@ -1605,9 +1605,20 @@ MainWindow = class(wx.Frame) {
 		g.nAdjLines_b		= dlg.nAdjLines_b
 		g.nAdjLines_c		= dlg.nAdjLines_c
 		g.nAdjLines_d		= dlg.nAdjLines_d
+		dirName = ''
+		fileName = ''
+		if (!g.printServiceName.isempty()) {
+			fields = g.printServiceName.split('|'):list
+			fileName += fields[0].strip()
+		}
+		if (!g.imgInfoCur.label.isempty()) {
+			if (!fileName.isempty()) { fileName += '-' }
+			fileName += g.imgInfoCur.label
+		}
+		fileName = fileName.sub('[!"\'%&|\\/<>: ]', '_')
 		filter = 'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif'$
 		dlg = wx.FileDialog(this, 'Specify an image file to save'$,
-							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+					dirName, fileName, filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		(dlg.ShowModal() != wx.ID_OK) && return
 		fileName = dlg.GetPath()
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
@@ -2792,6 +2803,9 @@ PrintServiceDialog = class(wx.Dialog) {
 			wx.TextCtrl(this, wx.ID_ANY, this.printServiceName) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags(1).Border(wx.LEFT, 8).Align(wx.ALIGN_CENTRE_VERTICAL))
 				this.textPrintServiceName = ctrl
+				ctrl.Bind(wx.EVT_TEXT) {
+					this.printServiceName = this.textPrintServiceName.GetValue()
+				}
 			}
 			wx.Button(this, wx.ID_ANY, 'Browse'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4).Expand())
