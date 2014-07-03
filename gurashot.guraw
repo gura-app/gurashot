@@ -780,7 +780,8 @@ DrawAdjustLines(img:image, nAdjLinesDrawn:number, printServiceName:string,
 		cr.set_font_size(50)
 		if (!printServiceName.isempty()) {
 			fields = printServiceName.split('|'):list
-			text = fields[0].strip()
+			text = 'Print Service'$ + ': '
+			text += fields[0].strip()
 			if (fields.len() > 1) {
 				text += ' [' + fields[1].strip() + ']'
 			}
