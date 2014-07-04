@@ -14,7 +14,6 @@ import(xpm)
 import(msico)
 import(cairo)
 import(resource)
-import(mswin)
 import(units)
 import(translate)
 
@@ -588,8 +587,15 @@ RotateImageR() = {
 //-----------------------------------------------------------------------------
 // OpenWithApp
 //-----------------------------------------------------------------------------
-OpenWithApp(fileName:string) = {
-	mswin.ole('Wscript.shell') {|wsh| wsh.Run(fileName)}
+if (sys.platform == `mswin) {
+	OpenWithApp(fileName:string) = {
+		import(mswin)
+		mswin.ole('Wscript.shell') {|wsh| wsh.Run(fileName)}
+	}
+} else {
+	OpenWithApp(fileName:string) = {
+		
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -966,9 +972,11 @@ Extractor = class(wx.Panel) {
 		this.Bind(wx.EVT_PAINT) {|event| this.OnPaint(event)}
 		this.Bind(wx.EVT_LEFT_DOWN) {|event| this.OnLeftDown(event)}
 		this.Bind(wx.EVT_LEFT_UP) {|event| this.OnLeftUp(event)}
-		this.Bind(wx.EVT_MOUSE_CAPTURE_LOST) {|event| this.OnMouseCaptureLost(event)}
 		this.Bind(wx.EVT_MOTION) {|event| this.OnMotion(event)}
 		this.Bind(wx.EVT_DROP_FILES) {|event| this.OnDropFiles(event)}
+		if (sys.platform == `mswin) {
+			this.Bind(wx.EVT_MOUSE_CAPTURE_LOST) {|event| this.OnMouseCaptureLost(event)}
+		}
 	}
 	// methods
 	SenseBox(pt:wx.Point) = {
