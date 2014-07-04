@@ -18,7 +18,7 @@ import(mswin)
 import(units)
 import(translate)
 
-Version = '1.1.0'
+Version = '1.1.1'
 
 //-----------------------------------------------------------------------------
 // Control ID
@@ -2514,16 +2514,6 @@ OutputOptionDialog = class(wx.Dialog) {
 		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
-		this.orientation_init				= g.orientation
-		this.wdEdgeMgn_init					= g.wdEdgeMgn
-		this.htEdgeMgn_init					= g.htEdgeMgn
-		this.trimMark_init					= g.trimMark
-		this.trimMarkR_init					= g.trimMarkR
-		this.trimMarkG_init					= g.trimMarkG
-		this.trimMarkB_init					= g.trimMarkB
-		this.titleDispFlag_Size_init		= g.titleDispFlag_Size
-		this.titleDispFlag_ImageLabel_init	= g.titleDispFlag_ImageLabel
-		this.titleDispFlag_Purpose_init		= g.titleDispFlag_Purpose
 		vbox.AddSpacer(12)
 		wx.StaticBox(this, wx.ID_ANY, 'Paper Orientation'$) {|stb|
 			vboxIn = wx.StaticBoxSizer(stb, wx.VERTICAL)
@@ -2703,6 +2693,16 @@ OutputOptionDialog = class(wx.Dialog) {
 		this.Bind(wx.EVT_CLOSE) {|event| this.OnClose(event)}
 	}
 	InitWindowValues() = {
+		this.orientation_init				= g.orientation
+		this.wdEdgeMgn_init					= g.wdEdgeMgn
+		this.htEdgeMgn_init					= g.htEdgeMgn
+		this.trimMark_init					= g.trimMark
+		this.trimMarkR_init					= g.trimMarkR
+		this.trimMarkG_init					= g.trimMarkG
+		this.trimMarkB_init					= g.trimMarkB
+		this.titleDispFlag_Size_init		= g.titleDispFlag_Size
+		this.titleDispFlag_ImageLabel_init	= g.titleDispFlag_ImageLabel
+		this.titleDispFlag_Purpose_init		= g.titleDispFlag_Purpose
 		this.rbPaperOrient_Auto.SetValue(g.orientation == `auto)
 		this.rbPaperOrient_Vertical.SetValue(g.orientation == `vertical)
 		this.rbPaperOrient_Horizontal.SetValue(g.orientation == `horizontal)
@@ -2738,7 +2738,7 @@ OutputOptionDialog = class(wx.Dialog) {
 		g.trimMakrsB				= this.trimMarkB_init
 		g.titleDispFlag_Size		= this.titleDispFlag_Size_init
 		g.titleDispFlag_ImageLabel	= this.titleDispFlag_ImageLabel_init
-		g.titleDispFLag_Purpose		= this.titleDispFlag_Purpose_init
+		g.titleDispFlag_Purpose		= this.titleDispFlag_Purpose_init
 		this.UpdateProductViewer()
 	}
 	UpdateSizePosInfo() = {
