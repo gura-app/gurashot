@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import(mswin)
-
 transDicts = %{
 `ja => %{
 'ID Photo Creator'						=> 'おうちで証明写真'
