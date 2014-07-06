@@ -18,8 +18,12 @@ Gura Shot は、デジカメの画像から必要なサイズの証明写真をカンタンに作れる
 
 ## 動作環境
 
-Windows が動作している PC を用意してください。Windows 7 で動作確認しています。
-それ以前のバージョン Windows XP、Vista でも大丈夫だと思いますが、Windows 8 は未確認です。
+Windows が動作している PC を用意してください。以下のバージョンで動作確認を行いました。
+
+* Windows 7
+* Windows 8.1
+
+それ以前の Windows バージョン、Windows XP、Vista でもおそらく大丈夫だと思います。
 
 このアプリケーションを実行するには [Gura プログラミング言語](http://www.gura-lang.org/)
 の環境が必要です (無償)。[ダウンロードページ](http://www.gura-lang.org/Download.html) から
