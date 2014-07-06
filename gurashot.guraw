@@ -1913,7 +1913,6 @@ ColorAdjustDialog = class(wx.Dialog) {
 		
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
-		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.TOP | wx.BOTTOM, 8))
 		vbox.AddSpacer(8)
@@ -2169,7 +2168,7 @@ ColorAdjustDialog = class(wx.Dialog) {
 				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 16))
 			}
 		}
-		this.Fit()
+		this.SetSizerAndFit(outerBox)
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_BUTTON, ID_Adjust) {|event| this.OnButton_Adjust(event)}
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
@@ -2241,7 +2240,6 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 		this.htFacePart_init	= this.layoutFrame.htFacePart
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
-		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
 		vbox.AddSpacer(16)
@@ -2457,7 +2455,7 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
 		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
 		outerBox.AddSpacer(8)
-		this.Fit()
+		this.SetSizerAndFit(outerBox)
 		this.frostFrameFlagSaved = g.frostFrameFlag
 		g.frostFrameFlag = true
 		this.UpdateExtractor()
@@ -2519,7 +2517,6 @@ OutputOptionDialog = class(wx.Dialog) {
 		this.productViewer = productViewer
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
-		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
 		vbox.AddSpacer(12)
@@ -2694,7 +2691,7 @@ OutputOptionDialog = class(wx.Dialog) {
 			}
 		}
 		outerBox.AddSpacer(8)
-		this.Fit()
+		this.SetSizerAndFit(outerBox)
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
 		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
@@ -2779,7 +2776,6 @@ PrintServiceDialog = class(wx.Dialog) {
 		wdSymbol = 30
 		wdSpin = 80
 		outerBox = wx.BoxSizer(wx.VERTICAL)
-		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 8))
 		vbox.AddSpacer(16)
@@ -2916,7 +2912,7 @@ PrintServiceDialog = class(wx.Dialog) {
 			}
 		}
 		outerBox.AddSpacer(8)
-		this.Fit()
+		this.SetSizerAndFit(outerBox)
 	}
 	BrowsePrintService() = {
 		dlg = PrintServiceBrowserDialog(this)
@@ -2945,7 +2941,6 @@ PrintServiceBrowserDialog = class(wx.Dialog) {
 		this.SetIcon(g.icon)
 		this.printServiceInfo:public = nil
 		outerBox = wx.BoxSizer(wx.VERTICAL)
-		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags().Border(wx.ALL, 8))
 		wx.ListView(this, wx.ID_ANY, size => wx.Size(wdList, htList),
@@ -3001,7 +2996,7 @@ PrintServiceBrowserDialog = class(wx.Dialog) {
 			}
 		}
 		outerBox.AddSpacer(8)
-		this.Fit()
+		this.SetSizerAndFit(outerBox)
 		this.listPrintService.SetFocus()
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
 	}
@@ -3026,7 +3021,6 @@ RenameLabelDialog = class(wx.Dialog) {
 		this.imgInfo = imgInfo
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
-		this.SetSizer(outerBox)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.ALL, 8))
 		wx.FlexGridSizer(nil, 2, 8, 16) {|gbox|
@@ -3057,7 +3051,7 @@ RenameLabelDialog = class(wx.Dialog) {
 				hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 8))
 			}
 		}
-		this.Fit()
+		this.SetSizerAndFit(outerBox)
 		this.ctrlText.SetFocus()
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
 	}
