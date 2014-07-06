@@ -594,7 +594,8 @@ if (sys.platform == `mswin) {
 	}
 } else {
 	OpenWithApp(fileName:string) = {
-		
+		progName = 'evince'
+		os.exec(progName, fileName):fork
 	}
 }
 
