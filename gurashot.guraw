@@ -1787,8 +1787,7 @@ ImageListDialog = class(wx.Dialog) {
 			ctrl.Bind(wx.EVT_LIST_END_LABEL_EDIT) {|event| this.OnListEndLabelEdit(event)}
 		}
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
-			vbox.Add(hbox, wx.SizerFlags().Border(wx.TOP, 4).Expand())
-			hbox.AddSpacer(16)
+			vbox.Add(hbox, wx.SizerFlags().Border(wx.TOP, 4).Centre())
 			wx.Button(this, wx.ID_OK, 'Select'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags())
 				ctrl.SetDefault()
