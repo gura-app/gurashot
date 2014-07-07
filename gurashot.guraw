@@ -1745,7 +1745,6 @@ ImageListDialog = class(wx.Dialog) {
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 			vbox.Add(hbox, wx.SizerFlags().Border(wx.TOP, 4).Expand())
 			hbox.AddSpacer(16)
-			hbox.AddStretchSpacer(1)
 			wx.Button(this, wx.ID_OK, 'Select'$) {|ctrl|
 				hbox.Add(ctrl, wx.SizerFlags())
 				ctrl.SetDefault()
@@ -3066,13 +3065,12 @@ RenameLabelDialog = class(wx.Dialog) {
 // AboutDialog
 //-----------------------------------------------------------------------------
 AboutDialog = class(wx.Dialog) {
-	__init__(parent:wx.Window) = {|parent, wx.ID_ANY, 'About'$, size => wx.Size(320, 200)|
+	__init__(parent:wx.Window) = {|parent, wx.ID_ANY, 'About'$|
 		this.SetIcon(g.icon)
 		outerBox = wx.BoxSizer(wx.VERTICAL)
-		this.SetSizer(outerBox)
+		outerBox.AddSpacer(16)
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.ALL, 2))
-		vbox.AddStretchSpacer(1)
+		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 32))
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 			vbox.Add(hbox, wx.SizerFlags().Centre())
 			wx.StaticBitmap(this, wx.ID_ANY, wx.NullBitmap) {|ctrl|
@@ -3098,7 +3096,7 @@ AboutDialog = class(wx.Dialog) {
 		wx.StaticText(this, wx.ID_ANY, 'Copyright (C) 2014 ypsitau') {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Centre())
 		}
-		vbox.AddStretchSpacer(1)
+		vbox.AddSpacer(16)
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 			vbox.Add(hbox, wx.SizerFlags().Centre())
 			url = 'http://app.gura-lang.org/gurashot/'
@@ -3106,15 +3104,16 @@ AboutDialog = class(wx.Dialog) {
 				hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 4))
 			}
 		}
-		vbox.AddStretchSpacer(1)
+		outerBox.AddSpacer(24)
 		wx.StaticLine(this, wx.ID_ANY) {|ctrl|
-			vbox.Add(ctrl, wx.SizerFlags().Expand())
+			outerBox.Add(ctrl, wx.SizerFlags().Expand())
 		}
 		wx.Button(this, wx.ID_OK, 'OK'$) {|ctrl|
-			vbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.TOP | wx.BOTTOM, 4))
+			outerBox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.TOP | wx.BOTTOM, 4))
 			ctrl.SetDefault()
 			ctrl.SetFocus()
 		}
+		this.SetSizerAndFit(outerBox)
 	}
 }
 
