@@ -56,8 +56,12 @@ transDicts = %{
 'Failed to launch PDF viewer'			=> 'PDF ビューアを起動できませんでした'
 'Error'									=> 'エラー'
 'Choose an image file'					=> '画像ファイルを選択'
-'Image files (*.jpg;*.png;*.gif;*.bmp)|*.jpg;*.png;*.gif;*.bmp|All files (*.*)|*.*' => \
-	'イメージファイル (*.jpg;*.png;*.gif;*.bmp)|*.jpg;*.png;*.gif;*.bmp|すべてのファイル (*.*)|*.*'
+'Image files (*.jpg;*.jpeg;*.png;*.gif;*.bmp)|' + \
+		'*.jpg;*.jpeg;*.png;*.gif;*.bmp;*.JPG;*.JPEG;*.PNG;*.GIF;*.BMP|' + \
+		'All files (*.*)|*.*' => \
+	'イメージファイル (*.jpg;*.jpeg;*.png;*.gif;*.bmp)|' + \
+			'*.jpg;*.jpeg;*.png;*.gif;*.bmp;*.JPG;*.JPEG;*.PNG;*.GIF;*.BMP|' + \
+			'すべてのファイル (*.*)|*.*'
 'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif' => \
 	'JPEG ファイル (*.jpg)|*.jpg|PNG ファイル (*.png)|*.png|BMP ファイル (*.bmp)|*.bmp|GIF ファイル (*.gif)|*.gif'
 'Failed to read the image file'			=> '画像ファイルの読み込み中にエラーが発生しました'
@@ -151,3 +155,4 @@ It will not delete the original file.''' => \
 }
 
 (transDict = transDicts.get(sys.langcode)) && string.translator {|x| transDict.get(x, x)}
+_(x:string) = cond(transDict, transDict.get(x, x), x)

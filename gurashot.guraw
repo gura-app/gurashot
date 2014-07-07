@@ -15,7 +15,7 @@ import(msico)
 import(cairo)
 import(resource)
 import(units)
-import(translate)
+import(translate) {_}
 
 Version = '1.1.1'
 
@@ -1528,9 +1528,11 @@ MainWindow = class(wx.Frame) {
 		}
 	}
 	OnMenu_Open(event:wx.CommandEvent) = {
-		filter = 'Image files (*.jpg;*.jpeg;*.png;*.gif;*.bmp)|*.jpg;*.jpeg;*.png;*.gif;*.bmp;*.JPG;*.JPEG;*.PNG;*.GIF;*.BMP|All files (*.*)|*.*'$
+		filter = 'Image files (*.jpg;*.jpeg;*.png;*.gif;*.bmp)|' + \
+				'*.jpg;*.jpeg;*.png;*.gif;*.bmp;*.JPG;*.JPEG;*.PNG;*.GIF;*.BMP|' + \
+				'All files (*.*)|*.*'
 		dlg = wx.FileDialog(this, 'Choose an image file'$,
-								'', g.imgInfoCur.fileName, filter, wx.FD_OPEN)
+								'', g.imgInfoCur.fileName, _(filter), wx.FD_OPEN)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileName = dlg.GetPath()
 			ReadImageFile(this, fileName)
