@@ -112,6 +112,8 @@ ImageInfo = class {
 		greenness,		greenness_init
 		blueness,		blueness_init
 		imgPhotoRaw,
+		imgPhotoHighRes,
+		imgPhotoLowRes,
 	}
 	label_init			= ''
 	fileName_init		= ''
@@ -129,21 +131,23 @@ ImageInfo = class {
 	blueness_init		= 0
 	mapTblLenear		= [0..255]
 	__init__() = {
-		this.label			= label_init
-		this.fileName		= fileName_init
-		this.rotate			= rotate_init
-		this.xrateTop		= xrateTop_init
-		this.xrateBtm		= xrateBtm_init
-		this.yrateTop		= yrateTop_init
-		this.yrateBtm		= yrateBtm_init
-		this.tiltAdjFlag	= tiltAdjFlag_init
-		this.colorTone		= colorTone_init
-		this.brightness		= brightness_init
-		this.contrast		= contrast_init
-		this.redness		= redness_init
-		this.greenness		= greenness_init
-		this.blueness		= blueness_init
-		this.imgPhotoRaw	= nil
+		this.label				= label_init
+		this.fileName			= fileName_init
+		this.rotate				= rotate_init
+		this.xrateTop			= xrateTop_init
+		this.xrateBtm			= xrateBtm_init
+		this.yrateTop			= yrateTop_init
+		this.yrateBtm			= yrateBtm_init
+		this.tiltAdjFlag		= tiltAdjFlag_init
+		this.colorTone			= colorTone_init
+		this.brightness			= brightness_init
+		this.contrast			= contrast_init
+		this.redness			= redness_init
+		this.greenness			= greenness_init
+		this.blueness			= blueness_init
+		this.imgPhotoRaw		= nil
+		this.imgPhotoHighRes	= nil
+		this.imgPhotoLowRes		= nil
 	}
 	UpdateImagePhotoRaw() = {
 		this.imgPhotoRaw = cond(this.fileName.isempty(),
@@ -316,8 +320,6 @@ g = module {
 		{ 'Yotsugiri'$,		305, 254, false }
 	}
 	cfg:public						= %{}
-	imgPhotoHighRes:public			= nil
-	imgPhotoLowRes:public			= nil
 	mainWindow:public				= nil
 	xMainWindow:public				= -1
 	yMainWindow:public				= -1
@@ -535,8 +537,8 @@ InitializeResource() = {
 // UpdateImagePhoto
 //-----------------------------------------------------------------------------
 UpdateImagePhoto() = {
-	g.imgPhotoHighRes = g.imgInfoCur.imgPhotoRaw.rotate(g.imgInfoCur.rotate)
-	g.imgPhotoLowRes = g.imgPhotoHighRes.thumbnail(1000):box
+	g.imgInfoCur.imgPhotoHighRes = g.imgInfoCur.imgPhotoRaw.rotate(g.imgInfoCur.rotate)
+	g.imgInfoCur.imgPhotoLowRes = g.imgInfoCur.imgPhotoHighRes.thumbnail(1000):box
 }
 
 //-----------------------------------------------------------------------------
@@ -564,6 +566,7 @@ ReadImageFile(parent:wx.Window, fileName:string) = {
 	if (!g.imgInfoCur.imgPhotoRaw) {
 		try {
 			g.imgInfoCur.UpdateImagePhotoRaw()
+			UpdateImagePhoto()
 		} catch {
 			wx.MessageDialog(parent, 'Failed to read the image file'$,
 							'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
@@ -572,7 +575,6 @@ ReadImageFile(parent:wx.Window, fileName:string) = {
 			return
 		}
 	}
-	UpdateImagePhoto()
 }
 
 //-----------------------------------------------------------------------------
@@ -897,7 +899,7 @@ ProductViewer = class(wx.Panel) {
 			img.cairo {|cr|
 				scale = wdImg / wdCanvas
 				cr.scale(scale, scale)
-				ComposeProduct(cr, g.imgPhotoLowRes,
+				ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes,
 								g.layoutFrameCur, g.paperSizeCur, orientation)
 			}
 		}
@@ -1031,7 +1033,7 @@ Extractor = class(wx.Panel) {
 	UpdateImageScreen() = {
 		[wdClient, htClient] = this.GetClientSizeWH()
 		this.bmpScreen = wx.BitmapWH(wdClient, htClient)
-		img = g.imgInfoCur.AdjustColor(g.imgPhotoLowRes.thumbnail(wdClient, htClient))
+		img = g.imgInfoCur.AdjustColor(g.imgInfoCur.imgPhotoLowRes.thumbnail(wdClient, htClient))
 		imgFrosted = img.mapcolorlevel(this.mapTblFrosted)
 		[xOffset, yOffset] = [(wdClient - img.width) / 2, (htClient - img.height) / 2]
 		this.rcImg = wx.Rect(xOffset, yOffset, img.width, img.height)
@@ -1606,13 +1608,13 @@ MainWindow = class(wx.Frame) {
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNamePDF = dlg.GetPath()
 			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-			ComposeProductPDF(fileNamePDF, g.imgPhotoHighRes,
+			ComposeProductPDF(fileNamePDF, g.imgInfoCur.imgPhotoHighRes,
 								g.layoutFrameCur, g.paperSizeCur, orientation)
 		}
 	}
 	OnMenu_LaunchPDFViewer(event:wx.CommandEvent) = {
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-		ComposeProductPDF(g.fileNameTmpPDF, g.imgPhotoHighRes,
+		ComposeProductPDF(g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes,
 							g.layoutFrameCur, g.paperSizeCur, orientation)
 		if (!LaunchPDFViewer(g.fileNameTmpPDF)) {
 			wx.MessageDialog(this, 'Failed to launch PDF viewer'$,
@@ -1651,7 +1653,7 @@ MainWindow = class(wx.Frame) {
 		fileName = dlg.GetPath()
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 		wx.BusyCursor {
-			ComposeProductForPrintService(fileName, g.imgPhotoHighRes, g.layoutFrameCur,
+			ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, g.layoutFrameCur,
 					g.paperSizeCur, orientation, dpi,
 					nAdjLinesDrawn, g.printServiceName,
 					g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
@@ -1705,7 +1707,7 @@ MainWindow = class(wx.Frame) {
 	}
 	OnMenu_CopyExtractedImage(event:wx.CommandEvent) = {
 		wx.BusyCursor {
-			imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
+			imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
 			if (wx.TheClipboard.Open()) {
 				wx.TheClipboard.SetData(wx.BitmapDataObject(imgExtract))
 				wx.TheClipboard.Close()
@@ -1720,7 +1722,7 @@ MainWindow = class(wx.Frame) {
 			fileName = dlg.GetPath()
 			try {
 				wx.BusyCursor {
-					imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
+					imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
 					imgExtract.write(fileName)
 				}
 			} catch {
