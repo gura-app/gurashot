@@ -232,8 +232,8 @@ g = module {
 	fileNameCfg:public		= path.join(sys.cfgdir, 'gurashot.yml')
 	//fileNameCfg:public	= 'gurashot.yml'
 	fileNameIcon:public		= 'gurashot.ico'
-	imgBlank:public = image(`rgba, 800, 800, color(240, 240, 255))
-	imgBlank.cairo {|cr|
+	imgNoImage:public = image(`rgba, 800, 800, color(240, 240, 255))
+	imgNoImage.cairo {|cr|
 		cr.set_source_rgb(.8, 0.8, 0.8)
 		cr.save {
 			cr.scale(1, 1.1)
@@ -312,7 +312,7 @@ g = module {
 		{ 'Yotsugiri'$,		305, 254, false }
 	}
 	cfg:public						= %{}
-	imgPhotoRaw:public				= imgBlank
+	imgPhotoRaw:public				= imgNoImage
 	imgPhotoHighRes:public			= nil
 	imgPhotoLowRes:public			= nil
 	mainWindow:public				= nil
@@ -541,7 +541,7 @@ UpdateImagePhoto() = {
 //-----------------------------------------------------------------------------
 SetBlankImage() = {
 	g.imgInfoCur = ImageInfo()
-	g.imgPhotoRaw = g.imgBlank
+	g.imgPhotoRaw = g.imgNoImage
 	UpdateImagePhoto()
 }
 
