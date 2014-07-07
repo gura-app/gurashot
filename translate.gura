@@ -105,6 +105,7 @@ transDicts = %{
 'Overwrite'								=> '重ね書き'
 'Line Color'							=> '線の色'
 'Title Output'							=> 'タイトル出力'
+'PDF Viewer'							=> 'PDF ビューア'
 'Image Label'							=> '画像ラベル'
 'Print Service'							=> 'プリントサービス'
 'Device Name etc.'						=> '機種名など'
