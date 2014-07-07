@@ -1229,8 +1229,8 @@ MainWindow = class(wx.Frame) {
 			m.AppendEx(ID_Open,			'&Open Image...\tCtrl-O'$,		g.imgOpen)
 			m.AppendEx(ID_Close,		'&Close Image\tCtrl-L'$,		g.imgClose)
 			m.AppendEx(ID_ShowList,		'&Show Image List...\tCtrl-S'$,	g.imgShowList)
-			m.AppendEx(ID_Prev,			'&Previous\tCtrl-P'$,			g.imgPrev)
-			m.AppendEx(ID_Next,			'&Next\tCtrl-N'$,				g.imgNext)
+			m.AppendEx(ID_Prev,			'&Previous\tLeft'$,				g.imgPrev)
+			m.AppendEx(ID_Next,			'&Next\tRight'$,				g.imgNext)
 			m.AppendSeparator()
 			m.Append(wx.ID_CLOSE,		'E&xit\tAlt-X'$)
 		}
