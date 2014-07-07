@@ -2655,6 +2655,7 @@ OutputOptionDialog = class(wx.Dialog) {
 						this.UpdateProductViewer()
 					}
 				}
+				hbox.AddSpacer(64)
 			}
 		}
 		vbox.AddSpacer(12)
