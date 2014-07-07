@@ -591,13 +591,27 @@ RotateImageR() = {
 // OpenWithApp
 //-----------------------------------------------------------------------------
 if (sys.platform == `mswin) {
-	OpenWithApp(fileName:string) = {
-		import(mswin)
-		mswin.ole('Wscript.shell') {|wsh| wsh.Run(fileName)}
+	LaunchPDFViewer(fileName:string) = {
+		rtn = true
+		try {
+			import(mswin)
+			mswin.ole('Wscript.shell') {|wsh| wsh.Run(fileName)}
+		} catch {
+			rtn = false
+		}
+		rtn
 	}
-} else {
-	OpenWithApp(fileName:string) = {
-		os.exec(g.progNamePDFViewerOnLinux, fileName):fork
+} elsif (sys.platform == `linux) {
+	LaunchPDFViewer(fileName:string) = {
+		rtn = true
+		try {
+			!path.exists(path.join(os.getenv('PATH').split(':'),
+							g.progNamePDFViewerOnLinux)).or() && return(false)
+			os.exec(g.progNamePDFViewerOnLinux, fileName):fork
+		} catch {
+			rtn = false
+		}
+		rtn
 	}
 }
 
@@ -1597,9 +1611,7 @@ MainWindow = class(wx.Frame) {
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 		ComposeProductPDF(g.fileNameTmpPDF, g.imgPhotoHighRes,
 							g.layoutFrameCur, g.paperSizeCur, orientation)
-		try {
-			OpenWithApp(g.fileNameTmpPDF)
-		} catch {
+		if (!LaunchPDFViewer(g.fileNameTmpPDF)) {
 			wx.MessageDialog(this, 'Failed to launch PDF viewer'$,
 							'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
 				dlg.ShowModal()
@@ -2685,6 +2697,7 @@ OutputOptionDialog = class(wx.Dialog) {
 				vboxIn.Add(hbox, wx.SizerFlags().Expand().Border(wx.ALL, 8))
 				wx.TextCtrl(this, wx.ID_ANY, g.progNamePDFViewerOnLinux) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags(1).Align(wx.ALIGN_CENTRE_VERTICAL))
+					ctrl.Enable(sys.platform == `linux)
 					this.textPDFViewerOnLinux = ctrl
 					ctrl.Bind(wx.EVT_TEXT) {
 						g.progNamePDFViewerOnLinux = this.textPDFViewerOnLinux.GetValue()
