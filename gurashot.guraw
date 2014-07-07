@@ -312,7 +312,6 @@ g = module {
 		{ 'Yotsugiri'$,		305, 254, false }
 	}
 	cfg:public						= %{}
-	imgPhotoRaw:public				= imgNoImage
 	imgPhotoHighRes:public			= nil
 	imgPhotoLowRes:public			= nil
 	mainWindow:public				= nil
@@ -447,7 +446,7 @@ LoadConfig() = {
 	}
 	if (!g.imgInfoCur.fileName.isempty()) {
 		try {
-			g.imgPhotoRaw = image(g.imgInfoCur.fileName)
+			g.imgInfoCur.imgPhotoRaw = image(g.imgInfoCur.fileName)
 		} catch {
 			g.imgInfoCur.fileName = ''
 		}
@@ -532,7 +531,7 @@ InitializeResource() = {
 // UpdateImagePhoto
 //-----------------------------------------------------------------------------
 UpdateImagePhoto() = {
-	g.imgPhotoHighRes = g.imgPhotoRaw.rotate(g.imgInfoCur.rotate)
+	g.imgPhotoHighRes = g.imgInfoCur.imgPhotoRaw.rotate(g.imgInfoCur.rotate)
 	g.imgPhotoLowRes = g.imgPhotoHighRes.thumbnail(1000):box
 }
 
@@ -541,7 +540,7 @@ UpdateImagePhoto() = {
 //-----------------------------------------------------------------------------
 SetBlankImage() = {
 	g.imgInfoCur = ImageInfo()
-	g.imgPhotoRaw = g.imgNoImage
+	g.imgInfoCur.imgPhotoRaw = g.imgNoImage
 	UpdateImagePhoto()
 }
 
@@ -558,11 +557,9 @@ ReadImageFile(parent:wx.Window, fileName:string) = {
 		g.imgInfoCur.fileName = fileName
 		g.imgInfos.add(g.imgInfoCur)
 	}
-	if (g.imgInfoCur.imgPhotoRaw) {
-		g.imgPhotoRaw = g.imgInfoCur.imgPhotoRaw
-	} else {
+	if (!g.imgInfoCur.imgPhotoRaw) {
 		try {
-			imgPhotoRaw = image(fileName)
+			g.imgInfoCur.imgPhotoRaw = image(fileName)
 		} catch {
 			wx.MessageDialog(parent, 'Failed to read the image file'$,
 							'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
@@ -570,7 +567,6 @@ ReadImageFile(parent:wx.Window, fileName:string) = {
 			}
 			return
 		}
-		g.imgPhotoRaw = g.imgInfoCur.imgPhotoRaw = imgPhotoRaw
 	}
 	UpdateImagePhoto()
 }
@@ -1806,8 +1802,7 @@ ImageListDialog = class(wx.Dialog) {
 			if (!imgInfo.imgPhotoRaw) {
 				imgInfo.imgPhotoRaw = image(imgInfo.fileName)
 			}
-			imgPhotoRaw = imgInfo.imgPhotoRaw
-			imgSrc = (imgPhotoRaw.thumbnail(size):box).rotate(imgInfo.rotate)
+			imgSrc = (imgInfo.imgPhotoRaw.thumbnail(size):box).rotate(imgInfo.rotate)
 			img = image(`rgb, size, size, `gray)
 			img.paste((size - imgSrc.width) / 2, (size - imgSrc.height) / 2, imgSrc)
 			bmp:wx.Bitmap = img
