@@ -160,9 +160,18 @@ ImageInfo = class {
 				this.imgPhotoRaw = image(this.fileName)
 				if (this.rotate) {
 					// nothing to do
-				} elsif (this.fileName.endswith(['.jpg', '.jpeg']).or()) {
-					
+				} elsif ((this.fileName.endswith(['.jpg', '.jpeg']):icase).or()) {
 					this.rotate = 0
+					try {
+						jpeg.exif(this.fileName) {|exif|
+							value = exif.ifd0.Orientation.value
+							if (value == `RightTopHorz) {
+								this.rotate = 90
+							} elsif (value == `LeftBottomHorz) {
+								this.rotate = 270
+							}
+						}
+					} catch {}
 				} else {
 					this.rotate = 0
 				}
