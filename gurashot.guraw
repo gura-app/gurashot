@@ -210,6 +210,13 @@ ImageInfo = class {
 		FrameCoord(xMarkTop, xMarkBtm, yMarkTop, yMarkBtm,
 										xTop, xBtm, yTop, yBtm, width, height)
 	}
+	MakeImageLabel() = {
+		if (this.fileName.isempty()) {
+			'(drag image into above area)'$
+		} else {
+			this.label.replace('&', '&&')
+		}
+	}
 	MakeEmphasisMapTbl(level:number) = {
 		a = -int(level * 128 / 100)
 		b = 255 + int(level * 127 / 100)
@@ -1002,7 +1009,6 @@ Extractor = class(wx.Panel) {
 		this.Bind(wx.EVT_LEFT_DOWN) {|event| this.OnLeftDown(event)}
 		this.Bind(wx.EVT_LEFT_UP) {|event| this.OnLeftUp(event)}
 		this.Bind(wx.EVT_MOTION) {|event| this.OnMotion(event)}
-		this.Bind(wx.EVT_DROP_FILES) {|event| this.OnDropFiles(event)}
 		if (sys.platform == `mswin) {
 			this.Bind(wx.EVT_MOUSE_CAPTURE_LOST) {|event| this.OnMouseCaptureLost(event)}
 		}
@@ -1197,12 +1203,6 @@ Extractor = class(wx.Panel) {
 			this.Refresh()
 		}
 	}
-	OnDropFiles(event:wx.DropFilesEvent) = {
-		fileNames = event.GetFiles()
-		ReadImageFile(this, fileNames[0])
-		this.UpdateContent()
-		this.productViewer.UpdateContent()
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -1300,6 +1300,7 @@ MainWindow = class(wx.Frame) {
 		}
 		Extractor(this.panelLeft, wx.BORDER_SUNKEN, this.productViewer) {|ctrl|
 			ctrl.Bind(wx.EVT_RIGHT_DOWN) {|event| this.OnRightDown_Label(event)}
+			ctrl.Bind(wx.EVT_DROP_FILES) {|event| this.OnDropFiles(event)}
 			this.extractor = ctrl
 		}
 		wx.BoxSizer(wx.VERTICAL) {|vbox|
@@ -1308,6 +1309,7 @@ MainWindow = class(wx.Frame) {
 			wx.StaticText(this.panelLeft, ID_Label, '',
 					style => wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_NO_AUTORESIZE) {|ctrl|
 				vbox.Add(ctrl, wx.SizerFlags().Expand().Border(wx.TOP, 2))
+				this.stImageLabel = ctrl
 				ctrl.Bind(wx.EVT_RIGHT_DOWN) {|event| this.OnRightDown_Label(event)}
 			}
 		}
@@ -1415,12 +1417,7 @@ MainWindow = class(wx.Frame) {
 			}
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_Label) {|event|
-			text = if (g.imgInfoCur.fileName.isempty()) {
-				'(drag image into above area)'$
-			} else {
-				g.imgInfoCur.label.replace('&', '&&')
-			}
-			event.SetText(text)
+			event.SetText(g.imgInfoCur.MakeImageLabel())
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_Close) {|event|
 			event.Enable(!g.imgInfoCur.fileName.isempty())
@@ -1471,6 +1468,18 @@ MainWindow = class(wx.Frame) {
 			this.UpdateWholeContent()
 		}
 	}
+	ReadImageFiles(fileNames[]:string) = {
+		wx.BusyCursor {
+			fileNames.each {|fileName, idx|
+				ReadImageFile(this, fileName)
+				if (idx + 1 < fileNames.len()) {
+					this.extractor.UpdateContent(false)
+					this.stImageLabel.SetLabel(g.imgInfoCur.MakeImageLabel())
+					wx.App.GetInstance().Yield()
+				}
+			}
+		}
+	}
 	PrepareMenu_Image(m:wx.Menu) = {
 		m.AppendEx(ID_RenameLabel,			'&Rename Label...'$,		g.imgRenameLabel)
 		m.AppendEx(ID_RotateL,				'Rotate &Left\tCtrl-L'$,	g.imgRotateL)
@@ -1491,6 +1500,11 @@ MainWindow = class(wx.Frame) {
 		m.AppendEx(ID_LaunchPDFViewer,		'Launch PDF &Viewer...'$,	g.imgLaunchPDFViewer)
 		m.AppendSeparator()
 		m.AppendEx(ID_PrintService,			'&Print Service...'$,		g.imgPrintService)
+	}
+	OnDropFiles(event:wx.DropFilesEvent) = {
+		fileNames = event.GetFiles()
+		this.ReadImageFiles(fileNames)
+		this.UpdateWholeContent()
 	}
 	OnListItemSelected(event:wx.ListEvent) = {
 		idx = event.GetIndex()
@@ -1544,10 +1558,10 @@ MainWindow = class(wx.Frame) {
 				'*.jpg;*.jpeg;*.png;*.gif;*.bmp;*.JPG;*.JPEG;*.PNG;*.GIF;*.BMP|' + \
 				'All files (*.*)|*.*'
 		dlg = wx.FileDialog(this, 'Choose an image file'$,
-								'', g.imgInfoCur.fileName, _(filter), wx.FD_OPEN)
+			'', g.imgInfoCur.fileName, _(filter), wx.FD_OPEN | wx.FD_MULTIPLE)
 		if (dlg.ShowModal() == wx.ID_OK) {
-			fileName = dlg.GetPath()
-			ReadImageFile(this, fileName)
+			fileNames = dlg.GetPaths()
+			this.ReadImageFiles(fileNames)
 			this.UpdateWholeContent()
 		}
 	}
