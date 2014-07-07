@@ -158,10 +158,14 @@ ImageInfo = class {
 				this.imgPhotoRaw = g.imgNoImage
 			} else {
 				this.imgPhotoRaw = image(this.fileName)
-				if (this.fileName.endswith(['.jpg', '.jpeg']).or()) {
+				if (this.rotate) {
+					// nothing to do
+				} elsif (this.fileName.endswith(['.jpg', '.jpeg']).or()) {
 					
+					this.rotate = 0
+				} else {
+					this.rotate = 0
 				}
-				this.rotate = 0
 			}
 		} catch {
 			this.rotate = 0
