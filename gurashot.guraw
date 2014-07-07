@@ -524,6 +524,7 @@ SaveConfig() = {
 }
 
 InitializeResource() = {
+	wx.Image.AddHandler(wx.PNGHandler())
 	g.icon = wx.Icon(g.fileNameIcon, wx.BITMAP_TYPE_ICO)
 }
 
@@ -1703,10 +1704,12 @@ MainWindow = class(wx.Frame) {
 		this.extractor.Refresh()
 	}
 	OnMenu_CopyExtractedImage(event:wx.CommandEvent) = {
-		imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
-		if (wx.TheClipboard.Open()) {
-			wx.TheClipboard.SetData(wx.BitmapDataObject(imgExtract))
-			wx.TheClipboard.Close()
+		wx.BusyCursor {
+			imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
+			if (wx.TheClipboard.Open()) {
+				wx.TheClipboard.SetData(wx.BitmapDataObject(imgExtract))
+				wx.TheClipboard.Close()
+			}
 		}
 	}
 	OnMenu_SaveExtractedImage(event:wx.CommandEvent) = {
