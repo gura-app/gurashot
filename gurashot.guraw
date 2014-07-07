@@ -149,9 +149,27 @@ ImageInfo = class {
 		this.imgPhotoHighRes	= nil
 		this.imgPhotoLowRes		= nil
 	}
-	UpdateImagePhotoRaw() = {
-		this.imgPhotoRaw = cond(this.fileName.isempty(),
+	UpdateImagePhoto() = {
+		this.imgPhotoRaw && return(true)
+		rtn = true
+		try {
+			this.imgPhotoRaw = cond(this.fileName.isempty(),
 										g.imgNoImage, image(this.fileName))
+			this._UpdateImagePhoto()
+		} catch {
+			this.imgPhotoRaw = g.imgNoImage
+			this.fileName = ''
+			rtn = false
+		}
+		rtn
+	}
+	SetRotate(rotate:number) = {
+		this.rotate = rotate
+		this._UpdateImagePhoto()
+	}
+	_UpdateImagePhoto() = {
+		this.imgPhotoHighRes = this.imgPhotoRaw.rotate(this.rotate)
+		this.imgPhotoLowRes = this.imgPhotoHighRes.thumbnail(1000):box
 	}
 	CalcFrameCoord(rcImg:wx.Rect, layoutFrame:LayoutFrame) = {
 		htBtm = layoutFrame.htFrame - layoutFrame.htUpperMgn - layoutFrame.htFacePart
@@ -450,13 +468,7 @@ LoadConfig() = {
 			g.imgInfoCur = g.imgInfos.last()
 		}
 	}
-	if (!g.imgInfoCur.fileName.isempty()) {
-		try {
-			g.imgInfoCur.UpdateImagePhotoRaw()
-		} catch {
-			g.imgInfoCur.fileName = ''
-		}
-	}
+	g.imgInfoCur.UpdateImagePhoto()
 }
 
 SaveConfig() = {
@@ -534,20 +546,11 @@ InitializeResource() = {
 }
 
 //-----------------------------------------------------------------------------
-// UpdateImagePhoto
-//-----------------------------------------------------------------------------
-UpdateImagePhoto() = {
-	g.imgInfoCur.imgPhotoHighRes = g.imgInfoCur.imgPhotoRaw.rotate(g.imgInfoCur.rotate)
-	g.imgInfoCur.imgPhotoLowRes = g.imgInfoCur.imgPhotoHighRes.thumbnail(1000):box
-}
-
-//-----------------------------------------------------------------------------
 // SetBlankImage
 //-----------------------------------------------------------------------------
 SetBlankImage() = {
 	g.imgInfoCur = ImageInfo()
-	g.imgInfoCur.UpdateImagePhotoRaw()
-	UpdateImagePhoto()
+	g.imgInfoCur.UpdateImagePhoto()
 }
 
 //-----------------------------------------------------------------------------
@@ -563,16 +566,10 @@ ReadImageFile(parent:wx.Window, fileName:string) = {
 		g.imgInfoCur.fileName = fileName
 		g.imgInfos.add(g.imgInfoCur)
 	}
-	if (!g.imgInfoCur.imgPhotoRaw) {
-		try {
-			g.imgInfoCur.UpdateImagePhotoRaw()
-			UpdateImagePhoto()
-		} catch {
-			wx.MessageDialog(parent, 'Failed to read the image file'$,
-							'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
-				dlg.ShowModal()
-			}
-			return
+	if (!g.imgInfoCur.UpdateImagePhoto()) {
+		wx.MessageDialog(parent, 'Failed to read the image file'$,
+						'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
+			dlg.ShowModal()
 		}
 	}
 }
@@ -581,13 +578,11 @@ ReadImageFile(parent:wx.Window, fileName:string) = {
 // RotateImageL / RotateImageR
 //-----------------------------------------------------------------------------
 RotateImageL() = {
-	g.imgInfoCur.rotate = (g.imgInfoCur.rotate + 270) % 360
-	UpdateImagePhoto()
+	g.imgInfoCur.SetRotate((g.imgInfoCur.rotate + 270) % 360)
 }
 
 RotateImageR() = {
-	g.imgInfoCur.rotate = (g.imgInfoCur.rotate + 90) % 360
-	UpdateImagePhoto()
+	g.imgInfoCur.SetRotate((g.imgInfoCur.rotate + 90) % 360)
 }
 
 //-----------------------------------------------------------------------------
@@ -1805,10 +1800,8 @@ ImageListDialog = class(wx.Dialog) {
 		size = 128
 		imgList = wx.ImageList(size, size)
 		this.imgInfos.each {|imgInfo, idx|
-			if (!imgInfo.imgPhotoRaw) {
-				imgInfo.UpdateImagePhotoRaw()
-			}
-			imgSrc = (imgInfo.imgPhotoRaw.thumbnail(size):box).rotate(imgInfo.rotate)
+			imgInfo.UpdateImagePhoto()
+			imgSrc = imgInfo.imgPhotoHighRes.thumbnail(size):box
 			img = image(`rgb, size, size, `gray)
 			img.paste((size - imgSrc.width) / 2, (size - imgSrc.height) / 2, imgSrc)
 			bmp:wx.Bitmap = img
@@ -3161,7 +3154,6 @@ App = class(wx.App) {
 	OnInit() = {
 		LoadConfig()
 		InitializeResource()
-		UpdateImagePhoto()
 		mainWindow = MainWindow('Gura Shot'$)
 		mainWindow.Show()
 		g.mainWindow = mainWindow
