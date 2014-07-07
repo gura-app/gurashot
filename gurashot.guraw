@@ -155,12 +155,12 @@ ImageInfo = class {
 		try {
 			this.imgPhotoRaw = cond(this.fileName.isempty(),
 										g.imgNoImage, image(this.fileName))
-			this._UpdateImagePhoto()
 		} catch {
 			this.imgPhotoRaw = g.imgNoImage
 			this.fileName = ''
 			rtn = false
 		}
+		this._UpdateImagePhoto()
 		rtn
 	}
 	SetRotate(rotate:number) = {
@@ -543,14 +543,6 @@ SaveConfig() = {
 InitializeResource() = {
 	wx.Image.AddHandler(wx.PNGHandler())
 	g.icon = wx.Icon(g.fileNameIcon, wx.BITMAP_TYPE_ICO)
-}
-
-//-----------------------------------------------------------------------------
-// SetBlankImage
-//-----------------------------------------------------------------------------
-SetBlankImage() = {
-	g.imgInfoCur = ImageInfo()
-	g.imgInfoCur.UpdateImagePhoto()
 }
 
 //-----------------------------------------------------------------------------
@@ -1546,9 +1538,9 @@ MainWindow = class(wx.Frame) {
 		}
 		g.imgInfos.erase(idx)
 		if (g.imgInfos.isempty()) {
-			this.ProcessImage {
-				SetBlankImage()
-			}
+			g.imgInfoCur = ImageInfo()
+			g.imgInfoCur.UpdateImagePhoto()
+			this.UpdateWholeContent()
 		} else {
 			if (idx >= g.imgInfos.len()) {
 				idx = g.imgInfos.len() - 1
