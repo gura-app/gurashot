@@ -117,7 +117,7 @@ ImageInfo = class {
 	}
 	label_init			= ''
 	fileName_init		= ''
-	rotate_init			= 0
+	rotate_init			= nil
 	xrateTop_init		= .5
 	xrateBtm_init		= .5
 	yrateTop_init		= .1
@@ -153,9 +153,18 @@ ImageInfo = class {
 		this.imgPhotoRaw && return(true)
 		rtn = true
 		try {
-			this.imgPhotoRaw = cond(this.fileName.isempty(),
-										g.imgNoImage, image(this.fileName))
+			if (this.fileName.isempty()) {
+				this.rotate = 0
+				this.imgPhotoRaw = g.imgNoImage
+			} else {
+				this.imgPhotoRaw = image(this.fileName)
+				if (this.fileName.endswith(['.jpg', '.jpeg']).or()) {
+					
+				}
+				this.rotate = 0
+			}
 		} catch {
+			this.rotate = 0
 			this.imgPhotoRaw = g.imgNoImage
 			this.fileName = ''
 			rtn = false
