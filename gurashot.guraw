@@ -145,6 +145,10 @@ ImageInfo = class {
 		this.blueness		= blueness_init
 		this.imgPhotoRaw	= nil
 	}
+	UpdateImagePhotoRaw() = {
+		this.imgPhotoRaw = cond(this.fileName.isempty(),
+										g.imgNoImage, image(this.fileName))
+	}
 	CalcFrameCoord(rcImg:wx.Rect, layoutFrame:LayoutFrame) = {
 		htBtm = layoutFrame.htFrame - layoutFrame.htUpperMgn - layoutFrame.htFacePart
 		xrateDiff = this.xrateBtm - this.xrateTop
@@ -446,7 +450,7 @@ LoadConfig() = {
 	}
 	if (!g.imgInfoCur.fileName.isempty()) {
 		try {
-			g.imgInfoCur.imgPhotoRaw = image(g.imgInfoCur.fileName)
+			g.imgInfoCur.UpdateImagePhotoRaw()
 		} catch {
 			g.imgInfoCur.fileName = ''
 		}
@@ -540,7 +544,7 @@ UpdateImagePhoto() = {
 //-----------------------------------------------------------------------------
 SetBlankImage() = {
 	g.imgInfoCur = ImageInfo()
-	g.imgInfoCur.imgPhotoRaw = g.imgNoImage
+	g.imgInfoCur.UpdateImagePhotoRaw()
 	UpdateImagePhoto()
 }
 
@@ -559,7 +563,7 @@ ReadImageFile(parent:wx.Window, fileName:string) = {
 	}
 	if (!g.imgInfoCur.imgPhotoRaw) {
 		try {
-			g.imgInfoCur.imgPhotoRaw = image(fileName)
+			g.imgInfoCur.UpdateImagePhotoRaw()
 		} catch {
 			wx.MessageDialog(parent, 'Failed to read the image file'$,
 							'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
@@ -1800,7 +1804,7 @@ ImageListDialog = class(wx.Dialog) {
 		imgList = wx.ImageList(size, size)
 		this.imgInfos.each {|imgInfo, idx|
 			if (!imgInfo.imgPhotoRaw) {
-				imgInfo.imgPhotoRaw = image(imgInfo.fileName)
+				imgInfo.UpdateImagePhotoRaw()
 			}
 			imgSrc = (imgInfo.imgPhotoRaw.thumbnail(size):box).rotate(imgInfo.rotate)
 			img = image(`rgb, size, size, `gray)
