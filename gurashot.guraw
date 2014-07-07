@@ -1718,9 +1718,9 @@ MainWindow = class(wx.Frame) {
 							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileName = dlg.GetPath()
-			imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
 			try {
 				wx.BusyCursor {
+					imgExtract = ExtractImage(g.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
 					imgExtract.write(fileName)
 				}
 			} catch {
