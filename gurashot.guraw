@@ -1482,6 +1482,7 @@ MainWindow = class(wx.Frame) {
 		}
 	}
 	ReadImageFiles(fileNames[]:string) = {
+		this.productViewer.UpdateContent(true)
 		wx.BusyCursor {
 			fileNames.each {|fileName, idx|
 				ReadImageFile(this, fileName)
