@@ -165,10 +165,23 @@ ImageInfo = class {
 					try {
 						jpeg.exif(this.fileName) {|exif|
 							value = exif.ifd0.Orientation.value
-							if (value == `RightTopHorz) {
-								this.rotate = 90
-							} elsif (value == `LeftBottomHorz) {
-								this.rotate = 270
+							if (isnumber(value)) {
+								if (value == 3) {
+									this.rotate = 180
+								} elsif (value == 6) {
+									this.rotate = 90
+								} elsif (value == 8) {
+									this.rotate = 270
+								}
+							} else {
+								// workaround for v0.5.1 bug
+								if (value == `RightBottomVert) {
+									this.rotate = 180
+								} elsif (value == `RightTopHorz) {
+									this.rotate = 90
+								} elsif (value == `LeftBottomHorz) {
+									this.rotate = 270
+								}
 							}
 						}
 					} catch {}
