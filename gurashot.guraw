@@ -350,6 +350,7 @@ g = module {
 		{ 'Seven-Eleven Japan'$ +		' | Fuji Xerox',			10,  7,  7,  6 }
 		{ 'FamilyMart'$ +				' | SHARP MX-3610DS',		13, 12, 13, 12 }
 		{ 'LAWSON'$ +					' | SHARP MX-3610DS',		13, 12, 13, 12 }
+		{ 'FOTOLUSIO PrintRush'$ +		' | DNP',					13, 14, 12, 13 }
 		{ 'Mitsubishi Color Print'$ +	' | Mitsubishi Mikupuri',	11, 10,  7, 10 }
 	}
 	layoutFrameTbl:public = @(LayoutFrame) {
