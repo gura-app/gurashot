@@ -594,13 +594,17 @@ ReadImageFile(parent:wx.Window, fileName:string) = {
 	idx = g.imgInfos:*fileName.find(fileName):index
 	if (idx) {
 		g.imgInfoCur = g.imgInfos[idx]
+		successFlag = g.imgInfoCur.UpdateImagePhoto()
 	} else {
-		g.imgInfoCur = ImageInfo()
-		g.imgInfoCur.label = path.basename(path.filename(fileName))
-		g.imgInfoCur.fileName = fileName
-		g.imgInfos.add(g.imgInfoCur)
+		imgInfo = ImageInfo()
+		imgInfo.label = path.basename(path.filename(fileName))
+		imgInfo.fileName = fileName
+		if (successFlag = imgInfo.UpdateImagePhoto()) {
+			g.imgInfos.add(imgInfo)
+			g.imgInfoCur = imgInfo
+		}
 	}
-	if (!g.imgInfoCur.UpdateImagePhoto()) {
+	if (!successFlag) {
 		wx.MessageDialog(parent, 'Failed to read the image file'$,
 						'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
 			dlg.ShowModal()
@@ -1486,13 +1490,12 @@ MainWindow = class(wx.Frame) {
 		wx.BusyCursor {
 			fileNames.each {|fileName, idx|
 				ReadImageFile(this, fileName)
-				if (idx + 1 < fileNames.len()) {
-					this.extractor.UpdateContent(false)
-					this.stImageLabel.SetLabel(g.imgInfoCur.MakeImageLabel())
-					wx.App.GetInstance().Yield()
-				}
+				this.extractor.UpdateContent(false)
+				this.stImageLabel.SetLabel(g.imgInfoCur.MakeImageLabel())
+				wx.App.GetInstance().Yield()
 			}
 		}
+		this.productViewer.UpdateContent(false)
 	}
 	PrepareMenu_Image(m:wx.Menu) = {
 		m.AppendEx(ID_RenameLabel,			'&Rename Label...'$,		g.imgRenameLabel)
@@ -1518,7 +1521,6 @@ MainWindow = class(wx.Frame) {
 	OnDropFiles(event:wx.DropFilesEvent) = {
 		fileNames = event.GetFiles()
 		this.ReadImageFiles(fileNames)
-		this.UpdateWholeContent()
 	}
 	OnListItemSelected(event:wx.ListEvent) = {
 		idx = event.GetIndex()
@@ -1576,7 +1578,6 @@ MainWindow = class(wx.Frame) {
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNames = dlg.GetPaths()
 			this.ReadImageFiles(fileNames)
-			this.UpdateWholeContent()
 		}
 	}
 	OnMenu_Close(event:wx.CommandEvent) = {
