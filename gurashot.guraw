@@ -192,7 +192,6 @@ ImageInfo = class {
 		} catch {
 			this.rotate = 0
 			this.imgPhotoRaw = g.imgNoImage
-			this.fileName = ''
 			rtn = false
 		}
 		this._UpdateImagePhoto()
@@ -1820,6 +1819,7 @@ ImageListDialog = class(wx.Dialog) {
 		this.idxImgInfoProtected = idxSel
 		this.Bind(wx.EVT_MOVE) {|event| this.UpdateSizePosInfo(), event.Skip()}
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
+		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
 		this.Bind(wx.EVT_MENU, ID_RenameLabel) {|event| this.OnMenu_RenameLabel(event)}
 		this.Bind(wx.EVT_MENU, ID_Remove) {|event| this.OnMenu_Remove(event)}
 		this.Bind(wx.EVT_UPDATE_UI, wx.ID_OK) {|event|
@@ -1908,6 +1908,10 @@ ImageListDialog = class(wx.Dialog) {
 		((idx = this.listCtrl.GetFirstSelected()) < 0) && return
 		idxImgInfo = this.listCtrl.GetItemData(idx)
 		this.imgInfoCur = this.imgInfos[idxImgInfo]
+		this.UpdateImageInfos()
+		this.EndModal(wx.ID_OK)
+	}
+	OnButton_CANCEL(event:wx.CommandEvent) = {
 		this.UpdateImageInfos()
 		this.EndModal(wx.ID_OK)
 	}
