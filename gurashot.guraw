@@ -60,6 +60,12 @@ PrintServiceInfo = struct(printServiceName:string,
 //-----------------------------------------------------------------------------
 PaperSize = struct(name:string, longSide:number, shortSide:number, printServiceFlag:boolean) {
 	margin:public = 5
+	GetWidth(orientation:symbol) = {
+		cond(orientation == `horizontal, this.longSide, this.shortSide)
+	}
+	GetHeight(orientation:symbol) = {
+		cond(orientation == `horizontal, this.shortSide, this.longSide)
+	}
 	GetCanvasWidth(orientation:symbol) = {
 		cond(orientation == `horizontal, this.longSide - margin * 2, this.shortSide - margin * 2)
 	}
@@ -795,10 +801,11 @@ ComposeProduct(cr:cairo.context, imgPhoto:image, layoutFrame:LayoutFrame,
 ComposeProductPDF(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
 									paperSize:PaperSize, orientation:symbol) = {
 	cairo.create(cairo.pdf_surface.create(fileName,
-					units.mm$pt(paperSize.GetCanvasWidth(orientation)),
-					units.mm$pt(paperSize.GetCanvasHeight(orientation)))) {|cr|
+					units.mm$pt(paperSize.GetWidth(orientation)),
+					units.mm$pt(paperSize.GetHeight(orientation)))) {|cr|
 		scale = 72 / 25.4
 		cr.scale(scale, scale)
+		cr.translate(paperSize.margin, paperSize.margin)
 		ComposeProduct(cr, imgPhoto, layoutFrame, paperSize, orientation)
 		cr.show_page()
 	}
