@@ -812,8 +812,8 @@ Composer = class {
 			cr.show_page()
 		}
 	}
-	ComposeProductForPrintService(fileName:string, imgPhoto:image, dpi:number,
-			nAdjLinesDrawn:number, printServiceName:string,
+	ComposeProductForPrintService(fileName:string, imgPhoto:image,
+			dpi:number, nAdjLinesDrawn:number, printServiceName:string,
 			nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
 		nAdjLinesLongSide = nAdjLines_c + nAdjLines_d
 		nAdjLinesShortSide = nAdjLines_a + nAdjLines_b
@@ -833,6 +833,7 @@ Composer = class {
 			[wdInner, htInner] = [shortSideInner, longSideInner]
 			[wdCanvas, htCanvas] = [shortSideCanvas, longSideCanvas]
 		}
+		
 		img = image(`rgba, wdOuter, htOuter, `white)
 		this.DrawAdjustLines(img, nAdjLinesDrawn, printServiceName,
 					nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
