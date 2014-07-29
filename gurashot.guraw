@@ -718,10 +718,14 @@ ExtractImage(imgPhoto:image, layoutFrame:LayoutFrame, wdEdgeMgn:number, htEdgeMg
 // Composer
 //-----------------------------------------------------------------------------
 Composer = class {
-	ComposeProduct(cr:cairo.context, imgPhoto:image, layoutFrame:LayoutFrame,
-									paperSize:PaperSize, orientation:symbol) = {
+	__init__(layoutFrame:LayoutFrame, paperSize:PaperSize, orientation:symbol) = {
+		this.layoutFrame = layoutFrame
+		this.paperSize = paperSize
+		this.orientation = orientation
+	}
+	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		fontName = 'Sans'
-		[wdCanvas, htCanvas] = [paperSize.GetCanvasWidth(orientation), paperSize.GetCanvasHeight(orientation)]
+		[wdCanvas, htCanvas] = [this.paperSize.GetCanvasWidth(this.orientation), this.paperSize.GetCanvasHeight(this.orientation)]
 		scope {
 			cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
 			cr.set_source_rgb(.2, .2, 1)
@@ -729,25 +733,25 @@ Composer = class {
 			cr.move_to(0, htCanvas - 1)
 			text = ''
 			if (g.titleDispFlag_Size) {
-				text += format('[%d x %dmm]', layoutFrame.htFrame, layoutFrame.wdFrame)
+				text += format('[%d x %dmm]', this.layoutFrame.htFrame, this.layoutFrame.wdFrame)
 			}
 			if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
 				if (!text.isempty()) { text += ' ' }
 				text += g.imgInfoCur.label
 			}
-			if (g.titleDispFlag_Purpose && !layoutFrame.purpose.isempty()) {
+			if (g.titleDispFlag_Purpose && !this.layoutFrame.purpose.isempty()) {
 				if (!text.isempty()) { text += ' ' }
-				text += format('for %s', layoutFrame.purpose)
+				text += format('for %s', this.layoutFrame.purpose)
 			}
 			cr.show_text(text)
 		}
 		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-									layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
+						this.layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			cr.set_line_width(.1)
 			cr.set_source_rgb(([g.trimMarkR, g.trimMarkG, g.trimMarkB] / 255)*)
-			[wdFrameEx, htFrameEx] = layoutFrame.CalcSizeEx()
-			[nx, ny] = layoutFrame.CalcImageGrid(wdCanvas, htCanvas)
+			[wdFrameEx, htFrameEx] = this.layoutFrame.CalcSizeEx()
+			[nx, ny] = this.layoutFrame.CalcImageGrid(wdCanvas, htCanvas)
 			wdSlot = wdCanvas / nx
 			htSlot = (htCanvas - g.htMessage) / ny
 			drawTrimMarks() = {
@@ -797,17 +801,49 @@ Composer = class {
 			}
 		}
 	}
-	ComposeProductPDF(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
-										paperSize:PaperSize, orientation:symbol) = {
+	ComposeProductPDF(fileName:string, imgPhoto:image) = {
 		cairo.create(cairo.pdf_surface.create(fileName,
-						units.mm$pt(paperSize.GetWidth(orientation)),
-						units.mm$pt(paperSize.GetHeight(orientation)))) {|cr|
+						units.mm$pt(this.paperSize.GetWidth(this.orientation)),
+						units.mm$pt(this.paperSize.GetHeight(this.orientation)))) {|cr|
 			scale = 72 / 25.4
 			cr.scale(scale, scale)
-			cr.translate(paperSize.margin, paperSize.margin)
-			this.ComposeProduct(cr, imgPhoto, layoutFrame, paperSize, orientation)
+			cr.translate(this.paperSize.margin, this.paperSize.margin)
+			this.ComposeProduct(cr, imgPhoto)
 			cr.show_page()
 		}
+	}
+	ComposeProductForPrintService(fileName:string, imgPhoto:image, dpi:number,
+			nAdjLinesDrawn:number, printServiceName:string,
+			nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
+		nAdjLinesLongSide = nAdjLines_c + nAdjLines_d
+		nAdjLinesShortSide = nAdjLines_a + nAdjLines_b
+		longSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesLongSide) * 10
+		shortSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesShortSide) * 10
+		[longSideOuter, shortSideOuter] = int([this.paperSize.longSide, this.paperSize.shortSide] * dpi / 25.4)
+		longSideInner = longSideOuter - longSideDrop
+		shortSideInner = shortSideOuter - shortSideDrop
+		longSideCanvas = longSideInner * (this.paperSize.longSide - this.paperSize.margin * 2) / this.paperSize.longSide
+		shortSideCanvas = shortSideInner * (this.paperSize.shortSide - this.paperSize.margin * 2) / this.paperSize.shortSide
+		if (this.orientation == `horizontal) {
+			[wdOuter, htOuter] = [longSideOuter, shortSideOuter]
+			[wdInner, htInner] = [longSideInner, shortSideInner]
+			[wdCanvas, htCanvas] = [longSideCanvas, shortSideCanvas]
+		} else { // this.orientation == `vertical
+			[wdOuter, htOuter] = [shortSideOuter, longSideOuter]
+			[wdInner, htInner] = [shortSideInner, longSideInner]
+			[wdCanvas, htCanvas] = [shortSideCanvas, longSideCanvas]
+		}
+		img = image(`rgba, wdOuter, htOuter, `white)
+		this.DrawAdjustLines(img, nAdjLinesDrawn, printServiceName,
+					nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
+		img.cairo {|cr|
+			cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
+			scale = wdInner / wdOuter * dpi / 25.4
+			cr.scale(scale, scale)
+			this.ComposeProduct(cr, imgPhoto)
+			cr.show_page()
+		}
+		img.write(fileName)
 	}
 	DrawAdjustLines(img:image, nAdjLinesDrawn:number, printServiceName:string,
 			nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
@@ -864,40 +900,6 @@ Composer = class {
 			}
 		}
 	}
-	ComposeProductForPrintService(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
-			paperSize:PaperSize, orientation:symbol, dpi:number,
-			nAdjLinesDrawn:number, printServiceName:string,
-			nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
-		nAdjLinesLongSide = nAdjLines_c + nAdjLines_d
-		nAdjLinesShortSide = nAdjLines_a + nAdjLines_b
-		longSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesLongSide) * 10
-		shortSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesShortSide) * 10
-		[longSideOuter, shortSideOuter] = int([paperSize.longSide, paperSize.shortSide] * dpi / 25.4)
-		longSideInner = longSideOuter - longSideDrop
-		shortSideInner = shortSideOuter - shortSideDrop
-		longSideCanvas = longSideInner * (paperSize.longSide - paperSize.margin * 2) / paperSize.longSide
-		shortSideCanvas = shortSideInner * (paperSize.shortSide - paperSize.margin * 2) / paperSize.shortSide
-		if (orientation == `horizontal) {
-			[wdOuter, htOuter] = [longSideOuter, shortSideOuter]
-			[wdInner, htInner] = [longSideInner, shortSideInner]
-			[wdCanvas, htCanvas] = [longSideCanvas, shortSideCanvas]
-		} else { // orientation == `vertical
-			[wdOuter, htOuter] = [shortSideOuter, longSideOuter]
-			[wdInner, htInner] = [shortSideInner, longSideInner]
-			[wdCanvas, htCanvas] = [shortSideCanvas, longSideCanvas]
-		}
-		img = image(`rgba, wdOuter, htOuter, `white)
-		this.DrawAdjustLines(img, nAdjLinesDrawn, printServiceName,
-					nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
-		img.cairo {|cr|
-			cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
-			scale = wdInner / wdOuter * dpi / 25.4
-			cr.scale(scale, scale)
-			this.ComposeProduct(cr, imgPhoto, layoutFrame, paperSize, orientation)
-			cr.show_page()
-		}
-		img.write(fileName)
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -931,8 +933,8 @@ ProductViewer = class(wx.Panel) {
 			img.cairo {|cr|
 				scale = wdImg / wdCanvas
 				cr.scale(scale, scale)
-				Composer().ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes,
-								g.layoutFrameCur, g.paperSizeCur, orientation)
+				Composer(g.layoutFrameCur, g.paperSizeCur, orientation).\
+							ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes)
 			}
 		}
 		[wdClient, htClient] = this.GetClientSizeWH()
@@ -1654,14 +1656,14 @@ MainWindow = class(wx.Frame) {
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNamePDF = dlg.GetPath()
 			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-			Composer().ComposeProductPDF(fileNamePDF, g.imgInfoCur.imgPhotoHighRes,
-								g.layoutFrameCur, g.paperSizeCur, orientation)
+			Composer(g.layoutFrameCur, g.paperSizeCur, orientation).\
+					ComposeProductPDF(fileNamePDF, g.imgInfoCur.imgPhotoHighRes)
 		}
 	}
 	OnMenu_LaunchPDFViewer(event:wx.CommandEvent) = {
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-		Composer().ComposeProductPDF(g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes,
-							g.layoutFrameCur, g.paperSizeCur, orientation)
+		Composer(g.layoutFrameCur, g.paperSizeCur, orientation).\
+				ComposeProductPDF(g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes)
 		if (!LaunchPDFViewer(g.fileNameTmpPDF)) {
 			wx.MessageDialog(this, 'Failed to launch PDF viewer'$,
 							'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
@@ -1699,10 +1701,10 @@ MainWindow = class(wx.Frame) {
 		fileName = dlg.GetPath()
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 		wx.BusyCursor {
-			Composer().ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, g.layoutFrameCur,
-					g.paperSizeCur, orientation, dpi,
-					nAdjLinesDrawn, g.printServiceName,
-					g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
+			Composer(g.layoutFrameCur, g.paperSizeCur, orientation).\
+				ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, dpi,
+						nAdjLinesDrawn, g.printServiceName,
+						g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
 		}
 	}
 	OnMenu_RenameLabel(event:wx.CommandEvent) = {
