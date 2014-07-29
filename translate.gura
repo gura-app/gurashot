@@ -145,6 +145,7 @@ It will not delete the original file.''' => \
 'Browse'								=> '検索'
 'Print Service Browser'					=> 'プリントサービス検索'
 'Layout Frame List'						=> '割り付けフレーム一覧'
+'Template List'							=> 'テンプレート一覧'
 'Circle K Sunkus'						=> 'サークル K サンクス'
 'Three F'								=> 'スリーエフ'
 'Seven-Eleven Japan'					=> 'セブンイレブン'

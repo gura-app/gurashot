@@ -24,6 +24,7 @@ Version = '1.2.2'
 //-----------------------------------------------------------------------------
 [
 	ID_Open, ID_Close, ID_ShowList, ID_Prev, ID_Next,
+	ID_CB_PaperSize,
 	ID_OutputPDF, ID_LaunchPDFViewer, ID_PrintService,
 	ID_RotateL, ID_RotateR, ID_ColorAdjust, ID_TiltAdj,
 	ID_FrostFrame, ID_CenterGuide, ID_CopyExtractedImage, ID_SaveExtractedImage,
@@ -714,219 +715,209 @@ ExtractImage(imgPhoto:image, layoutFrame:LayoutFrame, wdEdgeMgn:number, htEdgeMg
 }
 
 //-----------------------------------------------------------------------------
-// ComposeProduct
+// Composer
 //-----------------------------------------------------------------------------
-ComposeProduct(cr:cairo.context, imgPhoto:image, layoutFrame:LayoutFrame,
-								paperSize:PaperSize, orientation:symbol) = {
-	fontName = 'Sans'
-	[wdCanvas, htCanvas] = [paperSize.GetCanvasWidth(orientation), paperSize.GetCanvasHeight(orientation)]
-	scope {
-		cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
-		cr.set_source_rgb(.2, .2, 1)
-		cr.set_font_size(3.0)
-		cr.move_to(0, htCanvas - 1)
-		text = ''
-		if (g.titleDispFlag_Size) {
-			text += format('[%d x %dmm]', layoutFrame.htFrame, layoutFrame.wdFrame)
-		}
-		if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
-			if (!text.isempty()) { text += ' ' }
-			text += g.imgInfoCur.label
-		}
-		if (g.titleDispFlag_Purpose && !layoutFrame.purpose.isempty()) {
-			if (!text.isempty()) { text += ' ' }
-			text += format('for %s', layoutFrame.purpose)
-		}
-		cr.show_text(text)
-	}
-	imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-								layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
-	cairo.pattern.create_for_surface(imgExtract) {|pattern|
-		cr.set_line_width(.1)
-		cr.set_source_rgb(([g.trimMarkR, g.trimMarkG, g.trimMarkB] / 255)*)
-		[wdFrameEx, htFrameEx] = layoutFrame.CalcSizeEx()
-		[nx, ny] = layoutFrame.CalcImageGrid(wdCanvas, htCanvas)
-		wdSlot = wdCanvas / nx
-		htSlot = (htCanvas - g.htMessage) / ny
-		drawTrimMarks() = {
-			cross(ix in range(nx), iy in range(ny)) {
-				xSlot = wdSlot * ix
-				ySlot = htSlot * iy
-				x = xSlot + (wdSlot - wdFrameEx) / 2
-				y = ySlot + (htSlot - htFrameEx) / 2
-				xTrimL = x - g.wdTrimMark
-				xTrimR = x + wdFrameEx + g.wdTrimMark
-				yTrimT = y - g.htTrimMark
-				yTrimB = y + htFrameEx + g.htTrimMark
-				cr.move_to(xTrimL, y + g.htEdgeMgn)
-				cr.line_to(xTrimR, y + g.htEdgeMgn)
-				cr.move_to(xTrimL, y + htFrameEx - g.htEdgeMgn)
-				cr.line_to(xTrimR, y + htFrameEx - g.htEdgeMgn)
-				cr.move_to(x + g.wdEdgeMgn, yTrimT)
-				cr.line_to(x + g.wdEdgeMgn, yTrimB)
-				cr.move_to(x + wdFrameEx - g.wdEdgeMgn, yTrimT)
-				cr.line_to(x + wdFrameEx - g.wdEdgeMgn, yTrimB)
-				cr.stroke()
+Composer = class {
+	ComposeProduct(cr:cairo.context, imgPhoto:image, layoutFrame:LayoutFrame,
+									paperSize:PaperSize, orientation:symbol) = {
+		fontName = 'Sans'
+		[wdCanvas, htCanvas] = [paperSize.GetCanvasWidth(orientation), paperSize.GetCanvasHeight(orientation)]
+		scope {
+			cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+			cr.set_source_rgb(.2, .2, 1)
+			cr.set_font_size(3.0)
+			cr.move_to(0, htCanvas - 1)
+			text = ''
+			if (g.titleDispFlag_Size) {
+				text += format('[%d x %dmm]', layoutFrame.htFrame, layoutFrame.wdFrame)
 			}
-			/*
-			repeat(nx) {|ix|
-				xSlot = wdSlot * ix
-				x = xSlot + (wdSlot - wdFrameEx) / 2
-				cr.move_to(x + g.wdEdgeMgn, 0)
-				cr.line_to(x + g.wdEdgeMgn, htCanvas - g.htMessage)
-				cr.move_to(x + wdFrameEx - g.wdEdgeMgn, 0)
-				cr.line_to(x + wdFrameEx - g.wdEdgeMgn, htCanvas - g.htMessage)
-				cr.stroke()
+			if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
+				if (!text.isempty()) { text += ' ' }
+				text += g.imgInfoCur.label
 			}
-			repeat(ny) {|iy|
-				ySlot = htSlot * iy
-				y = ySlot + (htSlot - htFrameEx) / 2
-				cr.move_to(0, y + g.htEdgeMgn)
-				cr.line_to(wdCanvas, y + g.htEdgeMgn)
-				cr.move_to(0, y + htFrameEx - g.htEdgeMgn)
-				cr.line_to(wdCanvas, y + htFrameEx - g.htEdgeMgn)
-				cr.stroke()
+			if (g.titleDispFlag_Purpose && !layoutFrame.purpose.isempty()) {
+				if (!text.isempty()) { text += ' ' }
+				text += format('for %s', layoutFrame.purpose)
 			}
-			*/
+			cr.show_text(text)
 		}
-		drawFaceImages() = {
-			cross(ix in range(nx), iy in range(ny)) {
-				xSlot = wdSlot * ix
-				ySlot = htSlot * iy
-				x = xSlot + (wdSlot - wdFrameEx) / 2
-				y = ySlot + (htSlot - htFrameEx) / 2
-				cr.save {
-					scale = htFrameEx / imgExtract.height
-					cr.translate(x, y)
-					cr.scale(scale, scale)
-					cr.set_source(pattern)
-					cr.paint()
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+									layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
+		cairo.pattern.create_for_surface(imgExtract) {|pattern|
+			cr.set_line_width(.1)
+			cr.set_source_rgb(([g.trimMarkR, g.trimMarkG, g.trimMarkB] / 255)*)
+			[wdFrameEx, htFrameEx] = layoutFrame.CalcSizeEx()
+			[nx, ny] = layoutFrame.CalcImageGrid(wdCanvas, htCanvas)
+			wdSlot = wdCanvas / nx
+			htSlot = (htCanvas - g.htMessage) / ny
+			drawTrimMarks() = {
+				cross(ix in range(nx), iy in range(ny)) {
+					xSlot = wdSlot * ix
+					ySlot = htSlot * iy
+					x = xSlot + (wdSlot - wdFrameEx) / 2
+					y = ySlot + (htSlot - htFrameEx) / 2
+					xTrimL = x - g.wdTrimMark
+					xTrimR = x + wdFrameEx + g.wdTrimMark
+					yTrimT = y - g.htTrimMark
+					yTrimB = y + htFrameEx + g.htTrimMark
+					cr.move_to(xTrimL, y + g.htEdgeMgn)
+					cr.line_to(xTrimR, y + g.htEdgeMgn)
+					cr.move_to(xTrimL, y + htFrameEx - g.htEdgeMgn)
+					cr.line_to(xTrimR, y + htFrameEx - g.htEdgeMgn)
+					cr.move_to(x + g.wdEdgeMgn, yTrimT)
+					cr.line_to(x + g.wdEdgeMgn, yTrimB)
+					cr.move_to(x + wdFrameEx - g.wdEdgeMgn, yTrimT)
+					cr.line_to(x + wdFrameEx - g.wdEdgeMgn, yTrimB)
+					cr.stroke()
+				}
+				/*
+				repeat(nx) {|ix|
+					xSlot = wdSlot * ix
+					x = xSlot + (wdSlot - wdFrameEx) / 2
+					cr.move_to(x + g.wdEdgeMgn, 0)
+					cr.line_to(x + g.wdEdgeMgn, htCanvas - g.htMessage)
+					cr.move_to(x + wdFrameEx - g.wdEdgeMgn, 0)
+					cr.line_to(x + wdFrameEx - g.wdEdgeMgn, htCanvas - g.htMessage)
+					cr.stroke()
+				}
+				repeat(ny) {|iy|
+					ySlot = htSlot * iy
+					y = ySlot + (htSlot - htFrameEx) / 2
+					cr.move_to(0, y + g.htEdgeMgn)
+					cr.line_to(wdCanvas, y + g.htEdgeMgn)
+					cr.move_to(0, y + htFrameEx - g.htEdgeMgn)
+					cr.line_to(wdCanvas, y + htFrameEx - g.htEdgeMgn)
+					cr.stroke()
+				}
+				*/
+			}
+			drawFaceImages() = {
+				cross(ix in range(nx), iy in range(ny)) {
+					xSlot = wdSlot * ix
+					ySlot = htSlot * iy
+					x = xSlot + (wdSlot - wdFrameEx) / 2
+					y = ySlot + (htSlot - htFrameEx) / 2
+					cr.save {
+						scale = htFrameEx / imgExtract.height
+						cr.translate(x, y)
+						cr.scale(scale, scale)
+						cr.set_source(pattern)
+						cr.paint()
+					}
 				}
 			}
-		}
-		if (g.trimMark == `outer) {
-			drawTrimMarks()
-			drawFaceImages()
-		} elsif (g.trimMark == `overwrite) {
-			drawFaceImages()
-			drawTrimMarks()
-		} else {	// g.trimMark == `none
-			drawFaceImages()
-		}
-	}
-}
-
-//-----------------------------------------------------------------------------
-// ComposeProductPDF
-//-----------------------------------------------------------------------------
-ComposeProductPDF(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
-									paperSize:PaperSize, orientation:symbol) = {
-	cairo.create(cairo.pdf_surface.create(fileName,
-					units.mm$pt(paperSize.GetWidth(orientation)),
-					units.mm$pt(paperSize.GetHeight(orientation)))) {|cr|
-		scale = 72 / 25.4
-		cr.scale(scale, scale)
-		cr.translate(paperSize.margin, paperSize.margin)
-		ComposeProduct(cr, imgPhoto, layoutFrame, paperSize, orientation)
-		cr.show_page()
-	}
-}
-
-//-----------------------------------------------------------------------------
-// DrawAdjustLines
-//-----------------------------------------------------------------------------
-DrawAdjustLines(img:image, nAdjLinesDrawn:number, printServiceName:string,
-		nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
-	fontName = 'Sans'
-	[width, height] = [img.width, img.height]
-	img.cairo {|cr|
-		cr.set_source_rgb(.3, 1, .3)
-		repeat (nAdjLinesDrawn) {|i|
-			if ((i + 1) % 10 == 0) {
-				cr.set_line_width(4)
-			} elsif ((i + 1) % 5 == 0) {
-				cr.set_line_width(2)
-			} else {
-				cr.set_line_width(1)
+			if (g.trimMark == `outer) {
+				drawTrimMarks()
+				drawFaceImages()
+			} elsif (g.trimMark == `overwrite) {
+				drawFaceImages()
+				drawTrimMarks()
+			} else {	// g.trimMark == `none
+				drawFaceImages()
 			}
-			y = (nAdjLinesDrawn - i) * 10
-			cr.move_to(0, y)
-			cr.line_to(width, y)
-			y = height - (nAdjLinesDrawn - i) * 10
-			cr.move_to(0, y)
-			cr.line_to(width, y)
-			x = (nAdjLinesDrawn - i) * 10
-			cr.move_to(x, 0)
-			cr.line_to(x, height)
-			x = width - (nAdjLinesDrawn - i) * 10
-			cr.move_to(x, 0)
-			cr.line_to(x, height)
-			cr.stroke()
 		}
-		cr.set_source_rgb(0, .7, 0)
-		cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
-		cr.set_font_size(50)
-		if (!printServiceName.isempty()) {
-			fields = printServiceName.split('|'):list
-			text = 'Print Service'$ + ': '
-			text += fields[0].strip()
-			if (fields.len() > 1) {
-				text += ' [' + fields[1].strip() + ']'
+	}
+	ComposeProductPDF(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
+										paperSize:PaperSize, orientation:symbol) = {
+		cairo.create(cairo.pdf_surface.create(fileName,
+						units.mm$pt(paperSize.GetWidth(orientation)),
+						units.mm$pt(paperSize.GetHeight(orientation)))) {|cr|
+			scale = 72 / 25.4
+			cr.scale(scale, scale)
+			cr.translate(paperSize.margin, paperSize.margin)
+			this.ComposeProduct(cr, imgPhoto, layoutFrame, paperSize, orientation)
+			cr.show_page()
+		}
+	}
+	DrawAdjustLines(img:image, nAdjLinesDrawn:number, printServiceName:string,
+			nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
+		fontName = 'Sans'
+		[width, height] = [img.width, img.height]
+		img.cairo {|cr|
+			cr.set_source_rgb(.3, 1, .3)
+			repeat (nAdjLinesDrawn) {|i|
+				if ((i + 1) % 10 == 0) {
+					cr.set_line_width(4)
+				} elsif ((i + 1) % 5 == 0) {
+					cr.set_line_width(2)
+				} else {
+					cr.set_line_width(1)
+				}
+				y = (nAdjLinesDrawn - i) * 10
+				cr.move_to(0, y)
+				cr.line_to(width, y)
+				y = height - (nAdjLinesDrawn - i) * 10
+				cr.move_to(0, y)
+				cr.line_to(width, y)
+				x = (nAdjLinesDrawn - i) * 10
+				cr.move_to(x, 0)
+				cr.line_to(x, height)
+				x = width - (nAdjLinesDrawn - i) * 10
+				cr.move_to(x, 0)
+				cr.line_to(x, height)
+				cr.stroke()
 			}
-			extText = cr.text_extents(text)
-			x = width - nAdjLinesDrawn * 10 - extText.x_advance - 10
-			y = height - nAdjLinesDrawn * 10 + extText.height
-			cr.move_to(x, y)
-			cr.show_text(text)
+			cr.set_source_rgb(0, .7, 0)
+			cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+			cr.set_font_size(50)
+			if (!printServiceName.isempty()) {
+				fields = printServiceName.split('|'):list
+				text = 'Print Service'$ + ': '
+				text += fields[0].strip()
+				if (fields.len() > 1) {
+					text += ' [' + fields[1].strip() + ']'
+				}
+				extText = cr.text_extents(text)
+				x = width - nAdjLinesDrawn * 10 - extText.x_advance - 10
+				y = height - nAdjLinesDrawn * 10 + extText.height
+				cr.move_to(x, y)
+				cr.show_text(text)
+			}
+			scope {
+				text = format('a = %d, b = %d, c = %d, d = %d',
+									nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
+				extText = cr.text_extents(text)
+				x = width - nAdjLinesDrawn * 10 - extText.x_advance - 10
+				y = nAdjLinesDrawn * 10 - 10
+				cr.move_to(x, y)
+				cr.show_text(text)
+			}
 		}
-		scope {
-			text = format('a = %d, b = %d, c = %d, d = %d',
-								nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
-			extText = cr.text_extents(text)
-			x = width - nAdjLinesDrawn * 10 - extText.x_advance - 10
-			y = nAdjLinesDrawn * 10 - 10
-			cr.move_to(x, y)
-			cr.show_text(text)
+	}
+	ComposeProductForPrintService(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
+			paperSize:PaperSize, orientation:symbol, dpi:number,
+			nAdjLinesDrawn:number, printServiceName:string,
+			nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
+		nAdjLinesLongSide = nAdjLines_c + nAdjLines_d
+		nAdjLinesShortSide = nAdjLines_a + nAdjLines_b
+		longSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesLongSide) * 10
+		shortSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesShortSide) * 10
+		[longSideOuter, shortSideOuter] = int([paperSize.longSide, paperSize.shortSide] * dpi / 25.4)
+		longSideInner = longSideOuter - longSideDrop
+		shortSideInner = shortSideOuter - shortSideDrop
+		longSideCanvas = longSideInner * (paperSize.longSide - paperSize.margin * 2) / paperSize.longSide
+		shortSideCanvas = shortSideInner * (paperSize.shortSide - paperSize.margin * 2) / paperSize.shortSide
+		if (orientation == `horizontal) {
+			[wdOuter, htOuter] = [longSideOuter, shortSideOuter]
+			[wdInner, htInner] = [longSideInner, shortSideInner]
+			[wdCanvas, htCanvas] = [longSideCanvas, shortSideCanvas]
+		} else { // orientation == `vertical
+			[wdOuter, htOuter] = [shortSideOuter, longSideOuter]
+			[wdInner, htInner] = [shortSideInner, longSideInner]
+			[wdCanvas, htCanvas] = [shortSideCanvas, longSideCanvas]
 		}
+		img = image(`rgba, wdOuter, htOuter, `white)
+		this.DrawAdjustLines(img, nAdjLinesDrawn, printServiceName,
+					nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
+		img.cairo {|cr|
+			cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
+			scale = wdInner / wdOuter * dpi / 25.4
+			cr.scale(scale, scale)
+			this.ComposeProduct(cr, imgPhoto, layoutFrame, paperSize, orientation)
+			cr.show_page()
+		}
+		img.write(fileName)
 	}
-}
-
-//-----------------------------------------------------------------------------
-// ComposeProductForPrintService
-//-----------------------------------------------------------------------------
-ComposeProductForPrintService(fileName:string, imgPhoto:image, layoutFrame:LayoutFrame,
-		paperSize:PaperSize, orientation:symbol, dpi:number,
-		nAdjLinesDrawn:number, printServiceName:string,
-		nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
-	nAdjLinesLongSide = nAdjLines_c + nAdjLines_d
-	nAdjLinesShortSide = nAdjLines_a + nAdjLines_b
-	longSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesLongSide) * 10
-	shortSideDrop = (nAdjLinesDrawn * 2 - nAdjLinesShortSide) * 10
-	[longSideOuter, shortSideOuter] = int([paperSize.longSide, paperSize.shortSide] * dpi / 25.4)
-	longSideInner = longSideOuter - longSideDrop
-	shortSideInner = shortSideOuter - shortSideDrop
-	longSideCanvas = longSideInner * (paperSize.longSide - paperSize.margin * 2) / paperSize.longSide
-	shortSideCanvas = shortSideInner * (paperSize.shortSide - paperSize.margin * 2) / paperSize.shortSide
-	if (orientation == `horizontal) {
-		[wdOuter, htOuter] = [longSideOuter, shortSideOuter]
-		[wdInner, htInner] = [longSideInner, shortSideInner]
-		[wdCanvas, htCanvas] = [longSideCanvas, shortSideCanvas]
-	} else { // orientation == `vertical
-		[wdOuter, htOuter] = [shortSideOuter, longSideOuter]
-		[wdInner, htInner] = [shortSideInner, longSideInner]
-		[wdCanvas, htCanvas] = [shortSideCanvas, longSideCanvas]
-	}
-	img = image(`rgba, wdOuter, htOuter, `white)
-	DrawAdjustLines(img, nAdjLinesDrawn, printServiceName,
-				nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
-	img.cairo {|cr|
-		cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
-		scale = wdInner / wdOuter * dpi / 25.4
-		cr.scale(scale, scale)
-		ComposeProduct(cr, imgPhoto, layoutFrame, paperSize, orientation)
-		cr.show_page()
-	}
-	img.write(fileName)
 }
 
 //-----------------------------------------------------------------------------
@@ -960,7 +951,7 @@ ProductViewer = class(wx.Panel) {
 			img.cairo {|cr|
 				scale = wdImg / wdCanvas
 				cr.scale(scale, scale)
-				ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes,
+				Composer().ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes,
 								g.layoutFrameCur, g.paperSizeCur, orientation)
 			}
 		}
@@ -1265,6 +1256,7 @@ wx.Menu.AppendEx(id:number, text:string, img:image, kind:number => wx.ITEM_NORMA
 // MainWindow
 //-----------------------------------------------------------------------------
 MainWindow = class(wx.Frame) {
+	[PAGEIDX_LayoutFrameList, PAGEIDX_TemplateList] = 0..
 	__init__(title:string, pos:wx.Point => wx.Point(g.xMainWindow, g.yMainWindow),
 			size:wx.Size => wx.Size(g.wdMainWindow, g.htMainWindow)) = {|nil, wx.ID_ANY, title, pos, size|
 		this.SetIcon(g.icon)
@@ -1311,7 +1303,7 @@ MainWindow = class(wx.Frame) {
 			tb.AddSeparator()
 			tb.AddTool(ID_OutputOption,	'Output Option'$,	g.imgOutputOption,	wx.NullBitmap, wx.ITEM_CHECK,	'Output Option'$)
 			tb.AddStretchableSpace()
-			wx.ComboBox(tb, wx.ID_ANY, size => wx.Size(200, -1), style => wx.CB_READONLY) {|ctrl|
+			wx.ComboBox(tb, ID_CB_PaperSize, size => wx.Size(200, -1), style => wx.CB_READONLY) {|ctrl|
 				tb.AddControl(ctrl, 'Paper Size')
 				ctrl.Append(format('%s (%d x %dmm)', g.paperSizeTbl:*name,
 							g.paperSizeTbl:*shortSide, g.paperSizeTbl:*longSide)):void
@@ -1363,7 +1355,8 @@ MainWindow = class(wx.Frame) {
 			this.noteBook = ctrl
 		}
 		wx.ListCtrl(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
-			this.noteBook.AddPage(ctrl, '  ' + 'Layout Frame List'$ + '  ')
+			this.noteBook.InsertPage(PAGEIDX_LayoutFrameList,
+							ctrl, '  ' + 'Layout Frame List'$ + '  ')
 			font = ctrl.GetFont()
 			font.SetPointSize(font.GetPointSize() + 2)
 			ctrl.SetFont(font)
@@ -1406,6 +1399,10 @@ MainWindow = class(wx.Frame) {
 			ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED) {|event| this.OnListItemSelected(event) }
 			ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED) {|event| this.OnListItemActivated(event) }
 			this.listCtrlLayoutFrame = ctrl
+		}
+		wx.ListCtrl(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
+			this.noteBook.InsertPage(PAGEIDX_TemplateList,
+									ctrl, '  ' + 'Template List'$ + '  ')
 		}
 		this.dlgOutputOption = OutputOptionDialog(this, this.productViewer)
 		this.listCtrlLayoutFrame.SetFocus()
@@ -1495,6 +1492,9 @@ MainWindow = class(wx.Frame) {
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_PrintService) {|event|
 			event.Enable(g.paperSizeCur.printServiceFlag)
+		}
+		this.Bind(wx.EVT_UPDATE_UI,	ID_CB_PaperSize) {|event|
+			event.Enable(this.noteBook.GetSelection() == PAGEIDX_LayoutFrameList)
 		}
 	}
 	UpdateSizePosInfo() = {
@@ -1674,13 +1674,13 @@ MainWindow = class(wx.Frame) {
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNamePDF = dlg.GetPath()
 			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-			ComposeProductPDF(fileNamePDF, g.imgInfoCur.imgPhotoHighRes,
+			Composer().ComposeProductPDF(fileNamePDF, g.imgInfoCur.imgPhotoHighRes,
 								g.layoutFrameCur, g.paperSizeCur, orientation)
 		}
 	}
 	OnMenu_LaunchPDFViewer(event:wx.CommandEvent) = {
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-		ComposeProductPDF(g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes,
+		Composer().ComposeProductPDF(g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes,
 							g.layoutFrameCur, g.paperSizeCur, orientation)
 		if (!LaunchPDFViewer(g.fileNameTmpPDF)) {
 			wx.MessageDialog(this, 'Failed to launch PDF viewer'$,
@@ -1719,7 +1719,7 @@ MainWindow = class(wx.Frame) {
 		fileName = dlg.GetPath()
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 		wx.BusyCursor {
-			ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, g.layoutFrameCur,
+			Composer().ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, g.layoutFrameCur,
 					g.paperSizeCur, orientation, dpi,
 					nAdjLinesDrawn, g.printServiceName,
 					g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
