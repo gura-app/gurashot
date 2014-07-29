@@ -770,26 +770,6 @@ Composer = class {
 					cr.line_to(x + wdFrameEx - g.wdEdgeMgn, yTrimB)
 					cr.stroke()
 				}
-				/*
-				repeat(nx) {|ix|
-					xSlot = wdSlot * ix
-					x = xSlot + (wdSlot - wdFrameEx) / 2
-					cr.move_to(x + g.wdEdgeMgn, 0)
-					cr.line_to(x + g.wdEdgeMgn, htCanvas - g.htMessage)
-					cr.move_to(x + wdFrameEx - g.wdEdgeMgn, 0)
-					cr.line_to(x + wdFrameEx - g.wdEdgeMgn, htCanvas - g.htMessage)
-					cr.stroke()
-				}
-				repeat(ny) {|iy|
-					ySlot = htSlot * iy
-					y = ySlot + (htSlot - htFrameEx) / 2
-					cr.move_to(0, y + g.htEdgeMgn)
-					cr.line_to(wdCanvas, y + g.htEdgeMgn)
-					cr.move_to(0, y + htFrameEx - g.htEdgeMgn)
-					cr.line_to(wdCanvas, y + htFrameEx - g.htEdgeMgn)
-					cr.stroke()
-				}
-				*/
 			}
 			drawFaceImages() = {
 				cross(ix in range(nx), iy in range(ny)) {
