@@ -433,6 +433,11 @@ g = module {
 }
 
 //-----------------------------------------------------------------------------
+// utilities
+//-----------------------------------------------------------------------------
+classref(`string).EscapeFileName() = this.sub('[!"\'%&|\\/<>: ]', '_')
+
+//-----------------------------------------------------------------------------
 // LoadConfig / SaveConfig
 //-----------------------------------------------------------------------------
 LoadConfig() = {
@@ -476,8 +481,8 @@ LoadConfig() = {
 		g.titleDispFlag_Purpose		= (g.cfg['titleDispFlag_Purpose'] == 'true')
 		g.wdEdgeMgn:number			= g.cfg['wdEdgeMgn']
 		g.htEdgeMgn:number			= g.cfg['htEdgeMgn']
-		idxPaperSizeCur:number	= g.cfg['idxPaperSizeCur'].tonumber()
-		g.paperSizeCur			= g.paperSizeTbl[idxPaperSizeCur]
+		idxPaperSizeCur:number		= g.cfg['idxPaperSizeCur'].tonumber()
+		g.paperSizeCur				= g.paperSizeTbl[idxPaperSizeCur]
 		g.cfg['layoutFramesUserDef'].each():list {|dict|
 			g.layoutFrameTbl.add(LayoutFrame(dict['purpose'],
 					dict['htFrame'], dict['wdFrame'],
@@ -1652,8 +1657,15 @@ MainWindow = class(wx.Frame) {
 	}
 	OnMenu_OutputPDF(event:wx.CommandEvent) = {
 		filter = 'PDF file (*.pdf)|*.pdf|All files (*.*)|*.*'$
+		dirName = ''
+		fileName = ''
+		if (!g.imgInfoCur.label.isempty()) {
+			fileName += g.imgInfoCur.label
+			fileName += '@gurashot.pdf'
+		}
+		fileName = fileName.EscapeFileName()
 		dlg = wx.FileDialog(this, 'Specify a PDF file to output'$,
-							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+					dirName, fileName, filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNamePDF = dlg.GetPath()
 			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
@@ -1694,14 +1706,14 @@ MainWindow = class(wx.Frame) {
 			fileName += '@'
 			fileName += fields[0].strip()
 		}
-		fileName = fileName.sub('[!"\'%&|\\/<>: ]', '_')
+		fileName = fileName.EscapeFileName()
 		filter = 'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif'$
 		dlg = wx.FileDialog(this, 'Specify an image file to save'$,
 					dirName, fileName, filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		(dlg.ShowModal() != wx.ID_OK) && return
 		fileName = dlg.GetPath()
-		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 		wx.BusyCursor {
+			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 			Composer(g.paperSizeCur, orientation, g.layoutFrameCur).\
 				ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, dpi,
 						g.printServiceName, nAdjLinesDrawn,
