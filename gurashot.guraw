@@ -718,10 +718,10 @@ ExtractImage(imgPhoto:image, layoutFrame:LayoutFrame, wdEdgeMgn:number, htEdgeMg
 // Composer
 //-----------------------------------------------------------------------------
 Composer = class {
-	__init__(layoutFrame:LayoutFrame, paperSize:PaperSize, orientation:symbol) = {
-		this.layoutFrame = layoutFrame
+	__init__(paperSize:PaperSize, orientation:symbol, layoutFrame:LayoutFrame) = {
 		this.paperSize = paperSize
 		this.orientation = orientation
+		this.layoutFrame = layoutFrame
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		fontName = 'Sans'
@@ -813,7 +813,7 @@ Composer = class {
 		}
 	}
 	ComposeProductForPrintService(fileName:string, imgPhoto:image,
-			dpi:number, nAdjLinesDrawn:number, printServiceName:string,
+			dpi:number, printServiceName:string, nAdjLinesDrawn:number,
 			nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
 		nAdjLinesLongSide = nAdjLines_c + nAdjLines_d
 		nAdjLinesShortSide = nAdjLines_a + nAdjLines_b
@@ -934,7 +934,7 @@ ProductViewer = class(wx.Panel) {
 			img.cairo {|cr|
 				scale = wdImg / wdCanvas
 				cr.scale(scale, scale)
-				Composer(g.layoutFrameCur, g.paperSizeCur, orientation).\
+				Composer(g.paperSizeCur, orientation, g.layoutFrameCur).\
 							ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes)
 			}
 		}
@@ -1657,13 +1657,13 @@ MainWindow = class(wx.Frame) {
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNamePDF = dlg.GetPath()
 			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-			Composer(g.layoutFrameCur, g.paperSizeCur, orientation).\
+			Composer(g.paperSizeCur, orientation, g.layoutFrameCur).\
 					ComposeProductPDF(fileNamePDF, g.imgInfoCur.imgPhotoHighRes)
 		}
 	}
 	OnMenu_LaunchPDFViewer(event:wx.CommandEvent) = {
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-		Composer(g.layoutFrameCur, g.paperSizeCur, orientation).\
+		Composer(g.paperSizeCur, orientation, g.layoutFrameCur).\
 				ComposeProductPDF(g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes)
 		if (!LaunchPDFViewer(g.fileNameTmpPDF)) {
 			wx.MessageDialog(this, 'Failed to launch PDF viewer'$,
@@ -1702,9 +1702,9 @@ MainWindow = class(wx.Frame) {
 		fileName = dlg.GetPath()
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
 		wx.BusyCursor {
-			Composer(g.layoutFrameCur, g.paperSizeCur, orientation).\
+			Composer(g.paperSizeCur, orientation, g.layoutFrameCur).\
 				ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, dpi,
-						nAdjLinesDrawn, g.printServiceName,
+						g.printServiceName, nAdjLinesDrawn,
 						g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
 		}
 	}
