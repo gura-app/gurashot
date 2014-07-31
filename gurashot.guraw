@@ -723,89 +723,6 @@ ExtractImage(imgPhoto:image, layoutFrame:LayoutFrame, wdEdgeMgn:number, htEdgeMg
 // Composer
 //-----------------------------------------------------------------------------
 Composer = class {
-	__init__(paperSize:PaperSize, orientation:symbol, layoutFrame:LayoutFrame) = {
-		this.paperSize = paperSize
-		this.orientation = orientation
-		this.layoutFrame = layoutFrame
-	}
-	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
-		fontName = 'Sans'
-		[wdCanvas, htCanvas] = [this.paperSize.GetCanvasWidth(this.orientation), this.paperSize.GetCanvasHeight(this.orientation)]
-		scope {
-			cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
-			cr.set_source_rgb(.2, .2, 1)
-			cr.set_font_size(3.0)
-			cr.move_to(0, htCanvas - 1)
-			text = ''
-			if (g.titleDispFlag_Size) {
-				text += format('[%d x %dmm]', this.layoutFrame.htFrame, this.layoutFrame.wdFrame)
-			}
-			if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
-				if (!text.isempty()) { text += ' ' }
-				text += g.imgInfoCur.label
-			}
-			if (g.titleDispFlag_Purpose && !this.layoutFrame.purpose.isempty()) {
-				if (!text.isempty()) { text += ' ' }
-				text += format('for %s', this.layoutFrame.purpose)
-			}
-			cr.show_text(text)
-		}
-		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-						this.layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
-		cairo.pattern.create_for_surface(imgExtract) {|pattern|
-			cr.set_line_width(.1)
-			cr.set_source_rgb(([g.trimMarkR, g.trimMarkG, g.trimMarkB] / 255)*)
-			[wdFrameEx, htFrameEx] = this.layoutFrame.CalcSizeEx()
-			[nx, ny] = this.layoutFrame.CalcImageGrid(wdCanvas, htCanvas)
-			wdSlot = wdCanvas / nx
-			htSlot = (htCanvas - g.htMessage) / ny
-			drawTrimMarks() = {
-				cross(ix in range(nx), iy in range(ny)) {
-					xSlot = wdSlot * ix
-					ySlot = htSlot * iy
-					x = xSlot + (wdSlot - wdFrameEx) / 2
-					y = ySlot + (htSlot - htFrameEx) / 2
-					xTrimL = x - g.wdTrimMark
-					xTrimR = x + wdFrameEx + g.wdTrimMark
-					yTrimT = y - g.htTrimMark
-					yTrimB = y + htFrameEx + g.htTrimMark
-					cr.move_to(xTrimL, y + g.htEdgeMgn)
-					cr.line_to(xTrimR, y + g.htEdgeMgn)
-					cr.move_to(xTrimL, y + htFrameEx - g.htEdgeMgn)
-					cr.line_to(xTrimR, y + htFrameEx - g.htEdgeMgn)
-					cr.move_to(x + g.wdEdgeMgn, yTrimT)
-					cr.line_to(x + g.wdEdgeMgn, yTrimB)
-					cr.move_to(x + wdFrameEx - g.wdEdgeMgn, yTrimT)
-					cr.line_to(x + wdFrameEx - g.wdEdgeMgn, yTrimB)
-					cr.stroke()
-				}
-			}
-			drawFaceImages() = {
-				cross(ix in range(nx), iy in range(ny)) {
-					xSlot = wdSlot * ix
-					ySlot = htSlot * iy
-					x = xSlot + (wdSlot - wdFrameEx) / 2
-					y = ySlot + (htSlot - htFrameEx) / 2
-					cr.save {
-						scale = htFrameEx / imgExtract.height
-						cr.translate(x, y)
-						cr.scale(scale, scale)
-						cr.set_source(pattern)
-						cr.paint()
-					}
-				}
-			}
-			if (g.trimMark == `outer) {
-				drawTrimMarks()
-				drawFaceImages()
-			} elsif (g.trimMark == `overwrite) {
-				drawFaceImages()
-				drawTrimMarks()
-			} else {	// g.trimMark == `none
-				drawFaceImages()
-			}
-		}
-	}
 	ComposeProductPDF(fileName:string, imgPhoto:image) = {
 		cairo.create(cairo.pdf_surface.create(fileName,
 						units.mm$pt(this.paperSize.GetWidth(this.orientation)),
@@ -909,6 +826,95 @@ Composer = class {
 }
 
 //-----------------------------------------------------------------------------
+// ComposerSlot
+//-----------------------------------------------------------------------------
+ComposerSlot = class(Composer) {
+	__init__(paperSize:PaperSize, orientation:symbol, layoutFrame:LayoutFrame) = {
+		this.paperSize = paperSize
+		this.orientation = orientation
+		this.layoutFrame = layoutFrame
+	}
+	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		fontName = 'Sans'
+		[wdCanvas, htCanvas] = [this.paperSize.GetCanvasWidth(this.orientation), this.paperSize.GetCanvasHeight(this.orientation)]
+		scope {
+			cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+			cr.set_source_rgb(.2, .2, 1)
+			cr.set_font_size(3.0)
+			cr.move_to(0, htCanvas - 1)
+			text = ''
+			if (g.titleDispFlag_Size) {
+				text += format('[%d x %dmm]', this.layoutFrame.htFrame, this.layoutFrame.wdFrame)
+			}
+			if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
+				if (!text.isempty()) { text += ' ' }
+				text += g.imgInfoCur.label
+			}
+			if (g.titleDispFlag_Purpose && !this.layoutFrame.purpose.isempty()) {
+				if (!text.isempty()) { text += ' ' }
+				text += format('for %s', this.layoutFrame.purpose)
+			}
+			cr.show_text(text)
+		}
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+						this.layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
+		cairo.pattern.create_for_surface(imgExtract) {|pattern|
+			cr.set_line_width(.1)
+			cr.set_source_rgb(([g.trimMarkR, g.trimMarkG, g.trimMarkB] / 255)*)
+			[wdFrameEx, htFrameEx] = this.layoutFrame.CalcSizeEx()
+			[nx, ny] = this.layoutFrame.CalcImageGrid(wdCanvas, htCanvas)
+			wdSlot = wdCanvas / nx
+			htSlot = (htCanvas - g.htMessage) / ny
+			drawTrimMarks() = {
+				cross(ix in range(nx), iy in range(ny)) {
+					xSlot = wdSlot * ix
+					ySlot = htSlot * iy
+					x = xSlot + (wdSlot - wdFrameEx) / 2
+					y = ySlot + (htSlot - htFrameEx) / 2
+					xTrimL = x - g.wdTrimMark
+					xTrimR = x + wdFrameEx + g.wdTrimMark
+					yTrimT = y - g.htTrimMark
+					yTrimB = y + htFrameEx + g.htTrimMark
+					cr.move_to(xTrimL, y + g.htEdgeMgn)
+					cr.line_to(xTrimR, y + g.htEdgeMgn)
+					cr.move_to(xTrimL, y + htFrameEx - g.htEdgeMgn)
+					cr.line_to(xTrimR, y + htFrameEx - g.htEdgeMgn)
+					cr.move_to(x + g.wdEdgeMgn, yTrimT)
+					cr.line_to(x + g.wdEdgeMgn, yTrimB)
+					cr.move_to(x + wdFrameEx - g.wdEdgeMgn, yTrimT)
+					cr.line_to(x + wdFrameEx - g.wdEdgeMgn, yTrimB)
+					cr.stroke()
+				}
+			}
+			drawFaceImages() = {
+				cross(ix in range(nx), iy in range(ny)) {
+					xSlot = wdSlot * ix
+					ySlot = htSlot * iy
+					x = xSlot + (wdSlot - wdFrameEx) / 2
+					y = ySlot + (htSlot - htFrameEx) / 2
+					cr.save {
+						scale = htFrameEx / imgExtract.height
+						cr.translate(x, y)
+						cr.scale(scale, scale)
+						cr.set_source(pattern)
+						cr.paint()
+					}
+				}
+			}
+			if (g.trimMark == `outer) {
+				drawTrimMarks()
+				drawFaceImages()
+			} elsif (g.trimMark == `overwrite) {
+				drawFaceImages()
+				drawTrimMarks()
+			} else {	// g.trimMark == `none
+				drawFaceImages()
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
 // ProductViewer
 //-----------------------------------------------------------------------------
 ProductViewer = class(wx.Panel) {
@@ -939,7 +945,7 @@ ProductViewer = class(wx.Panel) {
 			img.cairo {|cr|
 				scale = wdImg / wdCanvas
 				cr.scale(scale, scale)
-				Composer(g.paperSizeCur, orientation, g.layoutFrameCur).\
+				ComposerSlot(g.paperSizeCur, orientation, g.layoutFrameCur).\
 							ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes)
 			}
 		}
@@ -1669,13 +1675,13 @@ MainWindow = class(wx.Frame) {
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNamePDF = dlg.GetPath()
 			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-			Composer(g.paperSizeCur, orientation, g.layoutFrameCur).\
+			ComposerSlot(g.paperSizeCur, orientation, g.layoutFrameCur).\
 					ComposeProductPDF(fileNamePDF, g.imgInfoCur.imgPhotoHighRes)
 		}
 	}
 	OnMenu_LaunchPDFViewer(event:wx.CommandEvent) = {
 		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-		Composer(g.paperSizeCur, orientation, g.layoutFrameCur).\
+		ComposerSlot(g.paperSizeCur, orientation, g.layoutFrameCur).\
 				ComposeProductPDF(g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes)
 		if (!LaunchPDFViewer(g.fileNameTmpPDF)) {
 			wx.MessageDialog(this, 'Failed to launch PDF viewer'$,
@@ -1714,7 +1720,7 @@ MainWindow = class(wx.Frame) {
 		fileName = dlg.GetPath()
 		wx.BusyCursor {
 			orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-			Composer(g.paperSizeCur, orientation, g.layoutFrameCur).\
+			ComposerSlot(g.paperSizeCur, orientation, g.layoutFrameCur).\
 				ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, dpi,
 						g.printServiceName, nAdjLinesDrawn,
 						g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
