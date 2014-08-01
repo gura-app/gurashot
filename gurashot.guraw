@@ -299,437 +299,6 @@ ImageInfo = class {
 }
 
 //-----------------------------------------------------------------------------
-// Global variables
-//-----------------------------------------------------------------------------
-g = module {
-	fileNameTmpPDF:public	= path.join(sys.workdir, 'gurashot.pdf')
-	fileNameCfg:public		= path.join(sys.cfgdir, 'gurashot.yml')
-	//fileNameCfg:public	= 'gurashot.yml'
-	fileNameIcon:public		= path.join(sys.maindir, 'gurashot.ico')
-	imgNoImage:public = image(`rgba, 800, 800, color(240, 240, 255))
-	imgNoImage.cairo {|cr|
-		cr.set_source_rgb(.8, 0.8, 0.8)
-		cr.save {
-			cr.scale(1, 1.1)
-			cr.arc(400, 250, 180, 0, math.pi * 2)
-			cr.fill()
-		}
-		cr.save {
-			cr.scale(1, 5)
-			cr.arc(400, 1090, 1000, 0, math.pi * 2)
-			cr.fill()
-		}
-		cr.set_source_rgb(.5, 0.5, 0.5)
-		cr.select_font_face('Sans', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
-		cr.set_font_size(100.0)
-		cr.move_to(210, 400)
-		cr.show_text('no image')
-	}
-	I(src:binary) = image(base64.reader(src))
-	imgOpen:public			= I(resource.folder_image_png)
-	imgClose:public			= I(resource.delete_png)
-	imgShowList:public		= I(resource.report_picture_png)
-	imgNext:public			= I(resource.resultset_next_png)
-	imgPrev:public			= I(resource.resultset_previous_png)
-	imgRotateL:public		= I(resource.arrow_rotate_anticlockwise_png)
-	imgRotateR:public		= I(resource.arrow_rotate_clockwise_png)
-	imgColorAdjust:public	= I(resource.color_wheel_png)
-	imgTiltAdj:public		= I(resource.tilt_adj_png)
-	imgCenterGuide:public	= I(resource.center_guide_png)
-	imgFrostFrame:public	= I(resource.user_frosted_png)
-	imgTick:public			= I(resource.tick_png)
-	imgRenameLabel:public	= I(resource.tag_blue_edit_png)
-	imgOutputOption:public	= I(resource.page_white_database_png)
-	imgOutputPDF:public		= I(resource.page_white_acrobat_png)
-	imgLaunchPDFViewer:public = I(resource.page_white_acrobat_png)
-	imgPrintService:public	= I(resource.photo_png)
-	imgBrightness:public	= I(resource.weather_sun_png)
-	imgContrast:public		= I(resource.contrast_png)
-	imgBoxRed:public		= I(resource.box_red_png)
-	imgBoxGreen:public		= I(resource.box_green_png)
-	imgBoxBlue:public		= I(resource.box_blue_png)
-	imgColorTone:public		= I(resource.color_swatch_png)
-	imgPrintServiceAdjust:public = I(resource.print_service_adjust_png)
-	printServiceInfoTbl:public = @(PrintServiceInfo) {
-		{ 'Circle K Sunkus'$ +			' | SHARP MX-4500DS',		11, 10,  7, 10 }
-		{ 'Three F'$ +					' | SHARP MX-4500DS',		11, 10,  8,  8 }
-		{ 'Seven-Eleven Japan'$ +		' | Fuji Xerox',			10,  7,  7,  6 }
-		{ 'FamilyMart'$ +				' | SHARP MX-3610DS',		13, 12, 13, 12 }
-		{ 'LAWSON'$ +					' | SHARP MX-3610DS',		13, 12, 13, 12 }
-		{ 'FOTOLUSIO PrintRush'$ +		' | DNP',					13, 14, 12, 13 }
-		{ 'Mitsubishi Color Print'$ +	' | Mitsubishi Mikupuri',	11, 10,  7, 10 }
-	}
-	layoutFrameTbl:public = @(LayoutFrame) {
-		{ 'Driver\'s license etc.'$,				30, 24, 2, 23, false }
-		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23, false }
-		{ 'Qualifications'$,						30, 30, 2, 23, false }
-		{ 'Qualifications'$,						35, 24, 2, 26, false }
-		{ 'Qualifications'$,						36, 24, 2, 27, false }
-		{ 'Qualifications'$,						36, 25, 2, 27, false }
-		{ 'Resume etc.'$,							40, 30, 2, 30, false }
-		{ 'Qualifications'$,						40, 40, 3, 31, false }
-		{ 'Passport etc.'$,							45, 35, 4, 34, false }
-		{ 'International driver\'s license etc.'$,	50, 40, 4, 38, false }
-		{ 'Visa etc.'$,								50, 50, 4, 35, false }
-		{ 'Qualifications'$,						55, 40, 2, 41, false }
-		{ 'Qualifications'$,						55, 45, 2, 41, false }
-		{ 'Qualifications'$,						60, 45, 2, 45, false }
-	}
-	
-	layoutFrameCur:public		= layoutFrameTbl[0]
-	
-	paperSizeTbl:public = @(PaperSize) {
-		{ 'L'$,				127,  89, true }
-		{ 'KG'$,			152, 102, false }
-		{ '2L'$,			178, 127, false }
-		{ 'A4'$,			297, 210, false }
-		{ 'A3'$,			420, 297, false }
-		{ 'Hagaki'$,		148, 100, false }
-		{ 'Mutsugiri'$,		254, 203, false }
-		{ 'Yotsugiri'$,		305, 254, false }
-	}
-	cfg:public						= %{}
-	mainWindow:public				= nil
-	xMainWindow:public				= -1
-	yMainWindow:public				= -1
-	wdMainWindow:public				= 800
-	htMainWindow:public				= 730
-	wdSashLeft:public				= 320
-	htSashTop:public				= 300
-	xImageListDialog:public			= -1
-	yImageListDialog:public			= -1
-	xLayoutFrameEditorDialog:public	= -1
-	yLayoutFrameEditorDialog:public	= -1
-	xOutputOptionDialog:public		= -1
-	yOutputOptionDialog:public		= -1
-	xColorAdjustDialog:public		= -1
-	yColorAdjustDialog:public		= -1
-	sepiaR:public					= 255
-	sepiaG:public					= 200
-	sepiaB:public					= 150
-	progNamePDFViewerOnLinux:public	= 'evince'
-	printServiceName:public			= ''
-	nAdjLines_a:public				= 8
-	nAdjLines_b:public				= 8
-	nAdjLines_c:public				= 8
-	nAdjLines_d:public				= 8
-	frostFrameFlag:public			= false
-	centerGuideFlag:public			= false
-	
-	orientation:public				= `auto		// `auto, `horizontal, `vertical
-	
-	trimMark:public					= `outer	// `outer, `overwrite, `none
-	trimMarkR:public				= 50
-	trimMarkG:public				= 50
-	trimMarkB:public				= 255
-	titleDispFlag_Size:public		= true
-	titleDispFlag_ImageLabel:public	= true
-	titleDispFlag_Purpose:public	= true
-	
-	paperSizeCur:public				= paperSizeTbl[0]
-	
-	imgInfos:public					= []
-	imgInfoCur:public				= nil
-	wdEdgeMgn:public				= 2	// unit: mm
-	htEdgeMgn:public				= 2	// unit: mm
-	wdTrimMark:public				= 2	// unit: mm
-	htTrimMark:public				= 2	// unit: mm
-	htMessage:public				= 5	// unit: mm
-	icon:public						= nil
-}
-
-//-----------------------------------------------------------------------------
-// utilities
-//-----------------------------------------------------------------------------
-classref(`string).EscapeFileName() = this.sub('[!"\'%&|\\/<>: ]', '_')
-
-//-----------------------------------------------------------------------------
-// LoadConfig / SaveConfig
-//-----------------------------------------------------------------------------
-LoadConfig() = {
-	nLayoutFramesUserDef = 5
-	try {
-		g.cfg = yaml.read(g.fileNameCfg)
-		g.xMainWindow:number		= g.cfg['xMainWindow']
-		g.yMainWindow:number		= g.cfg['yMainWindow']
-		g.wdMainWindow:number		= g.cfg['wdMainWindow']
-		g.htMainWindow:number		= g.cfg['htMainWindow']
-		g.wdSashLeft:number			= g.cfg['wdSashLeft']
-		g.htSashTop:number			= g.cfg['htSashTop']
-		g.xImageListDialog:number	= g.cfg['xImageListDialog']
-		g.yImageListDialog:number	= g.cfg['yImageListDialog']
-		g.xLayoutFrameEditorDialog:number = g.cfg['xLayoutFrameEditorDialog']
-		g.yLayoutFrameEditorDialog:number = g.cfg['yLayoutFrameEditorDialog']
-		g.xOutputOptionDialog:number= g.cfg['xOutputOptionDialog']
-		g.yOutputOptionDialog:number= g.cfg['yOutputOptionDialog']
-		g.xColorAdjustDialog:number	= g.cfg['xColorAdjustDialog']
-		g.yColorAdjustDialog:number	= g.cfg['yColorAdjustDialog']
-		g.sepiaR:number				= g.cfg['sepiaR']
-		g.sepiaG:number				= g.cfg['sepiaG']
-		g.sepiaB:number				= g.cfg['sepiaB']
-		g.progNamePDFViewerOnLinux	= g.cfg['progNamePDFViewerOnLinux']
-		g.printServiceName			= g.cfg['printServiceName']
-		g.nAdjLines_a:number		= g.cfg['nAdjLines_a']
-		g.nAdjLines_b:number		= g.cfg['nAdjLines_b']
-		g.nAdjLines_c:number		= g.cfg['nAdjLines_c']
-		g.nAdjLines_d:number		= g.cfg['nAdjLines_d']
-		g.frostFrameFlag			= (g.cfg['frostFrameFlag'] == 'true')
-		g.centerGuideFlag			= (g.cfg['centerGuideFlag'] == 'true')
-		
-		g.orientation				= [`horizontal, `vertical, `auto].\
-							find(g.cfg['orientation'].tosymbol()) || `auto
-		
-		g.trimMark					= [`outer, `overwrite, `none].\
-							find(g.cfg['trimMark'].tosymbol()) || `outer
-		g.trimMarkR:number			= g.cfg['trimMarkR']
-		g.trimMarkG:number			= g.cfg['trimMarkG']
-		g.trimMarkB:number			= g.cfg['trimMarkB']
-		g.titleDispFlag_Size		= (g.cfg['titleDispFlag_Size'] == 'true')
-		g.titleDispFlag_ImageLabel	= (g.cfg['titleDispFlag_ImageLabel'] == 'true')
-		g.titleDispFlag_Purpose		= (g.cfg['titleDispFlag_Purpose'] == 'true')
-		g.wdEdgeMgn:number			= g.cfg['wdEdgeMgn']
-		g.htEdgeMgn:number			= g.cfg['htEdgeMgn']
-		idxPaperSizeCur:number		= g.cfg['idxPaperSizeCur'].tonumber()
-		
-		g.paperSizeCur				= g.paperSizeTbl[idxPaperSizeCur]
-		
-		g.cfg['layoutFramesUserDef'].each():list {|dict|
-			g.layoutFrameTbl.add(LayoutFrame(dict['purpose'],
-					dict['htFrame'], dict['wdFrame'],
-					dict['htUpperMgn'], dict['htFacePart'], true))
-			nLayoutFramesUserDef -= 1
-		}
-		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
-			imgInfo = ImageInfo()
-			imgInfo.label				= dict['label']
-			imgInfo.fileName			= dict['fileName']
-			imgInfo.rotate:number		= dict['rotate']
-			imgInfo.xrateTop:number		= dict['xrateTop']
-			imgInfo.xrateBtm:number		= dict['xrateBtm']
-			imgInfo.yrateTop:number		= dict['yrateTop']
-			imgInfo.yrateBtm:number		= dict['yrateBtm']
-			imgInfo.tiltAdjFlag			= (dict['tiltAdjFlag'] == 'true')
-			imgInfo.colorTone			= [`color, `mono, `sepia].\
-							find(dict['colorTone'].tosymbol()) || `color
-			imgInfo.brightness:number	= dict['brightness']
-			imgInfo.contrast:number		= dict['contrast']
-			imgInfo.redness:number		= dict['redness']
-			imgInfo.greenness:number	= dict['greenness']
-			imgInfo.blueness:number		= dict['blueness']
-			imgInfo
-		}
-	} catch {}
-	repeat (nLayoutFramesUserDef) {
-		g.layoutFrameTbl.add(LayoutFrame('', 40, 30, 2, 30, true))
-	}
-	if (g.imgInfos.isempty()) {
-		g.imgInfoCur = ImageInfo()
-	} else {
-		try {
-			idxImgInfoCur = g.cfg['idxImgInfoCur'].tonumber()
-			g.imgInfoCur = g.imgInfos[idxImgInfoCur]
-		} catch {|e|
-			g.imgInfoCur = g.imgInfos.last()
-		}
-	}
-	g.imgInfoCur.UpdateImagePhoto()
-}
-
-SaveConfig() = {
-	g.cfg['xMainWindow']				= g.xMainWindow
-	g.cfg['yMainWindow']				= g.yMainWindow
-	g.cfg['wdMainWindow']				= g.wdMainWindow
-	g.cfg['htMainWindow']				= g.htMainWindow
-	g.cfg['wdSashLeft']					= g.wdSashLeft
-	g.cfg['htSashTop']					= g.htSashTop
-	g.cfg['xImageListDialog']			= g.xImageListDialog
-	g.cfg['yImageListDialog']			= g.yImageListDialog
-	g.cfg['xLayoutFrameEditorDialog']	= g.xLayoutFrameEditorDialog
-	g.cfg['yLayoutFrameEditorDialog']	= g.yLayoutFrameEditorDialog
-	g.cfg['xOutputOptionDialog']		= g.xOutputOptionDialog
-	g.cfg['yOutputOptionDialog']		= g.yOutputOptionDialog
-	g.cfg['xColorAdjustDialog']			= g.xColorAdjustDialog
-	g.cfg['yColorAdjustDialog']			= g.yColorAdjustDialog
-	g.cfg['sepiaR']						= g.sepiaR
-	g.cfg['sepiaG']						= g.sepiaG
-	g.cfg['sepiaB']						= g.sepiaB
-	g.cfg['progNamePDFViewerOnLinux']	= g.progNamePDFViewerOnLinux
-	g.cfg['printServiceName']			= g.printServiceName
-	g.cfg['nAdjLines_a']				= g.nAdjLines_a
-	g.cfg['nAdjLines_b']				= g.nAdjLines_b
-	g.cfg['nAdjLines_c']				= g.nAdjLines_c
-	g.cfg['nAdjLines_d']				= g.nAdjLines_d
-	g.cfg['frostFrameFlag']				= g.frostFrameFlag
-	g.cfg['centerGuideFlag']			= g.centerGuideFlag
-	g.cfg['orientation']				= g.orientation
-	g.cfg['trimMark']					= g.trimMark
-	g.cfg['trimMarkR']					= g.trimMarkR
-	g.cfg['trimMarkG']					= g.trimMarkG
-	g.cfg['trimMarkB']					= g.trimMarkB
-	g.cfg['titleDispFlag_Size']			= g.titleDispFlag_Size
-	g.cfg['titleDispFlag_ImageLabel']	= g.titleDispFlag_ImageLabel
-	g.cfg['titleDispFlag_Purpose']		= g.titleDispFlag_Purpose
-	g.cfg['wdEdgeMgn']					= g.wdEdgeMgn
-	g.cfg['htEdgeMgn']					= g.htEdgeMgn
-	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.paperSizeCur):index || 0
-	g.cfg['layoutFramesUserDef'] = g.layoutFrameTbl.each():xlist {|layoutFrame|
-		!layoutFrame.userDefFlag && continue
-		%{
-			'purpose'		=> layoutFrame.purpose
-			'htFrame'		=> layoutFrame.htFrame
-			'wdFrame'		=> layoutFrame.wdFrame
-			'htUpperMgn'	=> layoutFrame.htUpperMgn
-			'htFacePart'	=> layoutFrame.htFacePart
-		}
-	}
-	g.cfg['idxImgInfoCur']				= g.imgInfos.find(g.imgInfoCur):index || -1
-	g.cfg['imgInfos'] = g.imgInfos.each():list {|imgInfo|
-		%{
-			'label'			=> imgInfo.label
-			'fileName'		=> imgInfo.fileName
-			'rotate'		=> imgInfo.rotate
-			'xrateTop'		=> imgInfo.xrateTop
-			'xrateBtm'		=> imgInfo.xrateBtm
-			'yrateTop'		=> imgInfo.yrateTop
-			'yrateBtm'		=> imgInfo.yrateBtm
-			'tiltAdjFlag'	=> imgInfo.tiltAdjFlag
-			'colorTone'		=> imgInfo.colorTone
-			'brightness'	=> imgInfo.brightness
-			'contrast'		=> imgInfo.contrast
-			'redness'		=> imgInfo.redness
-			'greenness'		=> imgInfo.greenness
-			'blueness'		=> imgInfo.blueness
-		}
-	}
-	yaml.write(g.fileNameCfg, g.cfg)
-}
-
-InitializeResource() = {
-	wx.Image.AddHandler(wx.PNGHandler())
-	g.icon = wx.Icon(g.fileNameIcon, wx.BITMAP_TYPE_ICO)
-}
-
-//-----------------------------------------------------------------------------
-// ReadImageFile
-//-----------------------------------------------------------------------------
-ReadImageFile(parent:wx.Window, fileName:string) = {
-	idx = g.imgInfos:*fileName.find(fileName):index
-	if (idx) {
-		g.imgInfoCur = g.imgInfos[idx]
-		successFlag = g.imgInfoCur.UpdateImagePhoto()
-	} else {
-		imgInfo = ImageInfo()
-		imgInfo.label = path.basename(path.filename(fileName))
-		imgInfo.fileName = fileName
-		if (successFlag = imgInfo.UpdateImagePhoto()) {
-			g.imgInfos.add(imgInfo)
-			g.imgInfoCur = imgInfo
-		}
-	}
-	if (!successFlag) {
-		wx.MessageDialog(parent, 'Failed to read the image file'$,
-						'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
-			dlg.ShowModal()
-		}
-	}
-}
-
-//-----------------------------------------------------------------------------
-// RotateImageL / RotateImageR
-//-----------------------------------------------------------------------------
-RotateImageL() = {
-	g.imgInfoCur.SetRotate((g.imgInfoCur.rotate + 270) % 360)
-}
-
-RotateImageR() = {
-	g.imgInfoCur.SetRotate((g.imgInfoCur.rotate + 90) % 360)
-}
-
-//-----------------------------------------------------------------------------
-// OpenWithApp
-//-----------------------------------------------------------------------------
-if (sys.platform == `mswin) {
-	LaunchPDFViewer(fileName:string) = {
-		rtn = true
-		try {
-			import(mswin)
-			mswin.ole('Wscript.shell') {|wsh| wsh.Run(fileName)}
-		} catch {
-			rtn = false
-		}
-		rtn
-	}
-} elsif (sys.platform == `linux) {
-	LaunchPDFViewer(fileName:string) = {
-		rtn = true
-		try {
-			!path.exists(path.join(os.getenv('PATH').split(':'),
-							g.progNamePDFViewerOnLinux)).or() && return(false)
-			os.exec(g.progNamePDFViewerOnLinux, fileName):fork
-		} catch {
-			rtn = false
-		}
-		rtn
-	}
-}
-
-//-----------------------------------------------------------------------------
-// ExtractImage
-//-----------------------------------------------------------------------------
-ExtractImage(imgPhoto:image, layoutFrame:LayoutFrame, wdEdgeMgn:number, htEdgeMgn:number) = {
-	bgColor = `gray
-	[wdDummy, htDummy] = int([imgPhoto.width / 2, imgPhoto.height / 2])
-	imgSrc = image(`rgba, imgPhoto.width + wdDummy * 2, imgPhoto.height + htDummy * 2, bgColor)
-	// +----+----+----+
-	// | NW | N  | NE |
-	// +----+----+----+
-	// | W  | c  | E  |
-	// +----+----+----+
-	// | SW | S  | SE |
-	// +----+----+----+
-	imgSrc.paste(wdDummy, htDummy, imgPhoto)
-	// paste dummy on N
-	imgSrc.paste(wdDummy, 0,
-		imgPhoto.crop(0, 0, imgPhoto.width, htDummy).flip(`vert))
-	// paste dummy on S
-	imgSrc.paste(wdDummy, htDummy + imgPhoto.height,
-		imgPhoto.crop(0, imgPhoto.height - htDummy, imgPhoto.width, htDummy).flip(`vert))
-	// paste dummy on W
-	imgSrc.paste(0, htDummy,
-		imgPhoto.crop(0, 0, wdDummy, imgPhoto.height).flip(`horz))
-	// paste dummy on E
-	imgSrc.paste(wdDummy + imgPhoto.width, htDummy,
-		imgPhoto.crop(imgPhoto.width - wdDummy, 0, wdDummy, imgPhoto.height).flip(`horz))
-	// paste dummy on NW
-	imgSrc.paste(0, 0,
-		imgPhoto.crop(0, 0, wdDummy, htDummy).rotate(180))
-	// paste dummy on NE
-	imgSrc.paste(wdDummy + imgPhoto.width, 0,
-		imgPhoto.crop(imgPhoto.width - wdDummy, 0, wdDummy, htDummy).rotate(180))
-	// paste dummy on SW
-	imgSrc.paste(0, htDummy + imgPhoto.height,
-		imgPhoto.crop(0, imgPhoto.height - htDummy, wdDummy, htDummy).rotate(180))
-	// paste dummy on SE
-	imgSrc.paste(wdDummy + imgPhoto.width, htDummy + imgPhoto.height,
-		imgPhoto.crop(imgPhoto.width - wdDummy, imgPhoto.height - htDummy, wdDummy, htDummy).rotate(180))
-	f = g.imgInfoCur.CalcFrameCoord(wx.Rect(wdDummy, htDummy, imgPhoto.width, imgPhoto.height), layoutFrame)
-	[wdDotMgn, htDotMgn] = f.height * [wdEdgeMgn, htEdgeMgn] / layoutFrame.htFrame
-	if (g.imgInfoCur.tiltAdjFlag) {
-		angleAdj = math.atan2(f.xBtm - f.xTop, f.yBtm - f.yTop):deg
-		[xCenter, yCenter] = [imgSrc.width / 2, imgSrc.height / 2]
-		imgSrc = imgSrc.rotate(angleAdj, `gray)
-		[xPivot, yPivot] = [f.xTop - xCenter, -f.yTop + yCenter]
-		[yPivot, xPivot] = matrix.rotation(angleAdj):deg * [yPivot, xPivot]
-		[xPivot, yPivot] = [xPivot + imgSrc.width / 2, -yPivot + imgSrc.height / 2]
-	} else {
-		[xPivot, yPivot] = [f.xTop, f.yTop]
-	}
-	[xCrop, yCrop] = [xPivot - f.width / 2 - wdDotMgn, yPivot - htDotMgn]
-	[wdCrop, htCrop] = [f.width + wdDotMgn * 2, f.height + htDotMgn * 2]
-	imgSrc.crop(xCrop, yCrop, wdCrop, htCrop)
-}
-
-//-----------------------------------------------------------------------------
 // Composer
 //-----------------------------------------------------------------------------
 Composer = class {
@@ -946,6 +515,428 @@ ComposerCustom = class(Composer) {
 }
 
 //-----------------------------------------------------------------------------
+// Global variables
+//-----------------------------------------------------------------------------
+g = module {
+	fileNameTmpPDF:public	= path.join(sys.workdir, 'gurashot.pdf')
+	fileNameCfg:public		= path.join(sys.cfgdir, 'gurashot.yml')
+	//fileNameCfg:public	= 'gurashot.yml'
+	fileNameIcon:public		= path.join(sys.maindir, 'gurashot.ico')
+	imgNoImage:public = image(`rgba, 800, 800, color(240, 240, 255))
+	imgNoImage.cairo {|cr|
+		cr.set_source_rgb(.8, 0.8, 0.8)
+		cr.save {
+			cr.scale(1, 1.1)
+			cr.arc(400, 250, 180, 0, math.pi * 2)
+			cr.fill()
+		}
+		cr.save {
+			cr.scale(1, 5)
+			cr.arc(400, 1090, 1000, 0, math.pi * 2)
+			cr.fill()
+		}
+		cr.set_source_rgb(.5, 0.5, 0.5)
+		cr.select_font_face('Sans', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+		cr.set_font_size(100.0)
+		cr.move_to(210, 400)
+		cr.show_text('no image')
+	}
+	I(src:binary) = image(base64.reader(src))
+	imgOpen:public			= I(resource.folder_image_png)
+	imgClose:public			= I(resource.delete_png)
+	imgShowList:public		= I(resource.report_picture_png)
+	imgNext:public			= I(resource.resultset_next_png)
+	imgPrev:public			= I(resource.resultset_previous_png)
+	imgRotateL:public		= I(resource.arrow_rotate_anticlockwise_png)
+	imgRotateR:public		= I(resource.arrow_rotate_clockwise_png)
+	imgColorAdjust:public	= I(resource.color_wheel_png)
+	imgTiltAdj:public		= I(resource.tilt_adj_png)
+	imgCenterGuide:public	= I(resource.center_guide_png)
+	imgFrostFrame:public	= I(resource.user_frosted_png)
+	imgTick:public			= I(resource.tick_png)
+	imgRenameLabel:public	= I(resource.tag_blue_edit_png)
+	imgOutputOption:public	= I(resource.page_white_database_png)
+	imgOutputPDF:public		= I(resource.page_white_acrobat_png)
+	imgLaunchPDFViewer:public = I(resource.page_white_acrobat_png)
+	imgPrintService:public	= I(resource.photo_png)
+	imgBrightness:public	= I(resource.weather_sun_png)
+	imgContrast:public		= I(resource.contrast_png)
+	imgBoxRed:public		= I(resource.box_red_png)
+	imgBoxGreen:public		= I(resource.box_green_png)
+	imgBoxBlue:public		= I(resource.box_blue_png)
+	imgColorTone:public		= I(resource.color_swatch_png)
+	imgPrintServiceAdjust:public = I(resource.print_service_adjust_png)
+	printServiceInfoTbl:public = @(PrintServiceInfo) {
+		{ 'Circle K Sunkus'$ +			' | SHARP MX-4500DS',		11, 10,  7, 10 }
+		{ 'Three F'$ +					' | SHARP MX-4500DS',		11, 10,  8,  8 }
+		{ 'Seven-Eleven Japan'$ +		' | Fuji Xerox',			10,  7,  7,  6 }
+		{ 'FamilyMart'$ +				' | SHARP MX-3610DS',		13, 12, 13, 12 }
+		{ 'LAWSON'$ +					' | SHARP MX-3610DS',		13, 12, 13, 12 }
+		{ 'FOTOLUSIO PrintRush'$ +		' | DNP',					13, 14, 12, 13 }
+		{ 'Mitsubishi Color Print'$ +	' | Mitsubishi Mikupuri',	11, 10,  7, 10 }
+	}
+	layoutFrameTbl:public = @(LayoutFrame) {
+		{ 'Driver\'s license etc.'$,				30, 24, 2, 23, false }
+		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23, false }
+		{ 'Qualifications'$,						30, 30, 2, 23, false }
+		{ 'Qualifications'$,						35, 24, 2, 26, false }
+		{ 'Qualifications'$,						36, 24, 2, 27, false }
+		{ 'Qualifications'$,						36, 25, 2, 27, false }
+		{ 'Resume etc.'$,							40, 30, 2, 30, false }
+		{ 'Qualifications'$,						40, 40, 3, 31, false }
+		{ 'Passport etc.'$,							45, 35, 4, 34, false }
+		{ 'International driver\'s license etc.'$,	50, 40, 4, 38, false }
+		{ 'Visa etc.'$,								50, 50, 4, 35, false }
+		{ 'Qualifications'$,						55, 40, 2, 41, false }
+		{ 'Qualifications'$,						55, 45, 2, 41, false }
+		{ 'Qualifications'$,						60, 45, 2, 45, false }
+	}
+	paperSizeTbl:public = @(PaperSize) {
+		{ 'L'$,				127,  89, true }
+		{ 'KG'$,			152, 102, false }
+		{ '2L'$,			178, 127, false }
+		{ 'A4'$,			297, 210, false }
+		{ 'A3'$,			420, 297, false }
+		{ 'Hagaki'$,		148, 100, false }
+		{ 'Mutsugiri'$,		254, 203, false }
+		{ 'Yotsugiri'$,		305, 254, false }
+	}
+	cfg:public						= %{}
+	mainWindow:public				= nil
+	xMainWindow:public				= -1
+	yMainWindow:public				= -1
+	wdMainWindow:public				= 800
+	htMainWindow:public				= 730
+	wdSashLeft:public				= 320
+	htSashTop:public				= 300
+	xImageListDialog:public			= -1
+	yImageListDialog:public			= -1
+	xLayoutFrameEditorDialog:public	= -1
+	yLayoutFrameEditorDialog:public	= -1
+	xOutputOptionDialog:public		= -1
+	yOutputOptionDialog:public		= -1
+	xColorAdjustDialog:public		= -1
+	yColorAdjustDialog:public		= -1
+	sepiaR:public					= 255
+	sepiaG:public					= 200
+	sepiaB:public					= 150
+	progNamePDFViewerOnLinux:public	= 'evince'
+	printServiceName:public			= ''
+	nAdjLines_a:public				= 8
+	nAdjLines_b:public				= 8
+	nAdjLines_c:public				= 8
+	nAdjLines_d:public				= 8
+	frostFrameFlag:public			= false
+	centerGuideFlag:public			= false
+	trimMark:public					= `outer	// `outer, `overwrite, `none
+	trimMarkR:public				= 50
+	trimMarkG:public				= 50
+	trimMarkB:public				= 255
+	titleDispFlag_Size:public		= true
+	titleDispFlag_ImageLabel:public	= true
+	titleDispFlag_Purpose:public	= true
+	imgInfos:public					= []
+	imgInfoCur:public				= nil
+	wdEdgeMgn:public				= 2	// unit: mm
+	htEdgeMgn:public				= 2	// unit: mm
+	wdTrimMark:public				= 2	// unit: mm
+	htTrimMark:public				= 2	// unit: mm
+	htMessage:public				= 5	// unit: mm
+	icon:public						= nil
+	composerCur:public				= nil
+}
+
+g.composerCur = ComposerCustom(g.paperSizeTbl[0], `auto, g.layoutFrameTbl[0])
+
+//-----------------------------------------------------------------------------
+// utilities
+//-----------------------------------------------------------------------------
+classref(`string).EscapeFileName() = this.sub('[!"\'%&|\\/<>: ]', '_')
+
+//-----------------------------------------------------------------------------
+// LoadConfig / SaveConfig
+//-----------------------------------------------------------------------------
+LoadConfig() = {
+	nLayoutFramesUserDef = 5
+	try {
+		g.cfg = yaml.read(g.fileNameCfg)
+		g.xMainWindow:number		= g.cfg['xMainWindow']
+		g.yMainWindow:number		= g.cfg['yMainWindow']
+		g.wdMainWindow:number		= g.cfg['wdMainWindow']
+		g.htMainWindow:number		= g.cfg['htMainWindow']
+		g.wdSashLeft:number			= g.cfg['wdSashLeft']
+		g.htSashTop:number			= g.cfg['htSashTop']
+		g.xImageListDialog:number	= g.cfg['xImageListDialog']
+		g.yImageListDialog:number	= g.cfg['yImageListDialog']
+		g.xLayoutFrameEditorDialog:number = g.cfg['xLayoutFrameEditorDialog']
+		g.yLayoutFrameEditorDialog:number = g.cfg['yLayoutFrameEditorDialog']
+		g.xOutputOptionDialog:number= g.cfg['xOutputOptionDialog']
+		g.yOutputOptionDialog:number= g.cfg['yOutputOptionDialog']
+		g.xColorAdjustDialog:number	= g.cfg['xColorAdjustDialog']
+		g.yColorAdjustDialog:number	= g.cfg['yColorAdjustDialog']
+		g.sepiaR:number				= g.cfg['sepiaR']
+		g.sepiaG:number				= g.cfg['sepiaG']
+		g.sepiaB:number				= g.cfg['sepiaB']
+		g.progNamePDFViewerOnLinux	= g.cfg['progNamePDFViewerOnLinux']
+		g.printServiceName			= g.cfg['printServiceName']
+		g.nAdjLines_a:number		= g.cfg['nAdjLines_a']
+		g.nAdjLines_b:number		= g.cfg['nAdjLines_b']
+		g.nAdjLines_c:number		= g.cfg['nAdjLines_c']
+		g.nAdjLines_d:number		= g.cfg['nAdjLines_d']
+		g.frostFrameFlag			= (g.cfg['frostFrameFlag'] == 'true')
+		g.centerGuideFlag			= (g.cfg['centerGuideFlag'] == 'true')
+		orientationReq				= [`horizontal, `vertical, `auto].\
+							find(g.cfg['orientation'].tosymbol()) || `auto
+		g.composerCur.SetOrientationReq(orientationReq)
+		g.trimMark					= [`outer, `overwrite, `none].\
+							find(g.cfg['trimMark'].tosymbol()) || `outer
+		g.trimMarkR:number			= g.cfg['trimMarkR']
+		g.trimMarkG:number			= g.cfg['trimMarkG']
+		g.trimMarkB:number			= g.cfg['trimMarkB']
+		g.titleDispFlag_Size		= (g.cfg['titleDispFlag_Size'] == 'true')
+		g.titleDispFlag_ImageLabel	= (g.cfg['titleDispFlag_ImageLabel'] == 'true')
+		g.titleDispFlag_Purpose		= (g.cfg['titleDispFlag_Purpose'] == 'true')
+		g.wdEdgeMgn:number			= g.cfg['wdEdgeMgn']
+		g.htEdgeMgn:number			= g.cfg['htEdgeMgn']
+		idxPaperSizeCur:number		= g.cfg['idxPaperSizeCur'].tonumber()
+		g.composerCur.SetPaperSize(g.paperSizeTbl[idxPaperSizeCur])
+		g.cfg['layoutFramesUserDef'].each():list {|dict|
+			g.layoutFrameTbl.add(LayoutFrame(dict['purpose'],
+					dict['htFrame'], dict['wdFrame'],
+					dict['htUpperMgn'], dict['htFacePart'], true))
+			nLayoutFramesUserDef -= 1
+		}
+		g.imgInfos = g.cfg['imgInfos'].each():list {|dict|
+			imgInfo = ImageInfo()
+			imgInfo.label				= dict['label']
+			imgInfo.fileName			= dict['fileName']
+			imgInfo.rotate:number		= dict['rotate']
+			imgInfo.xrateTop:number		= dict['xrateTop']
+			imgInfo.xrateBtm:number		= dict['xrateBtm']
+			imgInfo.yrateTop:number		= dict['yrateTop']
+			imgInfo.yrateBtm:number		= dict['yrateBtm']
+			imgInfo.tiltAdjFlag			= (dict['tiltAdjFlag'] == 'true')
+			imgInfo.colorTone			= [`color, `mono, `sepia].\
+							find(dict['colorTone'].tosymbol()) || `color
+			imgInfo.brightness:number	= dict['brightness']
+			imgInfo.contrast:number		= dict['contrast']
+			imgInfo.redness:number		= dict['redness']
+			imgInfo.greenness:number	= dict['greenness']
+			imgInfo.blueness:number		= dict['blueness']
+			imgInfo
+		}
+	} catch {}
+	repeat (nLayoutFramesUserDef) {
+		g.layoutFrameTbl.add(LayoutFrame('', 40, 30, 2, 30, true))
+	}
+	if (g.imgInfos.isempty()) {
+		g.imgInfoCur = ImageInfo()
+	} else {
+		try {
+			idxImgInfoCur = g.cfg['idxImgInfoCur'].tonumber()
+			g.imgInfoCur = g.imgInfos[idxImgInfoCur]
+		} catch {|e|
+			g.imgInfoCur = g.imgInfos.last()
+		}
+	}
+	g.imgInfoCur.UpdateImagePhoto()
+}
+
+SaveConfig() = {
+	g.cfg['xMainWindow']				= g.xMainWindow
+	g.cfg['yMainWindow']				= g.yMainWindow
+	g.cfg['wdMainWindow']				= g.wdMainWindow
+	g.cfg['htMainWindow']				= g.htMainWindow
+	g.cfg['wdSashLeft']					= g.wdSashLeft
+	g.cfg['htSashTop']					= g.htSashTop
+	g.cfg['xImageListDialog']			= g.xImageListDialog
+	g.cfg['yImageListDialog']			= g.yImageListDialog
+	g.cfg['xLayoutFrameEditorDialog']	= g.xLayoutFrameEditorDialog
+	g.cfg['yLayoutFrameEditorDialog']	= g.yLayoutFrameEditorDialog
+	g.cfg['xOutputOptionDialog']		= g.xOutputOptionDialog
+	g.cfg['yOutputOptionDialog']		= g.yOutputOptionDialog
+	g.cfg['xColorAdjustDialog']			= g.xColorAdjustDialog
+	g.cfg['yColorAdjustDialog']			= g.yColorAdjustDialog
+	g.cfg['sepiaR']						= g.sepiaR
+	g.cfg['sepiaG']						= g.sepiaG
+	g.cfg['sepiaB']						= g.sepiaB
+	g.cfg['progNamePDFViewerOnLinux']	= g.progNamePDFViewerOnLinux
+	g.cfg['printServiceName']			= g.printServiceName
+	g.cfg['nAdjLines_a']				= g.nAdjLines_a
+	g.cfg['nAdjLines_b']				= g.nAdjLines_b
+	g.cfg['nAdjLines_c']				= g.nAdjLines_c
+	g.cfg['nAdjLines_d']				= g.nAdjLines_d
+	g.cfg['frostFrameFlag']				= g.frostFrameFlag
+	g.cfg['centerGuideFlag']			= g.centerGuideFlag
+	g.cfg['orientation']				= g.composerCur.GetOrientationReq()
+	g.cfg['trimMark']					= g.trimMark
+	g.cfg['trimMarkR']					= g.trimMarkR
+	g.cfg['trimMarkG']					= g.trimMarkG
+	g.cfg['trimMarkB']					= g.trimMarkB
+	g.cfg['titleDispFlag_Size']			= g.titleDispFlag_Size
+	g.cfg['titleDispFlag_ImageLabel']	= g.titleDispFlag_ImageLabel
+	g.cfg['titleDispFlag_Purpose']		= g.titleDispFlag_Purpose
+	g.cfg['wdEdgeMgn']					= g.wdEdgeMgn
+	g.cfg['htEdgeMgn']					= g.htEdgeMgn
+	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.composerCur.GetPaperSize()):index || 0
+	g.cfg['layoutFramesUserDef'] = g.layoutFrameTbl.each():xlist {|layoutFrame|
+		!layoutFrame.userDefFlag && continue
+		%{
+			'purpose'		=> layoutFrame.purpose
+			'htFrame'		=> layoutFrame.htFrame
+			'wdFrame'		=> layoutFrame.wdFrame
+			'htUpperMgn'	=> layoutFrame.htUpperMgn
+			'htFacePart'	=> layoutFrame.htFacePart
+		}
+	}
+	g.cfg['idxImgInfoCur']				= g.imgInfos.find(g.imgInfoCur):index || -1
+	g.cfg['imgInfos'] = g.imgInfos.each():list {|imgInfo|
+		%{
+			'label'			=> imgInfo.label
+			'fileName'		=> imgInfo.fileName
+			'rotate'		=> imgInfo.rotate
+			'xrateTop'		=> imgInfo.xrateTop
+			'xrateBtm'		=> imgInfo.xrateBtm
+			'yrateTop'		=> imgInfo.yrateTop
+			'yrateBtm'		=> imgInfo.yrateBtm
+			'tiltAdjFlag'	=> imgInfo.tiltAdjFlag
+			'colorTone'		=> imgInfo.colorTone
+			'brightness'	=> imgInfo.brightness
+			'contrast'		=> imgInfo.contrast
+			'redness'		=> imgInfo.redness
+			'greenness'		=> imgInfo.greenness
+			'blueness'		=> imgInfo.blueness
+		}
+	}
+	yaml.write(g.fileNameCfg, g.cfg)
+}
+
+InitializeResource() = {
+	wx.Image.AddHandler(wx.PNGHandler())
+	g.icon = wx.Icon(g.fileNameIcon, wx.BITMAP_TYPE_ICO)
+}
+
+//-----------------------------------------------------------------------------
+// ReadImageFile
+//-----------------------------------------------------------------------------
+ReadImageFile(parent:wx.Window, fileName:string) = {
+	idx = g.imgInfos:*fileName.find(fileName):index
+	if (idx) {
+		g.imgInfoCur = g.imgInfos[idx]
+		successFlag = g.imgInfoCur.UpdateImagePhoto()
+	} else {
+		imgInfo = ImageInfo()
+		imgInfo.label = path.basename(path.filename(fileName))
+		imgInfo.fileName = fileName
+		if (successFlag = imgInfo.UpdateImagePhoto()) {
+			g.imgInfos.add(imgInfo)
+			g.imgInfoCur = imgInfo
+		}
+	}
+	if (!successFlag) {
+		wx.MessageDialog(parent, 'Failed to read the image file'$,
+						'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
+			dlg.ShowModal()
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// RotateImageL / RotateImageR
+//-----------------------------------------------------------------------------
+RotateImageL() = {
+	g.imgInfoCur.SetRotate((g.imgInfoCur.rotate + 270) % 360)
+}
+
+RotateImageR() = {
+	g.imgInfoCur.SetRotate((g.imgInfoCur.rotate + 90) % 360)
+}
+
+//-----------------------------------------------------------------------------
+// OpenWithApp
+//-----------------------------------------------------------------------------
+if (sys.platform == `mswin) {
+	LaunchPDFViewer(fileName:string) = {
+		rtn = true
+		try {
+			import(mswin)
+			mswin.ole('Wscript.shell') {|wsh| wsh.Run(fileName)}
+		} catch {
+			rtn = false
+		}
+		rtn
+	}
+} elsif (sys.platform == `linux) {
+	LaunchPDFViewer(fileName:string) = {
+		rtn = true
+		try {
+			!path.exists(path.join(os.getenv('PATH').split(':'),
+							g.progNamePDFViewerOnLinux)).or() && return(false)
+			os.exec(g.progNamePDFViewerOnLinux, fileName):fork
+		} catch {
+			rtn = false
+		}
+		rtn
+	}
+}
+
+//-----------------------------------------------------------------------------
+// ExtractImage
+//-----------------------------------------------------------------------------
+ExtractImage(imgPhoto:image, layoutFrame:LayoutFrame, wdEdgeMgn:number, htEdgeMgn:number) = {
+	bgColor = `gray
+	[wdDummy, htDummy] = int([imgPhoto.width / 2, imgPhoto.height / 2])
+	imgSrc = image(`rgba, imgPhoto.width + wdDummy * 2, imgPhoto.height + htDummy * 2, bgColor)
+	// +----+----+----+
+	// | NW | N  | NE |
+	// +----+----+----+
+	// | W  | c  | E  |
+	// +----+----+----+
+	// | SW | S  | SE |
+	// +----+----+----+
+	imgSrc.paste(wdDummy, htDummy, imgPhoto)
+	// paste dummy on N
+	imgSrc.paste(wdDummy, 0,
+		imgPhoto.crop(0, 0, imgPhoto.width, htDummy).flip(`vert))
+	// paste dummy on S
+	imgSrc.paste(wdDummy, htDummy + imgPhoto.height,
+		imgPhoto.crop(0, imgPhoto.height - htDummy, imgPhoto.width, htDummy).flip(`vert))
+	// paste dummy on W
+	imgSrc.paste(0, htDummy,
+		imgPhoto.crop(0, 0, wdDummy, imgPhoto.height).flip(`horz))
+	// paste dummy on E
+	imgSrc.paste(wdDummy + imgPhoto.width, htDummy,
+		imgPhoto.crop(imgPhoto.width - wdDummy, 0, wdDummy, imgPhoto.height).flip(`horz))
+	// paste dummy on NW
+	imgSrc.paste(0, 0,
+		imgPhoto.crop(0, 0, wdDummy, htDummy).rotate(180))
+	// paste dummy on NE
+	imgSrc.paste(wdDummy + imgPhoto.width, 0,
+		imgPhoto.crop(imgPhoto.width - wdDummy, 0, wdDummy, htDummy).rotate(180))
+	// paste dummy on SW
+	imgSrc.paste(0, htDummy + imgPhoto.height,
+		imgPhoto.crop(0, imgPhoto.height - htDummy, wdDummy, htDummy).rotate(180))
+	// paste dummy on SE
+	imgSrc.paste(wdDummy + imgPhoto.width, htDummy + imgPhoto.height,
+		imgPhoto.crop(imgPhoto.width - wdDummy, imgPhoto.height - htDummy, wdDummy, htDummy).rotate(180))
+	f = g.imgInfoCur.CalcFrameCoord(wx.Rect(wdDummy, htDummy, imgPhoto.width, imgPhoto.height), layoutFrame)
+	[wdDotMgn, htDotMgn] = f.height * [wdEdgeMgn, htEdgeMgn] / layoutFrame.htFrame
+	if (g.imgInfoCur.tiltAdjFlag) {
+		angleAdj = math.atan2(f.xBtm - f.xTop, f.yBtm - f.yTop):deg
+		[xCenter, yCenter] = [imgSrc.width / 2, imgSrc.height / 2]
+		imgSrc = imgSrc.rotate(angleAdj, `gray)
+		[xPivot, yPivot] = [f.xTop - xCenter, -f.yTop + yCenter]
+		[yPivot, xPivot] = matrix.rotation(angleAdj):deg * [yPivot, xPivot]
+		[xPivot, yPivot] = [xPivot + imgSrc.width / 2, -yPivot + imgSrc.height / 2]
+	} else {
+		[xPivot, yPivot] = [f.xTop, f.yTop]
+	}
+	[xCrop, yCrop] = [xPivot - f.width / 2 - wdDotMgn, yPivot - htDotMgn]
+	[wdCrop, htCrop] = [f.width + wdDotMgn * 2, f.height + htDotMgn * 2]
+	imgSrc.crop(xCrop, yCrop, wdCrop, htCrop)
+}
+
+//-----------------------------------------------------------------------------
 // ProductViewer
 //-----------------------------------------------------------------------------
 ProductViewer = class(wx.Panel) {
@@ -963,9 +954,9 @@ ProductViewer = class(wx.Panel) {
 	// methods
 	UpdateContent(blankFlag:boolean => false) = {
 		[wdScreenMgn, htScreenMgn] = [8, 8]
-		orientation = g.paperSizeCur.GetBetterOrientation(g.layoutFrameCur, g.orientation)
-		wdCanvas = g.paperSizeCur.GetCanvasWidth(orientation)
-		htCanvas = g.paperSizeCur.GetCanvasHeight(orientation)
+		orientation = g.composerCur.GetOrientation()
+		wdCanvas = g.composerCur.GetPaperSize().GetCanvasWidth(orientation)
+		htCanvas = g.composerCur.GetPaperSize().GetCanvasHeight(orientation)
 		if (wdCanvas < htCanvas) {
 			wdImg = 400, htImg = int(wdImg * htCanvas / wdCanvas)
 		} else {
@@ -976,8 +967,7 @@ ProductViewer = class(wx.Panel) {
 			img.cairo {|cr|
 				scale = wdImg / wdCanvas
 				cr.scale(scale, scale)
-				ComposerCustom(g.paperSizeCur, orientation, g.layoutFrameCur).\
-							ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes)
+				g.composerCur.ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes)
 			}
 		}
 		[wdClient, htClient] = this.GetClientSizeWH()
@@ -1076,7 +1066,7 @@ Extractor = class(wx.Panel) {
 	}
 	// methods
 	SenseBox(pt:wx.Point) = {
-		f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.layoutFrameCur)
+		f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.composerCur.GetLayoutFrame())
 		if (g.imgInfoCur.tiltAdjFlag) {
 			[wdSense, htSense] = [6, 6]
 			wx.Rect(f.xMarkTop - wdSense / 2, f.yMarkTop - htSense / 2, wdSense, htSense).Contains(pt) && return (`topPoint)
@@ -1118,7 +1108,7 @@ Extractor = class(wx.Panel) {
 			dc.Clear()
 			if (g.frostFrameFlag) {
 				dc.DrawBitmap(imgFrosted, xOffset, yOffset, false)
-				f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.layoutFrameCur)
+				f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.composerCur.GetLayoutFrame())
 				angle = math.atan2(f.yBtm - f.yTop, f.xBtm - f.xTop)
 				[xOffset1, yOffset1, xOffset2, yOffset2] = [
 					math.cos(angle - math.pi / 2)
@@ -1146,7 +1136,7 @@ Extractor = class(wx.Panel) {
 		dc = wx.PaintDC(this)
 		this.UpdateImageScreen()
 		dc.DrawBitmap(this.bmpScreen, 0, 0, false)
-		f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.layoutFrameCur)
+		f = g.imgInfoCur.CalcFrameCoord(this.rcImg, g.composerCur.GetLayoutFrame())
 		dc.SetPen(this.penCursor)
 		dc.SetBrush(this.brushCursor)
 		angle = math.atan2(f.yMarkBtm - f.yMarkTop, f.xMarkBtm - f.xMarkTop)
@@ -1332,7 +1322,7 @@ MainWindow = class(wx.Frame) {
 				tb.AddControl(ctrl, 'Paper Size')
 				ctrl.Append(format('%s (%d x %dmm)', g.paperSizeTbl:*name,
 							g.paperSizeTbl:*shortSide, g.paperSizeTbl:*longSide)):void
-				ctrl.Select(g.paperSizeTbl.find(g.paperSizeCur):index || 0)
+				ctrl.Select(g.paperSizeTbl.find(g.composerCur.GetPaperSize()):index || 0)
 				this.cbPaperSize = ctrl
 				ctrl.Bind(wx.EVT_COMBOBOX) {|event| this.OnComboBox_PaperSize(event)}
 			}
@@ -1516,7 +1506,7 @@ MainWindow = class(wx.Frame) {
 			event.Check(this.dlgOutputOption.IsShown())
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_PrintService) {|event|
-			event.Enable(g.paperSizeCur.printServiceFlag)
+			event.Enable(g.composerCur.GetPaperSize().printServiceFlag)
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_CB_PaperSize) {|event|
 			event.Enable(this.noteBook.GetSelection() == PAGEIDX_LayoutFrameList)
@@ -1578,7 +1568,7 @@ MainWindow = class(wx.Frame) {
 	OnListItemSelected(event:wx.ListEvent) = {
 		idx = event.GetIndex()
 		(idx < 0) && return
-		g.layoutFrameCur = g.layoutFrameTbl[idx]
+		g.composerCur.SetLayoutFrame(g.layoutFrameTbl[idx])
 		this.Update()
 		wx.BusyCursor {
 			this.UpdateWholeContent()
@@ -1616,7 +1606,7 @@ MainWindow = class(wx.Frame) {
 		}
 	}
 	OnComboBox_PaperSize(event:wx.CommandEvent) = {
-		g.paperSizeCur = g.paperSizeTbl[this.cbPaperSize.GetCurrentSelection()]
+		g.composerCur.SetPaperSize(g.paperSizeTbl[this.cbPaperSize.GetCurrentSelection()])
 		wx.BusyCursor {
 			this.productViewer.UpdateContent(this)
 			this.productViewer.UpdateContent()
@@ -1705,13 +1695,11 @@ MainWindow = class(wx.Frame) {
 					dirName, fileName, filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNamePDF = dlg.GetPath()
-			ComposerCustom(g.paperSizeCur, g.orientation, g.layoutFrameCur).\
-					ComposeProductPDF(fileNamePDF, g.imgInfoCur.imgPhotoHighRes)
+			g.composerCur.ComposeProductPDF(fileNamePDF, g.imgInfoCur.imgPhotoHighRes)
 		}
 	}
 	OnMenu_LaunchPDFViewer(event:wx.CommandEvent) = {
-		ComposerCustom(g.paperSizeCur, g.orientation, g.layoutFrameCur).\
-				ComposeProductPDF(g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes)
+		g.composerCur.ComposeProductPDF(g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes)
 		if (!LaunchPDFViewer(g.fileNameTmpPDF)) {
 			wx.MessageDialog(this, 'Failed to launch PDF viewer'$,
 							'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
@@ -1748,8 +1736,7 @@ MainWindow = class(wx.Frame) {
 		(dlg.ShowModal() != wx.ID_OK) && return
 		fileName = dlg.GetPath()
 		wx.BusyCursor {
-			ComposerCustom(g.paperSizeCur, g.orientation, g.layoutFrameCur).\
-				ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, dpi,
+			g.composerCur.ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, dpi,
 						g.printServiceName, nAdjLinesDrawn,
 						g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
 		}
@@ -1802,7 +1789,7 @@ MainWindow = class(wx.Frame) {
 	}
 	OnMenu_CopyExtractedImage(event:wx.CommandEvent) = {
 		wx.BusyCursor {
-			imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
+			imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes, g.composerCur.GetLayoutFrame(), 0, 0)
 			if (wx.TheClipboard.Open()) {
 				wx.TheClipboard.SetData(wx.BitmapDataObject(imgExtract))
 				wx.TheClipboard.Close()
@@ -1817,7 +1804,7 @@ MainWindow = class(wx.Frame) {
 			fileName = dlg.GetPath()
 			try {
 				wx.BusyCursor {
-					imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes, g.layoutFrameCur, 0, 0)
+					imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes, g.composerCur.GetLayoutFrame(), 0, 0)
 					imgExtract.write(fileName)
 				}
 			} catch {
@@ -2647,7 +2634,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					hbox.Add(ctrl, wx.SizerFlags().Centre())
 					this.rbPaperOrient_Auto = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						g.orientation = `auto
+						g.composerCur.SetOrientationReq(`auto)
 						this.UpdateProductViewer()
 					}
 				}
@@ -2655,7 +2642,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
 					this.rbPaperOrient_Vertical = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						g.orientation = `vertical
+						g.composerCur.SetOrientationReq(`vertical)
 						this.UpdateProductViewer()
 					}
 				}
@@ -2663,7 +2650,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
 					this.rbPaperOrient_Horizontal = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						g.orientation = `horizontal
+						g.composerCur.SetOrientationReq(`horizontal)
 						this.UpdateProductViewer()
 					}
 				}
@@ -2833,7 +2820,8 @@ OutputOptionDialog = class(wx.Dialog) {
 		this.Bind(wx.EVT_CLOSE) {|event| this.OnClose(event)}
 	}
 	InitWindowValues() = {
-		this.orientation_init				= g.orientation
+		orientationReq = g.composerCur.GetOrientationReq()
+		this.orientationReq_init			= orientationReq
 		this.wdEdgeMgn_init					= g.wdEdgeMgn
 		this.htEdgeMgn_init					= g.htEdgeMgn
 		this.trimMark_init					= g.trimMark
@@ -2843,9 +2831,9 @@ OutputOptionDialog = class(wx.Dialog) {
 		this.titleDispFlag_Size_init		= g.titleDispFlag_Size
 		this.titleDispFlag_ImageLabel_init	= g.titleDispFlag_ImageLabel
 		this.titleDispFlag_Purpose_init		= g.titleDispFlag_Purpose
-		this.rbPaperOrient_Auto.SetValue(g.orientation == `auto)
-		this.rbPaperOrient_Vertical.SetValue(g.orientation == `vertical)
-		this.rbPaperOrient_Horizontal.SetValue(g.orientation == `horizontal)
+		this.rbPaperOrient_Auto.SetValue(orientationReq == `auto)
+		this.rbPaperOrient_Vertical.SetValue(orientationReq == `vertical)
+		this.rbPaperOrient_Horizontal.SetValue(orientationReq == `horizontal)
 		this.spinEdgeMgn_Horizontal.SetValue(g.wdEdgeMgn)
 		this.spinEdgeMgn_Vertical.SetValue(g.htEdgeMgn)
 		this.rbTrimMark_Outer.SetValue(g.trimMark == `outer)
@@ -2869,7 +2857,7 @@ OutputOptionDialog = class(wx.Dialog) {
 		this.Show(false)
 	}
 	CancelModification() = {
-		g.orientation				= this.orientation_init
+		g.composerCur.SetOrientationReq(this.orientationReq_init)
 		g.wdEdgeMgn					= this.wdEdgeMgn_init
 		g.htEdgeMgn					= this.htEdgeMgn_init
 		g.trimMark					= this.trimMark_init
