@@ -643,10 +643,12 @@ g = module {
 	htTrimMark:public				= 2	// unit: mm
 	htMessage:public				= 5	// unit: mm
 	icon:public						= nil
+	composerCustom:public			= nil
 	composerCur:public				= nil
 }
 
-g.composerCur = ComposerCustom(g.paperSizeTbl[0], `auto, g.layoutFrameTbl[0])
+g.composerCustom = ComposerCustom(g.paperSizeTbl[0], `auto, g.layoutFrameTbl[0])
+g.composerCur = g.composerCustom
 
 //-----------------------------------------------------------------------------
 // utilities
@@ -687,7 +689,7 @@ LoadConfig() = {
 		g.centerGuideFlag			= (g.cfg['centerGuideFlag'] == 'true')
 		orientationReq				= [`horizontal, `vertical, `auto].\
 							find(g.cfg['orientation'].tosymbol()) || `auto
-		g.composerCur.SetOrientationReq(orientationReq)
+		g.composerCustom.SetOrientationReq(orientationReq)
 		g.trimMark					= [`outer, `overwrite, `none].\
 							find(g.cfg['trimMark'].tosymbol()) || `outer
 		g.trimMarkR:number			= g.cfg['trimMarkR']
@@ -699,7 +701,7 @@ LoadConfig() = {
 		g.wdEdgeMgn:number			= g.cfg['wdEdgeMgn']
 		g.htEdgeMgn:number			= g.cfg['htEdgeMgn']
 		idxPaperSizeCur:number		= g.cfg['idxPaperSizeCur'].tonumber()
-		g.composerCur.SetPaperSize(g.paperSizeTbl[idxPaperSizeCur])
+		g.composerCustom.SetPaperSize(g.paperSizeTbl[idxPaperSizeCur])
 		g.cfg['layoutFramesUserDef'].each():list {|dict|
 			g.layoutFrameTbl.add(LayoutFrame(dict['purpose'],
 					dict['htFrame'], dict['wdFrame'],
@@ -768,7 +770,7 @@ SaveConfig() = {
 	g.cfg['nAdjLines_d']				= g.nAdjLines_d
 	g.cfg['frostFrameFlag']				= g.frostFrameFlag
 	g.cfg['centerGuideFlag']			= g.centerGuideFlag
-	g.cfg['orientation']				= g.composerCur.GetOrientationReq()
+	g.cfg['orientation']				= g.composerCustom.GetOrientationReq()
 	g.cfg['trimMark']					= g.trimMark
 	g.cfg['trimMarkR']					= g.trimMarkR
 	g.cfg['trimMarkG']					= g.trimMarkG
@@ -778,7 +780,7 @@ SaveConfig() = {
 	g.cfg['titleDispFlag_Purpose']		= g.titleDispFlag_Purpose
 	g.cfg['wdEdgeMgn']					= g.wdEdgeMgn
 	g.cfg['htEdgeMgn']					= g.htEdgeMgn
-	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.composerCur.GetPaperSize()):index || 0
+	g.cfg['idxPaperSizeCur']			= g.paperSizeTbl.find(g.composerCustom.GetPaperSize()):index || 0
 	g.cfg['layoutFramesUserDef'] = g.layoutFrameTbl.each():xlist {|layoutFrame|
 		!layoutFrame.userDefFlag && continue
 		%{
@@ -1322,7 +1324,7 @@ MainWindow = class(wx.Frame) {
 				tb.AddControl(ctrl, 'Paper Size')
 				ctrl.Append(format('%s (%d x %dmm)', g.paperSizeTbl:*name,
 							g.paperSizeTbl:*shortSide, g.paperSizeTbl:*longSide)):void
-				ctrl.Select(g.paperSizeTbl.find(g.composerCur.GetPaperSize()):index || 0)
+				ctrl.Select(g.paperSizeTbl.find(g.composerCustom.GetPaperSize()):index || 0)
 				this.cbPaperSize = ctrl
 				ctrl.Bind(wx.EVT_COMBOBOX) {|event| this.OnComboBox_PaperSize(event)}
 			}
@@ -1568,7 +1570,7 @@ MainWindow = class(wx.Frame) {
 	OnListItemSelected(event:wx.ListEvent) = {
 		idx = event.GetIndex()
 		(idx < 0) && return
-		g.composerCur.SetLayoutFrame(g.layoutFrameTbl[idx])
+		g.composerCustom.SetLayoutFrame(g.layoutFrameTbl[idx])
 		this.Update()
 		wx.BusyCursor {
 			this.UpdateWholeContent()
@@ -1606,7 +1608,7 @@ MainWindow = class(wx.Frame) {
 		}
 	}
 	OnComboBox_PaperSize(event:wx.CommandEvent) = {
-		g.composerCur.SetPaperSize(g.paperSizeTbl[this.cbPaperSize.GetCurrentSelection()])
+		g.composerCustom.SetPaperSize(g.paperSizeTbl[this.cbPaperSize.GetCurrentSelection()])
 		wx.BusyCursor {
 			this.productViewer.UpdateContent(this)
 			this.productViewer.UpdateContent()
@@ -2634,7 +2636,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					hbox.Add(ctrl, wx.SizerFlags().Centre())
 					this.rbPaperOrient_Auto = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						g.composerCur.SetOrientationReq(`auto)
+						g.composerCustom.SetOrientationReq(`auto)
 						this.UpdateProductViewer()
 					}
 				}
@@ -2642,7 +2644,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
 					this.rbPaperOrient_Vertical = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						g.composerCur.SetOrientationReq(`vertical)
+						g.composerCustom.SetOrientationReq(`vertical)
 						this.UpdateProductViewer()
 					}
 				}
@@ -2650,7 +2652,7 @@ OutputOptionDialog = class(wx.Dialog) {
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
 					this.rbPaperOrient_Horizontal = ctrl
 					ctrl.Bind(wx.EVT_RADIOBUTTON) {
-						g.composerCur.SetOrientationReq(`horizontal)
+						g.composerCustom.SetOrientationReq(`horizontal)
 						this.UpdateProductViewer()
 					}
 				}
@@ -2820,7 +2822,7 @@ OutputOptionDialog = class(wx.Dialog) {
 		this.Bind(wx.EVT_CLOSE) {|event| this.OnClose(event)}
 	}
 	InitWindowValues() = {
-		orientationReq = g.composerCur.GetOrientationReq()
+		orientationReq = g.composerCustom.GetOrientationReq()
 		this.orientationReq_init			= orientationReq
 		this.wdEdgeMgn_init					= g.wdEdgeMgn
 		this.htEdgeMgn_init					= g.htEdgeMgn
@@ -2857,7 +2859,7 @@ OutputOptionDialog = class(wx.Dialog) {
 		this.Show(false)
 	}
 	CancelModification() = {
-		g.composerCur.SetOrientationReq(this.orientationReq_init)
+		g.composerCustom.SetOrientationReq(this.orientationReq_init)
 		g.wdEdgeMgn					= this.wdEdgeMgn_init
 		g.htEdgeMgn					= this.htEdgeMgn_init
 		g.trimMark					= this.trimMark_init
