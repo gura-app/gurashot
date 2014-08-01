@@ -462,7 +462,7 @@ Composer = class {
 //-----------------------------------------------------------------------------
 ComposerCustom = class(Composer) {
 	__init__(paperSize:PaperSize, layoutFrame:LayoutFrame, orientationReq:symbol) = \
-												{|paperSize, layoutFrame, `horz|
+												{|paperSize, layoutFrame, `horizontal|
 		this.orientationReq = orientationReq
 		this.UpdateOrientation()
 	}
@@ -517,6 +517,29 @@ ComposerCustom = class(Composer) {
 				ySlot = htSlot * iy + htSlot / 2
 				this.layoutFrame.DrawSlot(cr, xSlot, ySlot, pattern, imgExtract.height)
 			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// ComposerFormat1
+//-----------------------------------------------------------------------------
+ComposerFormat1 = class(Composer) {
+	wdEdgeMgn = 2
+	htEdgeMgn = 2
+	__init__() = {|g.paperSize_L, g.layoutFrame_45_35, `horizontal|
+		this.layoutFrameSub = g.layoutFrame_30_24
+	}
+	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		imgExtract = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box))
+		cairo.pattern.create_for_surface(imgExtract) {|pattern|
+			this.layoutFrame.DrawSlot(cr, 30, 40, pattern, imgExtract.height)
+		}
+		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
+			this.layoutFrameSub.DrawSlot(cr, 90, 40, pattern, imgExtractSub.height)
 		}
 	}
 }
@@ -582,7 +605,22 @@ g = module {
 		{ 'FOTOLUSIO PrintRush'$ +		' | DNP',					13, 14, 12, 13 }
 		{ 'Mitsubishi Color Print'$ +	' | Mitsubishi Mikupuri',	11, 10,  7, 10 }
 	}
-	layoutFrameTbl:public = @(LayoutFrame) {
+	layoutFrameTbl:public = [
+		layoutFrame_30_24:public
+		layoutFrame_30_25:public
+		layoutFrame_30_30:public
+		layoutFrame_35_24:public
+		layoutFrame_36_24:public
+		layoutFrame_36_25:public
+		layoutFrame_40_30:public
+		layoutFrame_40_40:public
+		layoutFrame_45_35:public
+		layoutFrame_50_40:public
+		layoutFrame_50_50:public
+		layoutFrame_55_40:public
+		layoutFrame_55_45:public
+		layoutFrame_60_45:public
+	] = @(LayoutFrame) {
 		{ 'Driver\'s license etc.'$,				30, 24, 2, 23, false }
 		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23, false }
 		{ 'Qualifications'$,						30, 30, 2, 23, false }
@@ -598,7 +636,16 @@ g = module {
 		{ 'Qualifications'$,						55, 45, 2, 41, false }
 		{ 'Qualifications'$,						60, 45, 2, 45, false }
 	}
-	paperSizeTbl:public = @(PaperSize) {
+	paperSizeTbl:public = [
+		paperSize_L:public
+		paperSize_KG:public
+		paperSize_2L:public
+		paperSize_A4:public
+		paperSize_A3:public
+		paperSize_Hagaki:public
+		paperSize_Mutsugiri:public
+		paperSize_Yotsugiri:public
+	] = @(PaperSize) {
 		{ 'L'$,				127,  89, true }
 		{ 'KG'$,			152, 102, false }
 		{ '2L'$,			178, 127, false }
@@ -656,6 +703,7 @@ g = module {
 
 g.composerCustom = ComposerCustom(g.paperSizeTbl[0], g.layoutFrameTbl[0], `auto)
 g.composerCur = g.composerCustom
+//g.composerCur = ComposerFormat1()
 
 //-----------------------------------------------------------------------------
 // utilities
