@@ -47,6 +47,49 @@ LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 		ny = int((htCanvas - g.htTrimMark - g.htMessage) / (htFrameEx + g.htTrimMark))
 		[nx, ny]
 	}
+	DrawTrimMark(cr:cairo.context, xSlot:number, ySlot:number) = {
+		[wdFrameEx, htFrameEx] = this.CalcSizeEx()
+		x = xSlot - wdFrameEx / 2
+		y = ySlot - htFrameEx / 2
+		xTrimL = x - g.wdTrimMark
+		xTrimR = x + wdFrameEx + g.wdTrimMark
+		yTrimT = y - g.htTrimMark
+		yTrimB = y + htFrameEx + g.htTrimMark
+		cr.move_to(xTrimL, y + g.htEdgeMgn)
+		cr.line_to(xTrimR, y + g.htEdgeMgn)
+		cr.move_to(xTrimL, y + htFrameEx - g.htEdgeMgn)
+		cr.line_to(xTrimR, y + htFrameEx - g.htEdgeMgn)
+		cr.move_to(x + g.wdEdgeMgn, yTrimT)
+		cr.line_to(x + g.wdEdgeMgn, yTrimB)
+		cr.move_to(x + wdFrameEx - g.wdEdgeMgn, yTrimT)
+		cr.line_to(x + wdFrameEx - g.wdEdgeMgn, yTrimB)
+		cr.stroke()
+	}
+	DrawFaceImage(cr:cairo.contet, xSlot:number, ySlot:number,
+									pattern:cairo.pattern, htImage:number) = {
+		[wdFrameEx, htFrameEx] = this.CalcSizeEx()
+		x = xSlot - wdFrameEx / 2
+		y = ySlot - htFrameEx / 2
+		cr.save {
+			scale = htFrameEx / htImage
+			cr.translate(x, y)
+			cr.scale(scale, scale)
+			cr.set_source(pattern)
+			cr.paint()
+		}
+	}
+	DrawSlot(cr:cairo.contet, xSlot:number, ySlot:number,
+									pattern:cairo.pattern, htImage:number) = {
+		if (g.trimMark == `outer) {
+			this.DrawTrimMark(cr, xSlot, ySlot)
+			this.DrawFaceImage(cr, xSlot, ySlot, pattern, htImage)
+		} elsif (g.trimMark == `overwrite) {
+			this.DrawFaceImage(cr, xSlot, ySlot, pattern, htImage)
+			this.DrawTrimMark(cr, xSlot, ySlot)
+		} else { // g.trimMark == `none
+			this.DrawFaceImage(cr, xSlot, ySlot, pattern, htImage)
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -461,58 +504,17 @@ ComposerCustom = class(Composer) {
 			cr.show_text(text)
 		}
 		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-						this.layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
+				this.layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			cr.set_line_width(.1)
 			cr.set_source_rgb(([g.trimMarkR, g.trimMarkG, g.trimMarkB] / 255)*)
-			[wdFrameEx, htFrameEx] = this.layoutFrame.CalcSizeEx()
 			[nx, ny] = this.layoutFrame.CalcImageGrid(wdCanvas, htCanvas)
 			wdSlot = wdCanvas / nx
 			htSlot = (htCanvas - g.htMessage) / ny
-			drawTrimMarks() = {
-				cross(ix in range(nx), iy in range(ny)) {
-					xSlot = wdSlot * ix
-					ySlot = htSlot * iy
-					x = xSlot + (wdSlot - wdFrameEx) / 2
-					y = ySlot + (htSlot - htFrameEx) / 2
-					xTrimL = x - g.wdTrimMark
-					xTrimR = x + wdFrameEx + g.wdTrimMark
-					yTrimT = y - g.htTrimMark
-					yTrimB = y + htFrameEx + g.htTrimMark
-					cr.move_to(xTrimL, y + g.htEdgeMgn)
-					cr.line_to(xTrimR, y + g.htEdgeMgn)
-					cr.move_to(xTrimL, y + htFrameEx - g.htEdgeMgn)
-					cr.line_to(xTrimR, y + htFrameEx - g.htEdgeMgn)
-					cr.move_to(x + g.wdEdgeMgn, yTrimT)
-					cr.line_to(x + g.wdEdgeMgn, yTrimB)
-					cr.move_to(x + wdFrameEx - g.wdEdgeMgn, yTrimT)
-					cr.line_to(x + wdFrameEx - g.wdEdgeMgn, yTrimB)
-					cr.stroke()
-				}
-			}
-			drawFaceImages() = {
-				cross(ix in range(nx), iy in range(ny)) {
-					xSlot = wdSlot * ix
-					ySlot = htSlot * iy
-					x = xSlot + (wdSlot - wdFrameEx) / 2
-					y = ySlot + (htSlot - htFrameEx) / 2
-					cr.save {
-						scale = htFrameEx / imgExtract.height
-						cr.translate(x, y)
-						cr.scale(scale, scale)
-						cr.set_source(pattern)
-						cr.paint()
-					}
-				}
-			}
-			if (g.trimMark == `outer) {
-				drawTrimMarks()
-				drawFaceImages()
-			} elsif (g.trimMark == `overwrite) {
-				drawFaceImages()
-				drawTrimMarks()
-			} else {	// g.trimMark == `none
-				drawFaceImages()
+			cross(ix in range(nx), iy in range(ny)) {
+				xSlot = wdSlot * ix + wdSlot / 2
+				ySlot = htSlot * iy + htSlot / 2
+				this.layoutFrame.DrawSlot(cr, xSlot, ySlot, pattern, imgExtract.height)
 			}
 		}
 	}
