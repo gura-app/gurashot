@@ -68,7 +68,7 @@ LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 		cr.stroke()
 	}
 	DrawFaceImage(cr:cairo.contet, xSlot:number, ySlot:number,
-									pattern:cairo.pattern, htImage:number) = {
+					pattern:cairo.pattern, wdImage:number, htImage:number) = {
 		[wdFrameEx, htFrameEx] = this.CalcSizeEx()
 		x = xSlot - wdFrameEx / 2
 		y = ySlot - htFrameEx / 2
@@ -81,15 +81,15 @@ LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 		}
 	}
 	DrawSlot(cr:cairo.contet, xSlot:number, ySlot:number,
-									pattern:cairo.pattern, htImage:number) = {
+					pattern:cairo.pattern, wdImage:number, htImage:number) = {
 		if (g.trimMark == `outer) {
 			this.DrawTrimMark(cr, xSlot, ySlot)
-			this.DrawFaceImage(cr, xSlot, ySlot, pattern, htImage)
+			this.DrawFaceImage(cr, xSlot, ySlot, pattern, wdImage, htImage)
 		} elsif (g.trimMark == `overwrite) {
-			this.DrawFaceImage(cr, xSlot, ySlot, pattern, htImage)
+			this.DrawFaceImage(cr, xSlot, ySlot, pattern, wdImage, htImage)
 			this.DrawTrimMark(cr, xSlot, ySlot)
 		} else { // g.trimMark == `none
-			this.DrawFaceImage(cr, xSlot, ySlot, pattern, htImage)
+			this.DrawFaceImage(cr, xSlot, ySlot, pattern, wdImage, htImage)
 		}
 	}
 }
@@ -517,7 +517,8 @@ ComposerCustom = class(Composer) {
 			cross(ix in range(nx), iy in range(ny)) {
 				xSlot = wdSlot * ix + wdSlot / 2
 				ySlot = htSlot * iy + htSlot / 2
-				this.layoutFrame.DrawSlot(cr, xSlot, ySlot, pattern, imgExtract.height)
+				this.layoutFrame.DrawSlot(cr, xSlot, ySlot, pattern,
+										imgExtract.width, imgExtract.height)
 			}
 		}
 	}
@@ -536,15 +537,27 @@ Composer_PassportAndDriversLicense = class(Composer) {
 		imgExtract = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
 				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box))
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
-			this.layoutFrame.DrawSlot(cr, 21, 28, pattern, imgExtract.height)
-			this.layoutFrame.DrawSlot(cr, 64, 28, pattern, imgExtract.height)
+			this.layoutFrame.DrawSlot(cr, 21, 28, pattern,
+									imgExtract.width, imgExtract.height)
+			this.layoutFrame.DrawSlot(cr, 64, 28, pattern,
+									imgExtract.width, imgExtract.height)
 		}
 		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
-			this.layoutFrameSub.DrawSlot(cr, 101, 20, pattern, imgExtractSub.height)
-			this.layoutFrameSub.DrawSlot(cr, 101, 60, pattern, imgExtractSub.height)
+			this.layoutFrameSub.DrawSlot(cr, 101, 20, pattern,
+									imgExtract.width, imgExtract.height)
+			this.layoutFrameSub.DrawSlot(cr, 101, 60, pattern,
+									imgExtract.width, imgExtract.height)
 		}
+		/*
+		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
+			this.layoutFrameSub.DrawSlot(cr, 20, 68, pattern,
+									imgExtract.width, imgExtract.height)
+		}
+		*/
 	}
 }
 
