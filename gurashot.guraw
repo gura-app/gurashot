@@ -347,11 +347,13 @@ ImageInfo = class {
 // Composer
 //-----------------------------------------------------------------------------
 Composer = class {
-	__init__(paperSize:PaperSize, layoutFrame:LayoutFrame, orientation:symbol) = {
+	__init__(name:string, paperSize:PaperSize, layoutFrame:LayoutFrame, orientation:symbol) = {
+		this.name = name
 		this.paperSize = paperSize
 		this.layoutFrame = layoutFrame
 		this.orientation = orientation
 	}
+	GetName() = this.name
 	GetPaperSize() = this.paperSize
 	GetLayoutFrame() = this.layoutFrame
 	GetOrientation() = this.orientation
@@ -462,7 +464,7 @@ Composer = class {
 //-----------------------------------------------------------------------------
 ComposerCustom = class(Composer) {
 	__init__(paperSize:PaperSize, layoutFrame:LayoutFrame, orientationReq:symbol) = \
-												{|paperSize, layoutFrame, `horizontal|
+									{|'', paperSize, layoutFrame, `horizontal|
 		this.orientationReq = orientationReq
 		this.UpdateOrientation()
 	}
@@ -522,24 +524,26 @@ ComposerCustom = class(Composer) {
 }
 
 //-----------------------------------------------------------------------------
-// ComposerFormat1
+// Composer_1
 //-----------------------------------------------------------------------------
-ComposerFormat1 = class(Composer) {
+Composer_1 = class(Composer) {
 	wdEdgeMgn = 2
 	htEdgeMgn = 2
-	__init__() = {|g.paperSize_L, g.layoutFrame_45_35, `horizontal|
+	__init__() = {|'Passport and Driver\'s license'$, g.paperSize_L, g.layoutFrame_45_35, `horizontal|
 		this.layoutFrameSub = g.layoutFrame_30_24
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		imgExtract = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
 				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box))
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
-			this.layoutFrame.DrawSlot(cr, 30, 40, pattern, imgExtract.height)
+			this.layoutFrame.DrawSlot(cr, 21, 28, pattern, imgExtract.height)
+			this.layoutFrame.DrawSlot(cr, 64, 28, pattern, imgExtract.height)
 		}
 		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
-			this.layoutFrameSub.DrawSlot(cr, 90, 40, pattern, imgExtractSub.height)
+			this.layoutFrameSub.DrawSlot(cr, 101, 20, pattern, imgExtractSub.height)
+			this.layoutFrameSub.DrawSlot(cr, 101, 60, pattern, imgExtractSub.height)
 		}
 	}
 }
@@ -698,12 +702,15 @@ g = module {
 	htMessage:public				= 5	// unit: mm
 	icon:public						= nil
 	composerCustom:public			= nil
+	composerTbl:public				= []
 	composerCur:public				= nil
 }
 
 g.composerCustom = ComposerCustom(g.paperSizeTbl[0], g.layoutFrameTbl[0], `auto)
 g.composerCur = g.composerCustom
-//g.composerCur = ComposerFormat1()
+g.composerTbl = [
+	Composer_1()
+]
 
 //-----------------------------------------------------------------------------
 // utilities
@@ -1425,6 +1432,7 @@ MainWindow = class(wx.Frame) {
 		wx.Notebook(this.panelTop, wx.ID_ANY, style => wx.NB_BOTTOM) {|ctrl|
 			//ctrl.SetPadding(wx.Size(8, 0))
 			this.noteBook = ctrl
+			ctrl.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED) {|event| this.OnNotebookPageChanged(event)}
 		}
 		wx.ListCtrl(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
 			this.noteBook.InsertPage(PAGEIDX_LayoutFrameList,
@@ -1654,6 +1662,18 @@ MainWindow = class(wx.Frame) {
 		wx.Menu() {|m|
 			this.PrepareMenu_Image(m)
 			this.PopupMenu(m)
+		}
+	}
+	OnNotebookPageChanged(event:wx.BookCtrlEvent) = {
+		pageIdx = event.GetSelection()
+		if (pageIdx == PAGEIDX_LayoutFrameList) {
+			g.composerCur = g.composerCustom
+		} elsif (pageIdx == PAGEIDX_FormatList) {
+			g.composerCur = g.composerTbl[0]
+		}
+		wx.BusyCursor {
+			this.productViewer.UpdateContent(this)
+			this.productViewer.UpdateContent()
 		}
 	}
 	OnRightDown_ProductViewer(event:wx.MouseEvent) = {
