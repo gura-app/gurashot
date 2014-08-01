@@ -302,6 +302,14 @@ ImageInfo = class {
 // Composer
 //-----------------------------------------------------------------------------
 Composer = class {
+	__init__(paperSize:PaperSize, layoutFrame:LayoutFrame, orientation:symbol) = {
+		this.paperSize = paperSize
+		this.layoutFrame = layoutFrame
+		this.orientation = orientation
+	}
+	GetPaperSize() = this.paperSize
+	GetLayoutFrame() = this.layoutFrame
+	GetOrientation() = this.orientation
 	ComposeProductPDF(fileName:string, imgPhoto:image) = {
 		cairo.create(cairo.pdf_surface.create(fileName,
 						units.mm$pt(this.paperSize.GetWidth(this.orientation)),
@@ -408,10 +416,9 @@ Composer = class {
 // ComposerCustom
 //-----------------------------------------------------------------------------
 ComposerCustom = class(Composer) {
-	__init__(paperSize:PaperSize, orientationReq:symbol, layoutFrame:LayoutFrame) = {
-		this.paperSize = paperSize
+	__init__(paperSize:PaperSize, layoutFrame:LayoutFrame, orientationReq:symbol) = \
+												{|paperSize, layoutFrame, `horz|
 		this.orientationReq = orientationReq
-		this.layoutFrame = layoutFrame
 		this.UpdateOrientation()
 	}
 	UpdateOrientation() = {
@@ -430,10 +437,7 @@ ComposerCustom = class(Composer) {
 		this.layoutFrame = layoutFrame
 		this.UpdateOrientation()
 	}
-	GetPaperSize() = this.paperSize
 	GetOrientationReq() = this.orientationReq
-	GetOrientation() = this.orientation
-	GetLayoutFrame() = this.layoutFrame
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		fontName = 'Sans'
 		[wdCanvas, htCanvas] = [this.paperSize.GetCanvasWidth(this.orientation), this.paperSize.GetCanvasHeight(this.orientation)]
@@ -647,7 +651,7 @@ g = module {
 	composerCur:public				= nil
 }
 
-g.composerCustom = ComposerCustom(g.paperSizeTbl[0], `auto, g.layoutFrameTbl[0])
+g.composerCustom = ComposerCustom(g.paperSizeTbl[0], g.layoutFrameTbl[0], `auto)
 g.composerCur = g.composerCustom
 
 //-----------------------------------------------------------------------------
@@ -1273,7 +1277,7 @@ wx.Menu.AppendEx(id:number, text:string, img:image, kind:number => wx.ITEM_NORMA
 // MainWindow
 //-----------------------------------------------------------------------------
 MainWindow = class(wx.Frame) {
-	[PAGEIDX_LayoutFrameList, PAGEIDX_TemplateList] = 0..
+	[PAGEIDX_LayoutFrameList, PAGEIDX_FormatList] = 0..
 	__init__(title:string, pos:wx.Point => wx.Point(g.xMainWindow, g.yMainWindow),
 			size:wx.Size => wx.Size(g.wdMainWindow, g.htMainWindow)) = {|nil, wx.ID_ANY, title, pos, size|
 		this.SetIcon(g.icon)
@@ -1418,8 +1422,8 @@ MainWindow = class(wx.Frame) {
 			this.listCtrlLayoutFrame = ctrl
 		}
 		wx.ListCtrl(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
-			this.noteBook.InsertPage(PAGEIDX_TemplateList,
-									ctrl, '  ' + 'Template List'$ + '  ')
+			this.noteBook.InsertPage(PAGEIDX_FormatList,
+									ctrl, '  ' + 'Format List'$ + '  ')
 		}
 		this.dlgOutputOption = OutputOptionDialog(this, this.productViewer)
 		this.listCtrlLayoutFrame.SetFocus()
