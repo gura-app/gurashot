@@ -524,12 +524,12 @@ ComposerCustom = class(Composer) {
 }
 
 //-----------------------------------------------------------------------------
-// Composer_1
+// Composer_PassportAndDriversLicense
 //-----------------------------------------------------------------------------
-Composer_1 = class(Composer) {
+Composer_PassportAndDriversLicense = class(Composer) {
 	wdEdgeMgn = 2
 	htEdgeMgn = 2
-	__init__() = {|'Passport and Driver\'s license'$, g.paperSize_L, g.layoutFrame_45_35, `horizontal|
+	__init__() = {|'Passport and Driver\'s License'$, g.paperSize_L, g.layoutFrame_45_35, `horizontal|
 		this.layoutFrameSub = g.layoutFrame_30_24
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
@@ -709,7 +709,7 @@ g = module {
 g.composerCustom = ComposerCustom(g.paperSizeTbl[0], g.layoutFrameTbl[0], `auto)
 g.composerCur = g.composerCustom
 g.composerTbl = [
-	Composer_1()
+	Composer_PassportAndDriversLicense()
 ]
 
 //-----------------------------------------------------------------------------
