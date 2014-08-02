@@ -38,38 +38,56 @@ Version = '1.2.2'
 //-----------------------------------------------------------------------------
 LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 					htUpperMgn:number, htFacePart:number, userDefFlag:boolean) {
-	CalcSizeEx() = {
-		[this.wdFrame + g.wdEdgeMgn * 2,  this.htFrame + g.htEdgeMgn * 2]
+	CalcSizeEx(wdEdgeMgn:number, htEdgeMgn:number) = {
+		[this.wdFrame + wdEdgeMgn * 2,  this.htFrame + htEdgeMgn * 2]
 	}
-	CalcImageGrid(wdCanvas:number, htCanvas:number) = {
-		[wdFrameEx, htFrameEx] = this.CalcSizeEx()
+	CalcImageGrid(wdCanvas:number, htCanvas:number, wdEdgeMgn:number, htEdgeMgn:number) = {
+		[wdFrameEx, htFrameEx] = this.CalcSizeEx(wdEdgeMgn, htEdgeMgn)
 		nx = int((wdCanvas - g.wdTrimMark) / (wdFrameEx + g.wdTrimMark))
 		ny = int((htCanvas - g.htTrimMark - g.htMessage) / (htFrameEx + g.htTrimMark))
 		[nx, ny]
 	}
-	DrawTrimMark(cr:cairo.context, xSlot:number, ySlot:number) = {
+	DrawTrimMark(cr:cairo.context, xSlot:number, ySlot:number,
+			wdImage:number, htImage:number,
+			wdEdgeMgn:number, htEdgeMgn:number, wdTrimMark:number, htTrimMark:number) = {
+		rotateFlag = (this.wdFrame < this.htFrame && wdImage > htImage) || \
+						(this.wdFrame > this.htFrame && wdImage < htImage)
 		cr.set_line_width(.1)
 		cr.set_source_rgb(([g.trimMarkR, g.trimMarkG, g.trimMarkB] / 255)*)
-		[wdFrameEx, htFrameEx] = this.CalcSizeEx()
+		[wdFrameEx, htFrameEx] = this.CalcSizeEx(wdEdgeMgn, htEdgeMgn)
+		if (rotateFlag) {
+			[wdFrameEx, htFrameEx] = [htFrameEx, wdFrameEx]
+			[wdEdgeMgn, htEdgeMgn] = [htEdgeMgn, wdEdgeMgn]
+			[wdTrimMark, htTrimMark] = [htTrimMark, wdTrimMark]
+		} else {
+			[wdEdgeMgn, htEdgeMgn] = [wdEdgeMgn, htEdgeMgn]
+			[wdTrimMark, htTrimMark] = [wdTrimMark, htTrimMark]
+		}
 		x = xSlot - wdFrameEx / 2
 		y = ySlot - htFrameEx / 2
-		xTrimL = x - g.wdTrimMark
-		xTrimR = x + wdFrameEx + g.wdTrimMark
-		yTrimT = y - g.htTrimMark
-		yTrimB = y + htFrameEx + g.htTrimMark
-		cr.move_to(xTrimL, y + g.htEdgeMgn)
-		cr.line_to(xTrimR, y + g.htEdgeMgn)
-		cr.move_to(xTrimL, y + htFrameEx - g.htEdgeMgn)
-		cr.line_to(xTrimR, y + htFrameEx - g.htEdgeMgn)
-		cr.move_to(x + g.wdEdgeMgn, yTrimT)
-		cr.line_to(x + g.wdEdgeMgn, yTrimB)
-		cr.move_to(x + wdFrameEx - g.wdEdgeMgn, yTrimT)
-		cr.line_to(x + wdFrameEx - g.wdEdgeMgn, yTrimB)
+		xTrimL = x - wdTrimMark
+		xTrimR = x + wdFrameEx + wdTrimMark
+		yTrimT = y - htTrimMark
+		yTrimB = y + htFrameEx + htTrimMark
+		cr.move_to(xTrimL, y + htEdgeMgn)
+		cr.line_to(xTrimR, y + htEdgeMgn)
+		cr.move_to(xTrimL, y + htFrameEx - htEdgeMgn)
+		cr.line_to(xTrimR, y + htFrameEx - htEdgeMgn)
+		cr.move_to(x + wdEdgeMgn, yTrimT)
+		cr.line_to(x + wdEdgeMgn, yTrimB)
+		cr.move_to(x + wdFrameEx - wdEdgeMgn, yTrimT)
+		cr.line_to(x + wdFrameEx - wdEdgeMgn, yTrimB)
 		cr.stroke()
 	}
 	DrawFaceImage(cr:cairo.contet, xSlot:number, ySlot:number,
-					pattern:cairo.pattern, wdImage:number, htImage:number) = {
-		[wdFrameEx, htFrameEx] = this.CalcSizeEx()
+			pattern:cairo.pattern, wdImage:number, htImage:number,
+			wdEdgeMgn:number, htEdgeMgn:number) = {
+		rotateFlag = (this.wdFrame < this.htFrame && wdImage > htImage) || \
+						(this.wdFrame > this.htFrame && wdImage < htImage)
+		[wdFrameEx, htFrameEx] = this.CalcSizeEx(wdEdgeMgn, htEdgeMgn)
+		if (rotateFlag) {
+			[wdFrameEx, htFrameEx] = [htFrameEx, wdFrameEx]
+		}
 		x = xSlot - wdFrameEx / 2
 		y = ySlot - htFrameEx / 2
 		cr.save {
@@ -81,15 +99,22 @@ LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 		}
 	}
 	DrawSlot(cr:cairo.contet, xSlot:number, ySlot:number,
-					pattern:cairo.pattern, wdImage:number, htImage:number) = {
-		if (g.trimMark == `outer) {
-			this.DrawTrimMark(cr, xSlot, ySlot)
-			this.DrawFaceImage(cr, xSlot, ySlot, pattern, wdImage, htImage)
-		} elsif (g.trimMark == `overwrite) {
-			this.DrawFaceImage(cr, xSlot, ySlot, pattern, wdImage, htImage)
-			this.DrawTrimMark(cr, xSlot, ySlot)
-		} else { // g.trimMark == `none
-			this.DrawFaceImage(cr, xSlot, ySlot, pattern, wdImage, htImage)
+			pattern:cairo.pattern, wdImage:number, htImage:number,
+			wdEdgeMgn:number, htEdgeMgn:number,
+			trimMark:symbol, wdTrimMark:number, htTrimMark:number) = {
+		if (trimMark == `outer) {
+			this.DrawTrimMark(cr, xSlot, ySlot, wdImage, htImage,
+								wdEdgeMgn, htEdgeMgn, wdTrimMark, htTrimMark)
+			this.DrawFaceImage(cr, xSlot, ySlot, pattern,
+								wdImage, htImage, wdEdgeMgn, htEdgeMgn)
+		} elsif (trimMark == `overwrite) {
+			this.DrawFaceImage(cr, xSlot, ySlot, pattern,
+								wdImage, htImage, wdEdgeMgn, htEdgeMgn)
+			this.DrawTrimMark(cr, xSlot, ySlot, wdImage, htImage,
+								wdEdgeMgn, htEdgeMgn, wdTrimMark, htTrimMark)
+		} else { // trimMark == `none
+			this.DrawFaceImage(cr, xSlot, ySlot, pattern, wdImage, htImage,
+								wdImage, htImage, wdEdgeMgn, htEdgeMgn)
 		}
 	}
 }
@@ -118,13 +143,14 @@ PaperSize = struct(name:string, longSide:number, shortSide:number, printServiceF
 	GetCanvasHeight(orientation:symbol) = {
 		cond(orientation == `horizontal, this.shortSide - margin * 2, this.longSide - margin * 2)
 	}
-	GetBetterOrientation(layoutFrame:LayoutFrame, orientation:symbol) = {
+	GetBetterOrientation(layoutFrame:LayoutFrame, orientation:symbol,
+										wdEdgeMgn:number, htEdgeMgn:number) = {
 		(orientation != `auto) && return(orientation)
 		[nx1, ny1] = layoutFrame.CalcImageGrid(this.GetCanvasWidth(`horizontal),
-									this.GetCanvasHeight(`horizontal))
+						this.GetCanvasHeight(`horizontal), wdEdgeMgn, htEdgeMgn)
 		n1 = nx1 * ny1
 		[nx2, ny2] = layoutFrame.CalcImageGrid(this.GetCanvasWidth(`vertical),
-									this.GetCanvasHeight(`vertical))
+						this.GetCanvasHeight(`vertical), wdEdgeMgn, htEdgeMgn)
 		n2 = nx2 * ny2
 		if (n1 > n2) {
 			`horizontal
@@ -470,7 +496,7 @@ ComposerCustom = class(Composer) {
 	}
 	UpdateOrientation() = {
 		this.orientation = this.paperSize.GetBetterOrientation(
-									this.layoutFrame, this.orientationReq)
+				this.layoutFrame, this.orientationReq, g.wdEdgeMgn, g.htEdgeMgn)
 	}
 	SetPaperSize(paperSize:PaperSize) = {
 		this.paperSize = paperSize
@@ -511,14 +537,15 @@ ComposerCustom = class(Composer) {
 		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
-			[nx, ny] = this.layoutFrame.CalcImageGrid(wdCanvas, htCanvas)
+			[nx, ny] = this.layoutFrame.CalcImageGrid(wdCanvas, htCanvas, g.wdEdgeMgn, g.htEdgeMgn)
 			wdSlot = wdCanvas / nx
 			htSlot = (htCanvas - g.htMessage) / ny
 			cross(ix in range(nx), iy in range(ny)) {
 				xSlot = wdSlot * ix + wdSlot / 2
 				ySlot = htSlot * iy + htSlot / 2
 				this.layoutFrame.DrawSlot(cr, xSlot, ySlot, pattern,
-										imgExtract.width, imgExtract.height)
+					imgExtract.width, imgExtract.height,
+					g.wdEdgeMgn, g.htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 			}
 		}
 	}
@@ -528,36 +555,85 @@ ComposerCustom = class(Composer) {
 // Composer_PassportAndDriversLicense
 //-----------------------------------------------------------------------------
 Composer_PassportAndDriversLicense = class(Composer) {
-	wdEdgeMgn = 2
-	htEdgeMgn = 2
-	__init__() = {|'Passport and Driver\'s License'$, g.paperSize_L, g.layoutFrame_45_35, `horizontal|
+	wdEdgeMgn = 1
+	htEdgeMgn = 1
+	__init__() = {|'Passport and Driver\'s License'$, g.paperSize_L, g.layoutFrame_45_35, `vertical|
 		this.layoutFrameSub = g.layoutFrame_30_24
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
-		imgExtract = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
-				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box))
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
-			this.layoutFrame.DrawSlot(cr, 21, 28, pattern,
-									imgExtract.width, imgExtract.height)
-			this.layoutFrame.DrawSlot(cr, 64, 28, pattern,
-									imgExtract.width, imgExtract.height)
+			this.layoutFrame.DrawSlot(cr, 20, 30, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrame.DrawSlot(cr, 60, 30, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
 		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 101, 20, pattern,
-									imgExtract.width, imgExtract.height)
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 			this.layoutFrameSub.DrawSlot(cr, 101, 60, pattern,
-									imgExtract.width, imgExtract.height)
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
-		/*
 		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
 				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
-			this.layoutFrameSub.DrawSlot(cr, 20, 68, pattern,
-									imgExtract.width, imgExtract.height)
+			this.layoutFrameSub.DrawSlot(cr, 20, 60, pattern,
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
-		*/
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Composer_Hisago
+//-----------------------------------------------------------------------------
+Composer_Hisago = class(Composer) {
+	wdEdgeMgn = 1
+	htEdgeMgn = 1
+	__init__() = {|'Hisago ID-Picture-Sized Sticker'$ + ' CJ766S/CJ866NS',
+					g.paperSize_Hagaki, g.layoutFrame_40_30, `vertical|
+	}
+	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		cross(ix in range(2), iy in range(3)) {
+			xSlot = 16 + 30 / 2 + (30 + 8) * ix - this.paperSize.margin
+			ySlot = 6 + 40 / 2 + (40 + 3) * iy - this.paperSize.margin
+			cairo.pattern.create_for_surface(imgExtract) {|pattern|
+				this.layoutFrame.DrawFaceImage(cr, xSlot, ySlot, pattern,
+					imgExtract.width, imgExtract.height, wdEdgeMgn, htEdgeMgn)
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Composer_Aone
+//-----------------------------------------------------------------------------
+Composer_Aone = class(Composer) {
+	wdEdgeMgn = 5 / 2
+	htEdgeMgn = 5 / 2
+	__init__() = {|'A-one Printer Label'$ + ' 29603/29613',
+					g.paperSize_Hagaki, g.layoutFrame_40_30, `horizontal|
+	}
+	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		cross(ix in range(3), iy in range(2)) {
+			xSlot = 24 + 30 / 2 + (30 + 5) * ix - this.paperSize.margin
+			ySlot = 7.5 + 40 / 2 + (40 + 5) * iy - this.paperSize.margin
+			cairo.pattern.create_for_surface(imgExtract) {|pattern|
+				this.layoutFrame.DrawFaceImage(cr, xSlot, ySlot, pattern,
+					imgExtract.width, imgExtract.height, wdEdgeMgn, htEdgeMgn)
+			}
+		}
 	}
 }
 
@@ -722,6 +798,8 @@ g = module {
 g.composerCustom = ComposerCustom(g.paperSizeTbl[0], g.layoutFrameTbl[0], `auto)
 g.composerCur = g.composerCustom
 g.composerTbl = [
+	Composer_Hisago()
+	Composer_Aone()
 	Composer_PassportAndDriversLicense()
 ]
 
@@ -1348,7 +1426,7 @@ wx.Menu.AppendEx(id:number, text:string, img:image, kind:number => wx.ITEM_NORMA
 // MainWindow
 //-----------------------------------------------------------------------------
 MainWindow = class(wx.Frame) {
-	[PAGEIDX_LayoutFrameList, PAGEIDX_FormatList] = 0..
+	[PAGEIDX_LayoutFrameList, PAGEIDX_ComposerList] = 0..
 	__init__(title:string, pos:wx.Point => wx.Point(g.xMainWindow, g.yMainWindow),
 			size:wx.Size => wx.Size(g.wdMainWindow, g.htMainWindow)) = {|nil, wx.ID_ANY, title, pos, size|
 		this.SetIcon(g.icon)
@@ -1447,7 +1525,7 @@ MainWindow = class(wx.Frame) {
 			this.noteBook = ctrl
 			ctrl.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED) {|event| this.OnNotebookPageChanged(event)}
 		}
-		wx.ListCtrl(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
+		wx.ListView(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
 			this.noteBook.InsertPage(PAGEIDX_LayoutFrameList,
 							ctrl, '  ' + 'Layout Frame List'$ + '  ')
 			font = ctrl.GetFont()
@@ -1489,13 +1567,45 @@ MainWindow = class(wx.Frame) {
 			ctrl.SetItemState(0,
 					wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED,
 					wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED)
-			ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED) {|event| this.OnListItemSelected(event) }
-			ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED) {|event| this.OnListItemActivated(event) }
+			ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED) {|event| this.OnListItemSelected_LayoutFrame(event) }
+			ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED) {|event| this.OnListItemActivated_LayoutFrame(event) }
 			this.listCtrlLayoutFrame = ctrl
 		}
-		wx.ListCtrl(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
-			this.noteBook.InsertPage(PAGEIDX_FormatList,
+		wx.ListView(this.noteBook, wx.ID_ANY, style => wx.BORDER_SUNKEN | wx.LC_REPORT) {|ctrl|
+			this.noteBook.InsertPage(PAGEIDX_ComposerList,
 									ctrl, '  ' + 'Format List'$ + '  ')
+			font = ctrl.GetFont()
+			font.SetPointSize(font.GetPointSize() + 2)
+			ctrl.SetFont(font)
+			ctrl.InsertColumn(0.., ['Paper Size'$, 'Format Name'$])
+			ctrl.Bind(wx.EVT_SIZE) {|event|
+				size = event.GetSize()
+				width = size.GetWidth() - 25
+				wdColumn = 100
+				ctrl.SetColumnWidth(0, wdColumn)
+				width -= wdColumn
+				ctrl.SetColumnWidth(1, width)
+				event.Skip()
+			}
+			nLayoutFramesUserDef = 0
+			g.composerTbl.each {|composer, idx|
+				wx.ListItem {|item|
+					item.SetId(idx)
+					item.SetText(composer.GetPaperSize().name)
+					ctrl.InsertItem(item)
+				}
+				wx.ListItem {|item|
+					item.SetId(idx)
+					item.SetColumn(1)
+					item.SetText(composer.GetName())
+					ctrl.SetItem(item)
+				}
+			}
+			ctrl.SetItemState(0,
+					wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED,
+					wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED)
+			ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED) {|event| this.OnListItemSelected_Composer(event) }
+			this.listCtrlComposer = ctrl
 		}
 		this.dlgOutputOption = OutputOptionDialog(this, this.productViewer)
 		this.listCtrlLayoutFrame.SetFocus()
@@ -1643,7 +1753,7 @@ MainWindow = class(wx.Frame) {
 		fileNames = event.GetFiles()
 		this.ReadImageFiles(fileNames)
 	}
-	OnListItemSelected(event:wx.ListEvent) = {
+	OnListItemSelected_LayoutFrame(event:wx.ListEvent) = {
 		idx = event.GetIndex()
 		(idx < 0) && return
 		g.composerCustom.SetLayoutFrame(g.layoutFrameTbl[idx])
@@ -1652,7 +1762,7 @@ MainWindow = class(wx.Frame) {
 			this.UpdateWholeContent()
 		}
 	}
-	OnListItemActivated(event:wx.ListEvent) = {
+	OnListItemActivated_LayoutFrame(event:wx.ListEvent) = {
 		idx = event.GetIndex()
 		(idx < 0) && return
 		layoutFrame = g.layoutFrameTbl[idx]
@@ -1671,6 +1781,15 @@ MainWindow = class(wx.Frame) {
 			}
 		}
 	}
+	OnListItemSelected_Composer(event:wx.ListEvent) = {
+		idx = event.GetIndex()
+		(idx < 0) && return
+		g.composerCur = g.composerTbl[idx]
+		this.Update()
+		wx.BusyCursor {
+			this.UpdateWholeContent()
+		}
+	}
 	OnRightDown_Label(event:wx.MouseEvent) = {
 		wx.Menu() {|m|
 			this.PrepareMenu_Image(m)
@@ -1681,8 +1800,11 @@ MainWindow = class(wx.Frame) {
 		pageIdx = event.GetSelection()
 		if (pageIdx == PAGEIDX_LayoutFrameList) {
 			g.composerCur = g.composerCustom
-		} elsif (pageIdx == PAGEIDX_FormatList) {
-			g.composerCur = g.composerTbl[0]
+		} elsif (pageIdx == PAGEIDX_ComposerList) {
+			idx = this.listCtrlComposer.GetFirstSelected()
+			if (idx >= 0) {
+				g.composerCur = g.composerTbl[idx]
+			}
 		}
 		wx.BusyCursor {
 			this.productViewer.UpdateContent(this)

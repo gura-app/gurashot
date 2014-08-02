@@ -152,7 +152,11 @@ It will not delete the original file.''' => \
 'FamilyMart'							=> 'ファミリーマート'
 'LAWSON'								=> 'ローソン'
 'Mitsubishi Color Print'				=> '三菱カラープリント'
-'Passport and Driver\'s License'		=> 'パスポートと自動車運転免許'
+'Paper Size'							=> '用紙サイズ'
+'Format Name'							=> 'フォーマット名'
+'Passport and Driver\'s License'		=> 'パスポート・自動車運転免許'
+'Hisago ID-Picture-Sized Sticker'		=> 'ヒサゴ 証明写真サイズシール'
+'A-one Printer Label'					=> 'A-one プリンタラベル'
 }
 }
 
