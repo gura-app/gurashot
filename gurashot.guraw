@@ -552,39 +552,81 @@ ComposerCustom = class(Composer) {
 }
 
 //-----------------------------------------------------------------------------
-// Composer_PassportAndDriversLicense
+// Composer_ResumeAndDriversLicense
 //-----------------------------------------------------------------------------
-Composer_PassportAndDriversLicense = class(Composer) {
+Composer_ResumeAndDriversLicense = class(Composer) {
 	wdEdgeMgn = 1
 	htEdgeMgn = 1
-	__init__() = {|'Passport and Driver\'s License'$, g.paperSize_L, g.layoutFrame_45_35, `vertical|
+	__init__() = {|'Resume and Driver\'s License'$, g.paperSize_L, g.layoutFrame_40_30, `horizontal|
 		this.layoutFrameSub = g.layoutFrame_30_24
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
-			this.layoutFrame.DrawSlot(cr, 20, 30, pattern,
+			this.layoutFrame.DrawSlot(cr, 18, 23, pattern,
 					imgExtract.width, imgExtract.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
-			this.layoutFrame.DrawSlot(cr, 60, 30, pattern,
+			this.layoutFrame.DrawSlot(cr, 58, 23, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrame.DrawSlot(cr, 98, 23, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+		}
+		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
+			this.layoutFrameSub.DrawSlot(cr, 18, 64, pattern,
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrameSub.DrawSlot(cr, 58, 64, pattern,
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrameSub.DrawSlot(cr, 98, 64, pattern,
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Composer_PassportAndDriversLicense
+//-----------------------------------------------------------------------------
+Composer_PassportAndDriversLicense = class(Composer) {
+	wdEdgeMgn = 1
+	htEdgeMgn = 1
+	__init__() = {|'Passport and Driver\'s License'$, g.paperSize_L, g.layoutFrame_45_35, `horizontal|
+		this.layoutFrameSub = g.layoutFrame_30_24
+	}
+	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		cairo.pattern.create_for_surface(imgExtract) {|pattern|
+			this.layoutFrame.DrawSlot(cr, 20.5, 25.5, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrame.DrawSlot(cr, 62.5, 25.5, pattern,
 					imgExtract.width, imgExtract.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
 		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
-			this.layoutFrameSub.DrawSlot(cr, 101, 20, pattern,
+			this.layoutFrameSub.DrawSlot(cr, 100, 18, pattern,
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
-			this.layoutFrameSub.DrawSlot(cr, 101, 60, pattern,
+			this.layoutFrameSub.DrawSlot(cr, 100, 61, pattern,
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
 		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
 				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
-			this.layoutFrameSub.DrawSlot(cr, 20, 60, pattern,
+			this.layoutFrameSub.DrawSlot(cr, 18, 64, pattern,
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrameSub.DrawSlot(cr, 60, 64, pattern,
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
@@ -800,6 +842,7 @@ g.composerCur = g.composerCustom
 g.composerTbl = [
 	Composer_Hisago()
 	Composer_Aone()
+	Composer_ResumeAndDriversLicense()
 	Composer_PassportAndDriversLicense()
 ]
 
@@ -1577,27 +1620,27 @@ MainWindow = class(wx.Frame) {
 			font = ctrl.GetFont()
 			font.SetPointSize(font.GetPointSize() + 2)
 			ctrl.SetFont(font)
-			ctrl.InsertColumn(0.., ['Paper Size'$, 'Format Name'$])
+			ctrl.InsertColumn(0.., ['Format Name'$, 'Paper Size'$])
 			ctrl.Bind(wx.EVT_SIZE) {|event|
 				size = event.GetSize()
 				width = size.GetWidth() - 25
 				wdColumn = 100
-				ctrl.SetColumnWidth(0, wdColumn)
+				ctrl.SetColumnWidth(1, wdColumn)
 				width -= wdColumn
-				ctrl.SetColumnWidth(1, width)
+				ctrl.SetColumnWidth(0, width)
 				event.Skip()
 			}
 			nLayoutFramesUserDef = 0
 			g.composerTbl.each {|composer, idx|
 				wx.ListItem {|item|
 					item.SetId(idx)
-					item.SetText(composer.GetPaperSize().name)
+					item.SetText(composer.GetName())
 					ctrl.InsertItem(item)
 				}
 				wx.ListItem {|item|
 					item.SetId(idx)
 					item.SetColumn(1)
-					item.SetText(composer.GetName())
+					item.SetText(composer.GetPaperSize().name)
 					ctrl.SetItem(item)
 				}
 			}
