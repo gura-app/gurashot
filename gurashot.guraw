@@ -518,7 +518,7 @@ ComposerCustom = class(Composer) {
 			fontName = 'Sans'
 			cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
 			cr.set_source_rgb(.2, .2, 1)
-			cr.set_font_size(3.0)
+			cr.set_font_size(2.5)
 			cr.move_to(0, htCanvas - 1)
 			text = ''
 			if (g.titleDispFlag_Size) {
@@ -552,15 +552,44 @@ ComposerCustom = class(Composer) {
 }
 
 //-----------------------------------------------------------------------------
+// ComposerDesigned
+//-----------------------------------------------------------------------------
+ComposerDesigned = class(Composer) {
+	DrawDesignedTitle(cr:cairo.context, x:number, y:number,
+						rotateFlag:boolean, purposeFlag:boolean => true) = {
+		cr.save {
+			text = ''
+			if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
+				text += g.imgInfoCur.label
+			}
+			if (purposeFlag && g.titleDispFlag_Purpose && !this.layoutFrame.purpose.isempty()) {
+				if (!text.isempty()) { text += ' ' }
+				text += format('for %s', this.name)
+			}
+			cr.translate(x, y)
+			rotateFlag && cr.rotate(-math.pi / 2)
+			fontName = 'Sans'
+			cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+			cr.set_source_rgb(.2, .2, 1)
+			cr.set_font_size(2.5)
+			cr.move_to(0, 0)
+			cr.show_text(text)
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
 // Composer_ResumeAndDriversLicense
 //-----------------------------------------------------------------------------
-Composer_ResumeAndDriversLicense = class(Composer) {
+Composer_ResumeAndDriversLicense = class(ComposerDesigned) {
 	wdEdgeMgn = 1
 	htEdgeMgn = 1
-	__init__() = {|'Resume and Driver\'s License'$, g.paperSize_L, g.layoutFrame_40_30, `horizontal|
-		this.layoutFrameSub = g.layoutFrame_30_24
+	__init__() = {|'Resume and Driver\'s License'$, g.paperSize_L, g.layoutFrame_40x30, `horizontal|
+		this.layoutFrameSub = g.layoutFrame_30x24
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
+		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false)
 		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
@@ -577,14 +606,58 @@ Composer_ResumeAndDriversLicense = class(Composer) {
 		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
 				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
-			this.layoutFrameSub.DrawSlot(cr, 18, 64, pattern,
+			this.layoutFrameSub.DrawSlot(cr, 18, 61, pattern,
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
-			this.layoutFrameSub.DrawSlot(cr, 58, 64, pattern,
+			this.layoutFrameSub.DrawSlot(cr, 58, 61, pattern,
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
-			this.layoutFrameSub.DrawSlot(cr, 98, 64, pattern,
+			this.layoutFrameSub.DrawSlot(cr, 98, 61, pattern,
 					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Composer_ResumeAndUnemploymentInsurance
+//-----------------------------------------------------------------------------
+Composer_ResumeAndUnemploymentInsurance = class(ComposerDesigned) {
+	wdEdgeMgn = .5
+	htEdgeMgn = .5
+	__init__() = {|'Resume and Unemployment Insutance'$, g.paperSize_L, g.layoutFrame_40x30, `horizontal|
+		this.layoutFrameSub = g.layoutFrame_30x25
+	}
+	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		this.DrawDesignedTitle(cr, 0, 47.5, false)
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		cairo.pattern.create_for_surface(imgExtract) {|pattern|
+			this.layoutFrame.DrawSlot(cr, 18, 22.5, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrame.DrawSlot(cr, 59, 22.5, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrame.DrawSlot(cr, 99, 22.5, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+		}
+		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
+			this.layoutFrameSub.DrawSlot(cr, 18, 63.5, pattern,
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrameSub.DrawSlot(cr, 54, 63.5, pattern,
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+		}
+		imgExtract = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		cairo.pattern.create_for_surface(imgExtract) {|pattern|
+			this.layoutFrame.DrawSlot(cr, 94, 61, pattern,
+					imgExtract.width, imgExtract.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
 	}
@@ -593,30 +666,33 @@ Composer_ResumeAndDriversLicense = class(Composer) {
 //-----------------------------------------------------------------------------
 // Composer_PassportAndDriversLicense
 //-----------------------------------------------------------------------------
-Composer_PassportAndDriversLicense = class(Composer) {
+Composer_PassportAndDriversLicense = class(ComposerDesigned) {
 	wdEdgeMgn = 1
 	htEdgeMgn = 1
-	__init__() = {|'Passport and Driver\'s License'$, g.paperSize_L, g.layoutFrame_45_35, `horizontal|
-		this.layoutFrameSub = g.layoutFrame_30_24
+	__init__() = {|'Passport and Driver\'s License'$, g.paperSize_L, g.layoutFrame_45x35, `horizontal|
+		this.layoutFrameSub = g.layoutFrame_30x24
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		wdCanvas = this.paperSize.GetCanvasWidth(this.orientation)
+		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
+		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - 1, true)
 		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			this.layoutFrame.DrawSlot(cr, 20.5, 25.5, pattern,
 					imgExtract.width, imgExtract.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
-			this.layoutFrame.DrawSlot(cr, 62.5, 25.5, pattern,
+			this.layoutFrame.DrawSlot(cr, 61.5, 25.5, pattern,
 					imgExtract.width, imgExtract.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
 		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
-			this.layoutFrameSub.DrawSlot(cr, 100, 18, pattern,
+			this.layoutFrameSub.DrawSlot(cr, 97, 18, pattern,
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
-			this.layoutFrameSub.DrawSlot(cr, 100, 61, pattern,
+			this.layoutFrameSub.DrawSlot(cr, 97, 61, pattern,
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
@@ -626,7 +702,7 @@ Composer_PassportAndDriversLicense = class(Composer) {
 			this.layoutFrameSub.DrawSlot(cr, 18, 64, pattern,
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
-			this.layoutFrameSub.DrawSlot(cr, 60, 64, pattern,
+			this.layoutFrameSub.DrawSlot(cr, 59, 64, pattern,
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
@@ -634,20 +710,23 @@ Composer_PassportAndDriversLicense = class(Composer) {
 }
 
 //-----------------------------------------------------------------------------
-// Composer_Hisago
+// Composer_Aone
 //-----------------------------------------------------------------------------
-Composer_Hisago = class(Composer) {
-	wdEdgeMgn = 1
-	htEdgeMgn = 1
-	__init__() = {|'Hisago ID-Picture-Sized Sticker'$ + ' CJ766S/CJ866NS',
-					g.paperSize_Hagaki, g.layoutFrame_40_30, `vertical|
+Composer_Aone = class(ComposerDesigned) {
+	wdEdgeMgn = 5 / 2
+	htEdgeMgn = 5 / 2
+	__init__() = {|'A-one Printer Label'$ + ' 29603/29613',
+					g.paperSize_Hagaki, g.layoutFrame_40x30, `horizontal|
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		wdCanvas = this.paperSize.GetCanvasWidth(this.orientation)
+		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
+		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - .5, true, false)
 		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
-		cross(ix in range(2), iy in range(3)) {
-			xSlot = 16 + 30 / 2 + (30 + 8) * ix - this.paperSize.margin
-			ySlot = 6 + 40 / 2 + (40 + 3) * iy - this.paperSize.margin
+		cross(ix in range(3), iy in range(2)) {
+			xSlot = 24 + 30 / 2 + (30 + 5) * ix - this.paperSize.margin
+			ySlot = 7.5 + 40 / 2 + (40 + 5) * iy - this.paperSize.margin
 			cairo.pattern.create_for_surface(imgExtract) {|pattern|
 				this.layoutFrame.DrawFaceImage(cr, xSlot, ySlot, pattern,
 					imgExtract.width, imgExtract.height, wdEdgeMgn, htEdgeMgn)
@@ -657,20 +736,22 @@ Composer_Hisago = class(Composer) {
 }
 
 //-----------------------------------------------------------------------------
-// Composer_Aone
+// Composer_Hisago
 //-----------------------------------------------------------------------------
-Composer_Aone = class(Composer) {
-	wdEdgeMgn = 5 / 2
-	htEdgeMgn = 5 / 2
-	__init__() = {|'A-one Printer Label'$ + ' 29603/29613',
-					g.paperSize_Hagaki, g.layoutFrame_40_30, `horizontal|
+Composer_Hisago = class(ComposerDesigned) {
+	wdEdgeMgn = 1
+	htEdgeMgn = 1
+	__init__() = {|'Hisago ID-Picture-Sized Sticker'$ + ' CJ766S/CJ866NS',
+					g.paperSize_Hagaki, g.layoutFrame_40x30, `vertical|
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
+		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false, false)
 		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
 				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
-		cross(ix in range(3), iy in range(2)) {
-			xSlot = 24 + 30 / 2 + (30 + 5) * ix - this.paperSize.margin
-			ySlot = 7.5 + 40 / 2 + (40 + 5) * iy - this.paperSize.margin
+		cross(ix in range(2), iy in range(3)) {
+			xSlot = 16 + 30 / 2 + (30 + 8) * ix - this.paperSize.margin
+			ySlot = 6 + 40 / 2 + (40 + 3) * iy - this.paperSize.margin
 			cairo.pattern.create_for_surface(imgExtract) {|pattern|
 				this.layoutFrame.DrawFaceImage(cr, xSlot, ySlot, pattern,
 					imgExtract.width, imgExtract.height, wdEdgeMgn, htEdgeMgn)
@@ -741,20 +822,20 @@ g = module {
 		{ 'Mitsubishi Color Print'$ +	' | Mitsubishi Mikupuri',	11, 10,  7, 10 }
 	}
 	layoutFrameTbl:public = [
-		layoutFrame_30_24:public
-		layoutFrame_30_25:public
-		layoutFrame_30_30:public
-		layoutFrame_35_24:public
-		layoutFrame_36_24:public
-		layoutFrame_36_25:public
-		layoutFrame_40_30:public
-		layoutFrame_40_40:public
-		layoutFrame_45_35:public
-		layoutFrame_50_40:public
-		layoutFrame_50_50:public
-		layoutFrame_55_40:public
-		layoutFrame_55_45:public
-		layoutFrame_60_45:public
+		layoutFrame_30x24:public
+		layoutFrame_30x25:public
+		layoutFrame_30x30:public
+		layoutFrame_35x24:public
+		layoutFrame_36x24:public
+		layoutFrame_36x25:public
+		layoutFrame_40x30:public
+		layoutFrame_40x40:public
+		layoutFrame_45x35:public
+		layoutFrame_50x40:public
+		layoutFrame_50x50:public
+		layoutFrame_55x40:public
+		layoutFrame_55x45:public
+		layoutFrame_60x45:public
 	] = @(LayoutFrame) {
 		{ 'Driver\'s license etc.'$,				30, 24, 2, 23, false }
 		{ 'Unemployment insurance etc.'$,			30, 25, 2, 23, false }
@@ -840,10 +921,11 @@ g = module {
 g.composerCustom = ComposerCustom(g.paperSizeTbl[0], g.layoutFrameTbl[0], `auto)
 g.composerCur = g.composerCustom
 g.composerTbl = [
-	Composer_Hisago()
-	Composer_Aone()
 	Composer_ResumeAndDriversLicense()
+	Composer_ResumeAndUnemploymentInsurance()
 	Composer_PassportAndDriversLicense()
+	Composer_Aone()
+	Composer_Hisago()
 ]
 
 //-----------------------------------------------------------------------------

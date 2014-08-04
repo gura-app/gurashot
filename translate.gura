@@ -156,6 +156,7 @@ It will not delete the original file.''' => \
 'Format Name'							=> 'フォーマット名'
 'Passport and Driver\'s License'		=> 'パスポート・自動車運転免許'
 'Resume and Driver\'s License'			=> '履歴書・自動車運転免許'
+'Resume and Unemployment Insutance'		=> '履歴書・雇用保険受給申請'
 'Hisago ID-Picture-Sized Sticker'		=> 'ヒサゴ 証明写真サイズシール'
 'A-one Printer Label'					=> 'A-one プリンタラベル'
 }
