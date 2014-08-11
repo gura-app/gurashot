@@ -17,7 +17,7 @@ import(resource)
 import(units)
 import(translate) {_}
 
-Version = '1.3.0'
+Version = '1.3.1'
 
 //-----------------------------------------------------------------------------
 // Control ID
@@ -736,9 +736,9 @@ Composer_Aone = class(ComposerDesigned) {
 }
 
 //-----------------------------------------------------------------------------
-// Composer_Hisago
+// Composer_Hisago_CJx66
 //-----------------------------------------------------------------------------
-Composer_Hisago = class(ComposerDesigned) {
+Composer_Hisago_CJx66 = class(ComposerDesigned) {
 	wdEdgeMgn = 1
 	htEdgeMgn = 1
 	__init__() = {|'Hisago ID-Picture-Sized Sticker'$ + ' CJ766S/CJ866NS',
@@ -752,6 +752,31 @@ Composer_Hisago = class(ComposerDesigned) {
 		cross(ix in range(2), iy in range(3)) {
 			xSlot = 16 + 30 / 2 + (30 + 8) * ix - this.paperSize.margin
 			ySlot = 6 + 40 / 2 + (40 + 3) * iy - this.paperSize.margin
+			cairo.pattern.create_for_surface(imgExtract) {|pattern|
+				this.layoutFrame.DrawFaceImage(cr, xSlot, ySlot, pattern,
+					imgExtract.width, imgExtract.height, wdEdgeMgn, htEdgeMgn)
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Composer_Hisago_CJ883
+//-----------------------------------------------------------------------------
+Composer_Hisago_CJ883 = class(ComposerDesigned) {
+	wdEdgeMgn = 2
+	htEdgeMgn = 2
+	__init__() = {|'Hisago Stamp Sticker'$ + ' CJ883S',
+					g.paperSize_Hagaki, g.layoutFrame_30x25, `vertical|
+	}
+	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
+		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false, false)
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		cross(ix in range(3), iy in range(3)) {
+			xSlot = 7.5 + 25 / 2 + (25 + 5) * ix - this.paperSize.margin
+			ySlot = 24 + 30 / 2 + (30 + 5) * iy - this.paperSize.margin
 			cairo.pattern.create_for_surface(imgExtract) {|pattern|
 				this.layoutFrame.DrawFaceImage(cr, xSlot, ySlot, pattern,
 					imgExtract.width, imgExtract.height, wdEdgeMgn, htEdgeMgn)
@@ -925,7 +950,8 @@ g.composerTbl = [
 	Composer_ResumeAndUnemploymentInsurance()
 	Composer_PassportAndDriversLicense()
 	Composer_Aone()
-	Composer_Hisago()
+	Composer_Hisago_CJx66()
+	Composer_Hisago_CJ883()
 ]
 
 //-----------------------------------------------------------------------------
