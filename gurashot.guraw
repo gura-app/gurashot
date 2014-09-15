@@ -385,8 +385,8 @@ Composer = class {
 	GetOrientation() = this.orientation
 	ComposeProductPDF(fileName:string, imgPhoto:image) = {
 		cairo.create(cairo.pdf_surface.create(fileName,
-						units.mm$pt(this.paperSize.GetWidth(this.orientation)),
-						units.mm$pt(this.paperSize.GetHeight(this.orientation)))) {|cr|
+				units.mm$pt(this.paperSize.GetWidth(this.orientation)),
+				units.mm$pt(this.paperSize.GetHeight(this.orientation)))) {|cr|
 			scale = 72 / 25.4
 			cr.scale(scale, scale)
 			cr.translate(this.paperSize.margin, this.paperSize.margin)
@@ -430,7 +430,6 @@ Composer = class {
 	}
 	DrawAdjustLines(img:image, nAdjLinesDrawn:number, printServiceName:string,
 			nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
-		fontName = 'Sans'
 		[width, height] = [img.width, img.height]
 		img.cairo {|cr|
 			cr.set_source_rgb(.3, 1, .3)
@@ -457,7 +456,7 @@ Composer = class {
 				cr.stroke()
 			}
 			cr.set_source_rgb(0, .7, 0)
-			cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+			cr.select_font_face(g.fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
 			cr.set_font_size(50)
 			if (!printServiceName.isempty()) {
 				fields = printServiceName.split('|'):list
@@ -515,8 +514,7 @@ ComposerCustom = class(Composer) {
 		wdCanvas = this.paperSize.GetCanvasWidth(this.orientation)
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		scope {
-			fontName = 'Sans'
-			cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+			cr.select_font_face(g.fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
 			cr.set_source_rgb(.2, .2, 1)
 			cr.set_font_size(2.5)
 			cr.move_to(0, htCanvas - 1)
@@ -568,8 +566,7 @@ ComposerDesigned = class(Composer) {
 			}
 			cr.translate(x, y)
 			rotateFlag && cr.rotate(-math.pi / 2)
-			fontName = 'Sans'
-			cr.select_font_face(fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+			cr.select_font_face(g.fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
 			cr.set_source_rgb(.2, .2, 1)
 			cr.set_font_size(2.5)
 			cr.move_to(0, 0)
@@ -789,6 +786,15 @@ Composer_Hisago_CJ883 = class(ComposerDesigned) {
 // Global variables
 //-----------------------------------------------------------------------------
 g = module {
+	if (sys.platform == `mswin) {
+		fontName:public = 'Sans'
+	} elsif (sys.platform == `linux) {
+		fontName:public = 'Sans'
+	} elsif (sys.platform == `darwin) {
+		fontName:public = 'Hiragino Kaku Gothic Pro'
+	} else {
+		fontName:public = 'Sans'
+	}
 	fileNameTmpPDF:public	= path.join(sys.workdir, 'gurashot.pdf')
 	fileNameCfg:public		= path.join(sys.cfgdir, 'gurashot.yml')
 	//fileNameCfg:public	= 'gurashot.yml'
@@ -1569,6 +1575,10 @@ Extractor = class(wx.Panel) {
 }
 
 //-----------------------------------------------------------------------------
+// FileDropTarget
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // wx.Menu expansion
 //-----------------------------------------------------------------------------
 wx.Menu.AppendEx(id:number, text:string, img:image, kind:number => wx.ITEM_NORMAL) = {
@@ -1583,6 +1593,15 @@ wx.Menu.AppendEx(id:number, text:string, img:image, kind:number => wx.ITEM_NORMA
 // MainWindow
 //-----------------------------------------------------------------------------
 MainWindow = class(wx.Frame) {
+	FileDropTarget = class(wx.FileDropTarget) {
+		__init__(mainWindow:MainWindow) = {
+			this.mainWindow = mainWindow
+		}
+		OnDropFiles(x:number, y:number, fileNames[]:string) = {
+			this.mainWindow.ReadImageFiles(fileNames)
+			true
+		}
+	}
 	[PAGEIDX_LayoutFrameList, PAGEIDX_ComposerList] = 0..
 	__init__(title:string, pos:wx.Point => wx.Point(g.xMainWindow, g.yMainWindow),
 			size:wx.Size => wx.Size(g.wdMainWindow, g.htMainWindow)) = {|nil, wx.ID_ANY, title, pos, size|
@@ -1666,6 +1685,8 @@ MainWindow = class(wx.Frame) {
 			ctrl.Bind(wx.EVT_RIGHT_DOWN) {|event| this.OnRightDown_Label(event)}
 			ctrl.Bind(wx.EVT_DROP_FILES) {|event| this.OnDropFiles(event)}
 			this.extractor = ctrl
+			this.fileDropTarget = FileDropTarget(this)
+			this.extractor.SetDropTarget(this.fileDropTarget)
 		}
 		wx.BoxSizer(wx.VERTICAL) {|vbox|
 			this.panelLeft.SetSizer(vbox)
