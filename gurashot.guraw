@@ -788,17 +788,22 @@ Composer_Hisago_CJ883 = class(ComposerDesigned) {
 g = module {
 	if (sys.platform == `mswin) {
 		fontName:public = 'Sans'
+		fileNameIcon:public		= path.join(sys.maindir, 'gurashot.ico')
+		bitmapTypeIcon:public	= wx.BITMAP_TYPE_ICO
 	} elsif (sys.platform == `linux) {
 		fontName:public = 'Sans'
+		fileNameIcon:public		= path.join(sys.maindir, 'gurashot.ico')
+		bitmapTypeIcon:public	= wx.BITMAP_TYPE_ICO
 	} elsif (sys.platform == `darwin) {
 		fontName:public = 'Hiragino Kaku Gothic Pro'
+		fileNameIcon:public		= path.join(sys.maindir, 'gurashot.icns')
+		bitmapTypeIcon:public	= wx.BITMAP_TYPE_ICON
 	} else {
-		fontName:public = 'Sans'
+		// nothing to do
 	}
 	fileNameTmpPDF:public	= path.join(sys.workdir, 'gurashot.pdf')
 	fileNameCfg:public		= path.join(sys.cfgdir, 'gurashot.yml')
 	//fileNameCfg:public	= 'gurashot.yml'
-	fileNameIcon:public		= path.join(sys.maindir, 'gurashot.ico')
 	imgNoImage:public = image(`rgba, 800, 800, color(240, 240, 255))
 	imgNoImage.cairo {|cr|
 		cr.set_source_rgb(.8, 0.8, 0.8)
@@ -1131,7 +1136,7 @@ SaveConfig() = {
 
 InitializeResource() = {
 	wx.Image.AddHandler(wx.PNGHandler())
-	g.icon = wx.Icon(g.fileNameIcon, wx.BITMAP_TYPE_ICO)
+	g.icon = wx.Icon(g.fileNameIcon, g.bitmapTypeIcon)
 }
 
 //-----------------------------------------------------------------------------
@@ -3636,6 +3641,13 @@ AboutDialog = class(wx.Dialog) {
 //-----------------------------------------------------------------------------
 App = class(wx.App) {
 	OnInit() = {
+		if (!(sys.platform in [`mswin, `linux, `darwin])) {
+			wx.MessageDialog(nil, 'Unsupported platform: '$ + sys.platform,
+						'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
+				dlg.ShowModal()
+			}
+			return(false)
+		}
 		LoadConfig()
 		InitializeResource()
 		mainWindow = MainWindow('Gura Shot'$)
