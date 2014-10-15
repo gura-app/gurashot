@@ -1988,6 +1988,7 @@ MainWindow = class(wx.Frame) {
 			this.productViewer.UpdateContent(this)
 			this.productViewer.UpdateContent()
 		}
+		event.Skip()
 	}
 	OnRightDown_ProductViewer(event:wx.MouseEvent) = {
 		wx.Menu() {|m|
