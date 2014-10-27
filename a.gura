@@ -1,0 +1,47 @@
+#!/usr/bin/env gura
+
+launcherName = 'Gura Shot'
+fileNameScript = 'gurashot.guraw'
+fileNameIcon = 'gurashot.icns'
+
+//dirNameWork = path.join(sys.workdir, 'helper_setup_work')
+dirNameWork = 'helper_setup_work'
+path.exists(dirNameWork) && fs.rmdir(dirNameWork):tree
+fs.mkdir(dirNameWork)
+os.symlink('/Applications', path.join(dirNameWork, 'Applications'))
+dirNameContents = path.join(dirNameWork, launcherName + '.app', 'Contents')
+fs.mkdir(dirNameContents):tree
+dirNameMacOS = path.join(dirNameContents, 'MacOS')
+dirNameResources = path.join(dirNameContents, 'Resources')
+fs.mkdir(dirNameMacOS)
+fs.mkdir(dirNameResources)
+tmplInfoPlist = R'''
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>${launcherName}</string>
+	<key>CFBundleIconFile</key>
+	<string>${fileNameIcon}</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+</dict>
+</plist>
+'''.template()
+tmplLauncher = R'''
+#!/bin/sh
+gura "`dirname "$$0"`/../Resources/${fileNameScript}"
+'''.template()
+open(path.join(dirNameContents, 'Info.plist'), 'w') {|f|
+	tmplInfoPlist.render(f)
+}
+pathNameLauncher = path.join(dirNameMacOS, launcherName)
+open(pathNameLauncher, 'w') {|f|
+	tmplLauncher.render(f)
+}
+fs.chmod('a+x', pathNameLauncher)
+fs.copy('gurashot.icns', dirNameResources)
+fs.copy(path.dir('', '*.gura', '*.guraw'), dirNameResources)
