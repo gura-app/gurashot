@@ -1,8 +1,20 @@
 #!/usr/bin/env gura
 
 launcherName = 'Gura Shot'
+version = '1.4.0'
+shortName = 'gurashot'
 fileNameScript = 'gurashot.guraw'
-fileNameIcon = 'gurashot.icns'
+fileNameMacIcon = 'gurashot.icns'
+baseName = format('%s-%s', shortName, version)
+fileNameDMG = baseName + '.dmg'
+fileNamesToCopy = [
+	'gurashot.guraw'
+	'gurashot.ico'
+	'gurashot.icns'
+	'resource.gura'
+	'translate.gura'
+	'README.txt'
+]
 
 //dirNameWork = path.join(sys.workdir, 'helper_setup_work')
 dirNameWork = 'helper_setup_work'
@@ -23,7 +35,7 @@ tmplInfoPlist = R'''
 	<key>CFBundleExecutable</key>
 	<string>${launcherName}</string>
 	<key>CFBundleIconFile</key>
-	<string>${fileNameIcon}</string>
+	<string>${fileNameMacIcon}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -43,5 +55,6 @@ open(pathNameLauncher, 'w') {|f|
 	tmplLauncher.render(f)
 }
 fs.chmod('a+x', pathNameLauncher)
-fs.copy('gurashot.icns', dirNameResources)
-fs.copy(path.dir('', '*.gura', '*.guraw'), dirNameResources)
+fs.copy(fileNamesToCopy, dirNameResources)
+path.exists(fileNameDMG) && fs.remove(fileNameDMG)
+os.exec('hdiutil', 'create', '-srcfolder', dirNameWork, '-volname', baseName, fileNameDMG)
