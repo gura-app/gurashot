@@ -35,6 +35,9 @@ execute(launcherName:string, version:string, versionGura:string,
 // Dialog
 //-----------------------------------------------------------------------------
 Dialog = class(wx.Dialog) {
+	public {
+		versionGura
+	}
 	[ID_CreateZIP, ID_CreateDMG] = wx.ID_HIGHEST..
 	__init__(title:string => caption) = {|nil, wx.ID_ANY, title|
 		outerBox = wx.BoxSizer(wx.VERTICAL)
@@ -243,6 +246,21 @@ Dialog = class(wx.Dialog) {
 //-----------------------------------------------------------------------------
 App = class(wx.App) {
 	OnInit() = {
+		parent = nil
+		[major, minor, patch] = Dialog.versionGura.split('.')::tonumber()
+		try {
+			sys.required_version(major, minor, patch)
+		} catch {
+			msg = R'''
+			Gura %d.%d.%d or later is required.
+			Latest version is available at the official site http://www.gura-lang.org/.
+			'''$ % [major, minor, patch]
+			wx.MessageDialog(parent, msg
+							 'Error', wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
+							 dlg.ShowModal()
+			}
+			return(false)
+		}
 		dlg = Dialog()
 		dlg.CentreOnScreen()
 		dlg.ShowModal()
@@ -268,6 +286,13 @@ transDicts = %{
 'Create &DMG file'						=> 'DMG ファイル作成'
 'ZIP file %s was created.'				=> 'ZIP ファイル %s を作成しました'
 'DMG file %s was created.'				=> 'DMG ファイル %s を作成しました'
+ R'''
+Gura %d.%d.%d or later is required.
+Latest version is available at the official site http://www.gura-lang.org/.
+''' => R'''
+Gura %d.%d.%d またはそれ以降のバージョンが必要です。
+最新版はオフィシャルサイト http://www.gura-lang.org/ で入手できます。 
+'''
 }
 }
 
