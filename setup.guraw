@@ -3,10 +3,12 @@ import(helper.setup)
 
 helper.setup.execute(
 	launcherName	=> 'Gura Shot'
-	version			=> '1.3.1'
+	version			=> '1.4.0'
+	versionGura		=> '0.6.0'
 	shortName		=> 'gurashot'
 	fileNameScript	=> 'gurashot.guraw'
 	fileNameIcon	=> 'gurashot.ico'
+	fileNameMacIcon	=> 'gurashot.icns'
 	fileNamesExtra	=> ['resource.gura', 'translate.gura', 'README.txt']
 	fileNamesClean	=> [path.join(sys.cfgdir, 'gurashot.yml')]
 )

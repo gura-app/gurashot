@@ -4,6 +4,7 @@
 // Copyright (C) 2014 ypsitau
 //=============================================================================
 import(wx)
+import(wx.utils)
 import(re)
 import(yaml)
 import(bmp)
@@ -3641,13 +3642,8 @@ AboutDialog = class(wx.Dialog) {
 //-----------------------------------------------------------------------------
 App = class(wx.App) {
 	OnInit() = {
-		if (!(sys.platform in [`mswin, `linux, `darwin])) {
-			wx.MessageDialog(nil, 'Unsupported platform: '$ + sys.platform,
-						'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
-				dlg.ShowModal()
-			}
-			return(false)
-		}
+		!wx.utils.CheckGuraVersion(nil, 0, 6, 0) && return(false)
+		!wx.utils.CheckGuraPlatform(nil, [`mswin, `linux, `darwin]) && return(false)
 		LoadConfig()
 		InitializeResource()
 		mainWindow = MainWindow('Gura Shot'$)
