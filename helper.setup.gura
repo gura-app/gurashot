@@ -12,10 +12,10 @@ caption = nil
 //-----------------------------------------------------------------------------
 // execute
 //-----------------------------------------------------------------------------
-execute(launcherName:string, version:string, versionGura:string,
-		shortName:string, fileNameScript:string,
-		fileNameIcon:string:nil, fileNameMacIcon:string:nil,
-		fileNamesExtra[]:string, fileNamesClean[]:string) = {
+execute(launcherName:string, version:string, shortName:string,
+		fileNameScript:string, fileNameIcon:string,
+		fileNamesExtra[]:string, fileNamesClean[]:string,
+		versionGura:string => '0.0.0', fileNameMacIcon?:string) = {
 	caption:extern = 'Gura Application Setup'$
 	Dialog.launcherName		= launcherName
 	Dialog.version			= version
