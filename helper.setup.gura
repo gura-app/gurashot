@@ -153,6 +153,7 @@ Dialog = class(wx.Dialog) {
 	GetFileNamesToCopy() = {
 		fileNamesToCopy = [fileNameScript]
 		fileNameIcon && fileNamesToCopy.append(fileNameIcon)
+		fileNameMacIcon && fileNamesToCopy.append(fileNameMacIcon)
 		fileNamesToCopy.append(fileNamesExtra)
 		fileNamesToCopy
 	}
@@ -160,6 +161,7 @@ Dialog = class(wx.Dialog) {
 		wx.Menu {|m|
 			m.Append(ID_CreateZIP, 'Create &ZIP file'$)
 			m.Append(ID_CreateDMG, 'Create &DMG file'$)
+			m.Enable(ID_CreateDMG, sys.platform == `darwin)
 			this.PopupMenu(m)
 		}
 	}
@@ -209,9 +211,54 @@ Dialog = class(wx.Dialog) {
 	}
 	OnMenu_CreateDMG(event:wx.CommandEvent) = {
 		baseName = format('%s-%s', shortName, version)
-		fileNameZIP = baseName + '.dmg'
+		fileNameDMG = baseName + '.dmg'
 		fileNamesToCopy = this.GetFileNamesToCopy()
-		
+		//dirNameWork = path.join(sys.workdir, 'helper_setup_work')
+		dirNameWork = 'helper_setup_work'
+		path.exists(dirNameWork) && fs.rmdir(dirNameWork):tree
+		fs.mkdir(dirNameWork)
+		os.symlink('/Applications', path.join(dirNameWork, 'Applications'))
+		dirNameContents = path.join(dirNameWork, launcherName + '.app', 'Contents')
+		fs.mkdir(dirNameContents):tree
+		dirNameMacOS = path.join(dirNameContents, 'MacOS')
+		dirNameResources = path.join(dirNameContents, 'Resources')
+		fs.mkdir(dirNameMacOS)
+		fs.mkdir(dirNameResources)
+		tmplInfoPlist = R'''
+		<?xml version="1.0" encoding="UTF-8"?>
+		<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+		<plist version="1.0">
+		<dict>
+		<key>CFBundleExecutable</key>
+		<string>${launcherName}</string>
+		<key>CFBundleIconFile</key>
+		<string>${fileNameMacIcon}</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		</dict>
+		</plist>
+		'''.template()
+		tmplLauncher = R'''
+		#!/bin/sh
+		gura "`dirname "$$0"`/../Resources/${fileNameScript}"
+		'''.template()
+		open(path.join(dirNameContents, 'Info.plist'), 'w') {|f|
+			tmplInfoPlist.render(f)
+		}
+		pathNameLauncher = path.join(dirNameMacOS, launcherName)
+		open(pathNameLauncher, 'w') {|f|
+			tmplLauncher.render(f)
+		}
+		fs.chmod('a+x', pathNameLauncher)
+		fs.copy(fileNamesToCopy, dirNameResources)
+		path.exists(fileNameDMG) && fs.remove(fileNameDMG)
+		os.exec('hdiutil', 'create', '-quiet', '-srcfolder', dirNameWork,
+				'-volname', baseName, fileNameDMG)
+		dlg = wx.MessageDialog(this, 'DMG file %s was created.'$ % fileNameDMG, caption,
+						wx.OK | wx.CENTRE | wx.ICON_INFORMATION)
+		dlg.ShowModal()
 	}
 	CreateShortcut_MSWin(dirNameDst:string) = {
 		import(mswin)
