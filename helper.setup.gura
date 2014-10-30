@@ -242,7 +242,15 @@ Dialog = class(wx.Dialog) {
 		'''.template()
 		tmplLauncher = R'''
 		#!/bin/sh
-		gura "`dirname "$$0"`/../Resources/${fileNameScript}"
+		dirNameCur=`dirname "$0"`
+		pathNameGura="$dirNameCur/../../../Gura.app/Contents/Resources/bin/gura"
+		if [ ! -e $pathNameGura ] ; then
+			pathNameGura="/Applications/Gura.app/Contents/Resources/bin/gura"
+			if [ ! -e $pathNameGura ] ; then
+				pathNameGura=gura
+			fi
+		fi
+		"$pathNameGura" "$dirNameCur/../Resources/${fileNameScript}"
 		'''.template()
 		open(path.join(dirNameContents, 'Info.plist'), 'w') {|f|
 			tmplInfoPlist.render(f)
