@@ -2769,8 +2769,9 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 						style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-						min => 10, max => htFrameMax, initial => layoutFrame.htFrame) {|ctrl|
+						min => 10, max => htFrameMax) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+					ctrl.SetValue(layoutFrame.htFrame)
 					this.spinFrameHeight = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
@@ -2795,8 +2796,9 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 						style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-						min => 10, max => wdFrameMax, initial => layoutFrame.wdFrame) {|ctrl|
+						min => 10, max => wdFrameMax) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+					ctrl.SetValue(layoutFrame.wdFrame)
 					this.spinFrameWidth = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
@@ -2826,9 +2828,9 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-							min => 0, max => 100,
-							initial => int(layoutFrame.htUpperMgn * 100 / layoutFrame.htFrame)) {|ctrl|
+							min => 0, max => 100) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+						ctrl.SetValue(int(layoutFrame.htUpperMgn * 100 / layoutFrame.htFrame))
 						this.spinPropUpperMgn = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
@@ -2852,9 +2854,9 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-							min => 1, max => 100,
-							initial => int(layoutFrame.htFacePart * 100 / layoutFrame.htFrame)) {|ctrl|
+							min => 1, max => 100) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+						ctrl.SetValue(int(layoutFrame.htFacePart * 100 / layoutFrame.htFrame))
 						this.spinPropFacePart = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
@@ -2882,9 +2884,9 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-							min => 0, max => htFrameMax,
-							initial => layoutFrame.htUpperMgn) {|ctrl|
+							min => 0, max => htFrameMax) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+						ctrl.SetValue(layoutFrame.htUpperMgn)
 						this.spinLengthUpperMgn = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
@@ -2909,9 +2911,9 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-							min => 1, max => htFrameMax,
-							initial => layoutFrame.htFacePart) {|ctrl|
+							min => 1, max => htFrameMax) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8).Centre())
+						ctrl.SetValue(layoutFrame.htFacePart)
 						this.spinLengthFacePart = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
@@ -2957,6 +2959,7 @@ LayoutFrameEditorDialog = class(wx.Dialog) {
 		this.Bind(wx.EVT_BUTTON, wx.ID_OK) {|event| this.OnButton_OK(event)}
 		this.Bind(wx.EVT_BUTTON, wx.ID_CANCEL) {|event| this.OnButton_CANCEL(event)}
 		outerBox.AddSpacer(8)
+		this.rbSettingByProportion.SetValue(true)
 		this.SetSizerAndFit(outerBox)
 		this.frostFrameFlagSaved = g.frostFrameFlag
 		g.frostFrameFlag = true
@@ -3064,8 +3067,9 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 						style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-						min => 0, max => 10, initial => 0) {|ctrl|
+						min => 0, max => 10) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
+					ctrl.SetValue(0)
 					this.spinEdgeMgn_Horizontal = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
@@ -3081,8 +3085,9 @@ OutputOptionDialog = class(wx.Dialog) {
 				}
 				wx.SpinCtrl(stb, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 						style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-						min => 0, max => 10, initial => 0) {|ctrl|
+						min => 0, max => 10) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Border(wx.LEFT, 8))
+					ctrl.SetValue(0)
 					this.spinEdgeMgn_Vertical = ctrl
 					ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 						// you can't use event.GetPosition() with Gura v0.5.1
@@ -3353,8 +3358,9 @@ PrintServiceDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_a) {|ctrl|
+							min => 0, max => nAdjLinesDrawn) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
+						ctrl.SetValue(this.nAdjLines_a)
 						this.spinAdjLines_a = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
@@ -3369,8 +3375,9 @@ PrintServiceDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_b) {|ctrl|
+							min => 0, max => nAdjLinesDrawn) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
+						ctrl.SetValue(this.nAdjLines_b)
 						this.spinAdjLines_b = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
@@ -3388,8 +3395,9 @@ PrintServiceDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_c) {|ctrl|
+							min => 0, max => nAdjLinesDrawn) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
+						ctrl.SetValue(this.nAdjLines_c)
 						this.spinAdjLines_c = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
@@ -3404,8 +3412,9 @@ PrintServiceDialog = class(wx.Dialog) {
 					}
 					wx.SpinCtrl(this, wx.ID_ANY, size => wx.Size(wdSpin, -1),
 							style => wx.ALIGN_CENTRE_HORIZONTAL | wx.SP_ARROW_KEYS,
-							min => 0, max => nAdjLinesDrawn, initial => this.nAdjLines_d) {|ctrl|
+							min => 0, max => nAdjLinesDrawn) {|ctrl|
 						hbox.Add(ctrl, wx.SizerFlags())
+						ctrl.SetValue(this.nAdjLines_d)
 						this.spinAdjLines_d = ctrl
 						ctrl.Bind(wx.EVT_SPINCTRL) {|event|
 							// you can't use event.GetPosition() with Gura v0.5.1
