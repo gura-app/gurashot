@@ -114,8 +114,8 @@ LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 			this.DrawTrimMark(cr, xSlot, ySlot, wdImage, htImage,
 								wdEdgeMgn, htEdgeMgn, wdTrimMark, htTrimMark)
 		} else { // trimMark == `none
-			this.DrawFaceImage(cr, xSlot, ySlot, pattern, wdImage, htImage,
-								wdImage, htImage, wdEdgeMgn, htEdgeMgn)
+			this.DrawFaceImage(cr, xSlot, ySlot, pattern,
+							   wdImage, htImage, wdEdgeMgn, htEdgeMgn)
 		}
 	}
 }
