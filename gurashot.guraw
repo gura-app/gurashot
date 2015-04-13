@@ -2233,7 +2233,8 @@ ImageListDialog = class(wx.Dialog) {
 		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.ALL, 2))
 		this.imgInfos = imgInfos
 		this.imgInfoCur = nil
-		wx.ListView(this, wx.ID_ANY, style => wx.LC_ICON | wx.LC_SINGLE_SEL | \
+		this.imgInfosSel = []
+		wx.ListView(this, wx.ID_ANY, style => wx.LC_ICON | \
 								wx.LC_AUTOARRANGE | wx.LC_EDIT_LABELS) {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags(1).Expand())
 			this.listCtrl = ctrl
@@ -2308,10 +2309,25 @@ ImageListDialog = class(wx.Dialog) {
 				wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED)
 		this.listCtrl.EnsureVisible(idxSel)
 	}
+	FinishSelection(idx:number) = {
+		idxImgInfo = this.listCtrl.GetItemData(idx)
+		this.imgInfoCur = this.imgInfos[idxImgInfo]
+		this.UpdateImageInfos()
+		this.UpdateImageInfosSel()
+		this.EndModal(wx.ID_OK)
+	}
 	GetImageInfos() = this.imgInfos
 	GetImageInfo() = this.imgInfoCur
+	GetImageInfosSel() = this.imgInfosSel
 	UpdateImageInfos() = {
 		this.imgInfos = repeat (this.listCtrl.GetItemCount()):list {|idx|
+			idxImgInfo = this.listCtrl.GetItemData(idx)
+			this.imgInfos[idxImgInfo]
+		}
+	}
+	UpdateImageInfosSel() = {
+		this.imgInfosSel = repeat (this.listCtrl.GetItemCount()):xlist {|idx|
+			!this.listCtrl.GetItemState(idx, wx.LIST_STATE_SELECTED) && continue
 			idxImgInfo = this.listCtrl.GetItemData(idx)
 			this.imgInfos[idxImgInfo]
 		}
@@ -2347,10 +2363,7 @@ ImageListDialog = class(wx.Dialog) {
 	}
 	OnButton_OK(event:wx.CommandEvent) = {
 		((idx = this.listCtrl.GetFirstSelected()) < 0) && return
-		idxImgInfo = this.listCtrl.GetItemData(idx)
-		this.imgInfoCur = this.imgInfos[idxImgInfo]
-		this.UpdateImageInfos()
-		this.EndModal(wx.ID_OK)
+		this.FinishSelection(idx)
 	}
 	OnButton_CANCEL(event:wx.CommandEvent) = {
 		this.UpdateImageInfos()
@@ -2365,10 +2378,7 @@ ImageListDialog = class(wx.Dialog) {
 	}
 	OnListItemActivated(event:wx.ListEvent) = {
 		((idx = event.GetIndex()) < 0) && return
-		idxImgInfo = this.listCtrl.GetItemData(idx)
-		this.imgInfoCur = this.imgInfos[idxImgInfo]
-		this.UpdateImageInfos()
-		this.EndModal(wx.ID_OK)
+		this.FinishSelection(idx)
 	}
 	OnListItemRightClick(event:wx.ListEvent) = {
 		wx.Menu() {|m|
