@@ -130,7 +130,7 @@ PrintServiceInfo = struct(printServiceName:string,
 //-----------------------------------------------------------------------------
 // PaperSize
 //-----------------------------------------------------------------------------
-PaperSize = struct(name:string, longSide:number, shortSide:number, printServiceFlag:boolean) {
+PaperSize = struct(name:string, longSide:number, shortSide:number, outputDest:symbol) {
 	margin:public = 5
 	GetWidth(orientation:symbol) = {
 		cond(orientation == `horizontal, this.longSide, this.shortSide)
@@ -161,6 +161,13 @@ PaperSize = struct(name:string, longSide:number, shortSide:number, printServiceF
 			`horizontal
 		} else {
 			`vertical
+		}
+	}
+	MakeMenuString() = {
+		if (this.outputDest == `File) {
+			format('%s', this.name)
+		} else {
+			format('%s (%d x %dmm)', this.name, this.shortSide, this.longSide)
 		}
 	}
 }
@@ -898,15 +905,17 @@ g = module {
 		paperSize_Hagaki:public
 		paperSize_Mutsugiri:public
 		paperSize_Yotsugiri:public
+		paperSize_ImageFile:public
 	] = @(PaperSize) {
-		{ 'L'$,				127,  89, true }
-		{ 'KG'$,			152, 102, false }
-		{ '2L'$,			178, 127, false }
-		{ 'A4'$,			297, 210, false }
-		{ 'A3'$,			420, 297, false }
-		{ 'Hagaki'$,		148, 100, false }
-		{ 'Mutsugiri'$,		254, 203, false }
-		{ 'Yotsugiri'$,		305, 254, false }
+		{ 'L'$,				127,  89, `PrinterAndPrintService	}
+		{ 'KG'$,			152, 102, `Printer					}
+		{ '2L'$,			178, 127, `Printer					}
+		{ 'A4'$,			297, 210, `Printer					}
+		{ 'A3'$,			420, 297, `Printer					}
+		{ 'Hagaki'$,		148, 100, `Printer					}
+		{ 'Mutsugiri'$,		254, 203, `Printer					}
+		{ 'Yotsugiri'$,		305, 254, `Printer					}
+		{ 'Image File'$,	100, 100, `File						}
 	}
 	cfg:public						= %{}
 	mainWindow:public				= nil
@@ -1657,8 +1666,7 @@ MainWindow = class(wx.Frame) {
 			tb.AddStretchableSpace()
 			wx.ComboBox(tb, ID_CB_PaperSize, size => wx.Size(200, -1), style => wx.CB_READONLY) {|ctrl|
 				tb.AddControl(ctrl, 'Paper Size')
-				ctrl.Append(format('%s (%d x %dmm)', g.paperSizeTbl:*name,
-							g.paperSizeTbl:*shortSide, g.paperSizeTbl:*longSide)):void
+				ctrl.Append(g.paperSizeTbl:*MakeMenuString()):void
 				ctrl.Select(g.paperSizeTbl.find(g.composerCustom.GetPaperSize()):index || 0)
 				this.cbPaperSize = ctrl
 				ctrl.Bind(wx.EVT_COMBOBOX) {|event| this.OnComboBox_PaperSize(event)}
@@ -1874,11 +1882,18 @@ MainWindow = class(wx.Frame) {
 		this.Bind(wx.EVT_UPDATE_UI,	ID_CenterGuide) {|event|
 			event.Check(g.centerGuideFlag)
 		}
+		this.Bind(wx.EVT_UPDATE_UI,	ID_OutputPDF) {|event|
+			event.Enable(g.composerCur.GetPaperSize().outputDest != `File)
+		}
+		this.Bind(wx.EVT_UPDATE_UI,	ID_LaunchPDFViewer) {|event|
+			event.Enable(g.composerCur.GetPaperSize().outputDest != `File)
+		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_OutputOption) {|event|
 			event.Check(this.dlgOutputOption.IsShown())
+			event.Enable(g.composerCur.GetPaperSize().outputDest != `File)
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_PrintService) {|event|
-			event.Enable(g.composerCur.GetPaperSize().printServiceFlag)
+			event.Enable(g.composerCur.GetPaperSize().outputDest == `PrinterAndPrintService)
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_CB_PaperSize) {|event|
 			event.Enable(this.noteBook.GetSelection() == PAGEIDX_LayoutFrameList)

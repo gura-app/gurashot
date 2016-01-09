@@ -76,6 +76,7 @@ transDicts = %{
 'Confirm'								=> '確認'
 'Original Name'							=> 'もとの名前'
 'Modified Name'							=> '変更する名前'
+'Image File'							=> 'イメージファイル'
 'L'										=> 'L版'
 'KG'									=> 'KG版'
 '2L'									=> '2L版'
