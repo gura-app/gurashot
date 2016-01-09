@@ -28,7 +28,7 @@ Version = '1.4.0'
 	ID_CB_PaperSize,
 	ID_OutputPDF, ID_LaunchPDFViewer, ID_PrintService,
 	ID_RotateL, ID_RotateR, ID_ColorAdjust, ID_TiltAdj,
-	ID_FrostFrame, ID_CenterGuide, ID_CopyExtractedImage, ID_SaveExtractedImage,
+	ID_FrostFrame, ID_CenterGuide, ID_CopyImageFile, ID_SaveImageFile,
 	ID_Label, ID_Remove, ID_RenameLabel,
 	ID_OutputOption,
 	ID_Adjust,
@@ -540,8 +540,9 @@ ComposerCustom = class(Composer) {
 			}
 			cr.show_text(text)
 		}
-		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-				this.layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
+		//imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+		//		this.layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
+		imgExtract = this.Extract(imgPhoto, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			[nx, ny] = this.layoutFrame.CalcImageGrid(wdCanvas, htCanvas, g.wdEdgeMgn, g.htEdgeMgn)
 			wdSlot = wdCanvas / nx
@@ -554,6 +555,10 @@ ComposerCustom = class(Composer) {
 					g.wdEdgeMgn, g.htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 			}
 		}
+	}
+	Extract(imgPhoto:image, wdEdgeMgn:number, htEdgeMgn:number) = {
+		g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn))
 	}
 }
 
@@ -1289,19 +1294,24 @@ ProductViewer = class(wx.Panel) {
 		[wdScreenMgn, htScreenMgn] = [8, 8]
 		orientation = g.composerCur.GetOrientation()
 		paperSize = g.composerCur.GetPaperSize()
-		wdCanvas = paperSize.GetCanvasWidth(orientation)
-		htCanvas = paperSize.GetCanvasHeight(orientation)
-		if (wdCanvas < htCanvas) {
-			wdImg = 400, htImg = int(wdImg * htCanvas / wdCanvas)
+		if (paperSize.outputDest == `File) {
+			wdImage = g.composerCur.GetLayoutFrame().wdFrame / 30 * 200
+			img = g.composerCur.Extract(g.imgInfoCur.imgPhotoLowRes, 0, 0).resize(wdImage)
 		} else {
-			htImg = 400, wdImg = int(htImg * wdCanvas / htCanvas)
-		}
-		img = image(`rgba, wdImg, htImg, `white)
-		if (!blankFlag) {
-			img.cairo {|cr|
-				scale = wdImg / wdCanvas
-				cr.scale(scale, scale)
-				g.composerCur.ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes)
+			wdCanvas = paperSize.GetCanvasWidth(orientation)
+			htCanvas = paperSize.GetCanvasHeight(orientation)
+			if (wdCanvas < htCanvas) {
+				wdImg = 400, htImg = int(wdImg * htCanvas / wdCanvas)
+			} else {
+				htImg = 400, wdImg = int(htImg * wdCanvas / htCanvas)
+			}
+			img = image(`rgba, wdImg, htImg, `white)
+			if (!blankFlag) {
+				img.cairo {|cr|
+					scale = wdImg / wdCanvas
+					cr.scale(scale, scale)
+					g.composerCur.ComposeProduct(cr, g.imgInfoCur.imgPhotoLowRes)
+				}
 			}
 		}
 		[wdClient, htClient] = this.GetClientSizeWH()
@@ -1820,8 +1830,8 @@ MainWindow = class(wx.Frame) {
 		this.Bind(wx.EVT_MENU, ID_FrostFrame)		{|event| this.OnMenu_FrostFrame(event)}
 		this.Bind(wx.EVT_MENU, ID_CenterGuide)		{|event| this.OnMenu_CenterGuide(event)}
 		this.Bind(wx.EVT_MENU, ID_OutputOption)		{|event| this.OnMenu_OutputOption(event)}
-		this.Bind(wx.EVT_MENU, ID_CopyExtractedImage) {|event| this.OnMenu_CopyExtractedImage(event)}
-		this.Bind(wx.EVT_MENU, ID_SaveExtractedImage) {|event| this.OnMenu_SaveExtractedImage(event)}
+		this.Bind(wx.EVT_MENU, ID_CopyImageFile)	{|event| this.OnMenu_CopyImageFile(event)}
+		this.Bind(wx.EVT_MENU, ID_SaveImageFile)	{|event| this.OnMenu_SaveImageFile(event)}
 		this.Bind(wx.EVT_MENU, wx.ID_ABOUT)			{|event| this.OnMenu_About(event)}
 		this.Bind(wx.EVT_SIZE) {|event|
 			wx.LayoutAlgorithm().LayoutWindow(this, this.productViewer)
@@ -1899,6 +1909,12 @@ MainWindow = class(wx.Frame) {
 		this.Bind(wx.EVT_UPDATE_UI,	ID_CB_PaperSize) {|event|
 			event.Enable(this.noteBook.GetSelection() == PAGEIDX_LayoutFrameList)
 		}
+		this.Bind(wx.EVT_UPDATE_UI,	ID_CopyImageFile) {|event|
+			event.Enable(g.composerCur.GetPaperSize().outputDest == `File)
+		}
+		this.Bind(wx.EVT_UPDATE_UI,	ID_SaveImageFile) {|event|
+			event.Enable(g.composerCur.GetPaperSize().outputDest == `File)
+		}
 	}
 	UpdateSizePosInfo() = {
 		(this.IsIconized() || this.IsMaximized()) && return
@@ -1937,9 +1953,6 @@ MainWindow = class(wx.Frame) {
 		m.AppendCheckItem(ID_TiltAdj,		'&Tilt Adjust&t\tCtrl-T'$)
 		m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
 		m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
-		m.AppendSeparator()
-		m.Append(ID_CopyExtractedImage,		'&Copy Extracted Image\tCtrl-C'$)
-		m.Append(ID_SaveExtractedImage,		'&Save Extracted Image...'$)
 	}
 	PrepareMenu_Output(m:wx.Menu) = {
 		m.AppendCheckItem(ID_OutputOption,	'&Output Option...'$)
@@ -1948,6 +1961,9 @@ MainWindow = class(wx.Frame) {
 		m.AppendEx(ID_LaunchPDFViewer,		'Launch PDF &Viewer...'$,	g.imgLaunchPDFViewer)
 		m.AppendSeparator()
 		m.AppendEx(ID_PrintService,			'&Print Service...'$,		g.imgPrintService)
+		m.AppendSeparator()
+		m.Append(ID_CopyImageFile,			'&Copy Image File\tCtrl-C'$)
+		m.Append(ID_SaveImageFile,			'&Save Image File...'$)
 	}
 	OnDropFiles(event:wx.DropFilesEvent) = {
 		fileNames = event.GetFiles()
@@ -2200,7 +2216,7 @@ MainWindow = class(wx.Frame) {
 		g.centerGuideFlag = event.IsChecked()
 		this.extractor.Refresh()
 	}
-	OnMenu_CopyExtractedImage(event:wx.CommandEvent) = {
+	OnMenu_CopyImageFile(event:wx.CommandEvent) = {
 		wx.BusyCursor {
 			imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes, g.composerCur.GetLayoutFrame(), 0, 0)
 			if (wx.TheClipboard.Open()) {
@@ -2209,7 +2225,7 @@ MainWindow = class(wx.Frame) {
 			}
 		}
 	}
-	OnMenu_SaveExtractedImage(event:wx.CommandEvent) = {
+	OnMenu_SaveImageFile(event:wx.CommandEvent) = {
 		filter = 'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif'$
 		dlg = wx.FileDialog(this, 'Specify an image file to save'$,
 							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
