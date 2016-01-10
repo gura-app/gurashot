@@ -1302,9 +1302,11 @@ ProductViewer = class(wx.Panel) {
 		[wdScreenMgn, htScreenMgn] = [8, 8]
 		orientation = g.composerCur.GetOrientation()
 		paperSize = g.composerCur.GetPaperSize()
+		htGuideSpace = 0
 		if (paperSize.outputDest == `File) {
 			wdImage = g.composerCur.GetLayoutFrame().wdFrame / 30 * 200
 			img = g.composerCur.Extract(g.imgInfoCur.imgPhotoLowRes, 0, 0).resize(wdImage)
+			htGuideSpace = 80
 		} else {
 			wdCanvas = paperSize.GetCanvasWidth(orientation)
 			htCanvas = paperSize.GetCanvasHeight(orientation)
@@ -1324,7 +1326,7 @@ ProductViewer = class(wx.Panel) {
 		}
 		[wdClient, htClient] = this.GetClientSizeWH()
 		wdScreen = max(wdClient, img.width + wdScreenMgn * 2)
-		htScreen = max(htClient, img.height + htScreenMgn * 2)
+		htScreen = max(htClient, img.height + htScreenMgn * 2 + htGuideSpace)
 		this.bmpScreen = wx.BitmapWH(wdScreen, htScreen)
 		wx.MemoryDC(this.bmpScreen) {|dc|
 			dc.SetBackground(this.brushBg)
@@ -1333,7 +1335,7 @@ ProductViewer = class(wx.Panel) {
 			dc.DrawBitmap(img, x, y, false)
 			if (paperSize.outputDest == `File) {
 				[wdCrop, htCrop] = CalcCropSize(g.imgInfoCur.imgPhotoHighRes,
-									   g.composerCur.GetLayoutFrame(), 0, 0)
+												g.composerCur.GetLayoutFrame(), 0, 0)
 				wdGuide = 14, wdSpace = 6
 				xLeft = x, xRight = x + img.width
 				yTop = y, yBottom = y + img.height
@@ -1347,12 +1349,13 @@ ProductViewer = class(wx.Panel) {
 							xRight + wdSpace + wdGuide, [yTop, yBottom])
 				dc.SetFont(this.font)
 				text = format('%d pixels'$, wdCrop)
+				htFont = this.font.GetPointSize()
 				[wdText, htText] = dc.GetTextExtent(text)
 				dc.DrawText(text, (xLeft + xRight - wdText) / 2,
-							yTop - (wdSpace + wdGuide / 2) - 20)
+							yTop - (wdSpace + wdGuide / 2) - (htFont + wdSpace))
 				text = format('%d pixels'$, htCrop)
 				[wdText, htText] = dc.GetTextExtent(text)
-				dc.DrawRotatedText(text, xRight + wdSpace + wdGuide / 2 + 2,
+				dc.DrawRotatedText(text, xRight + wdSpace + wdGuide / 2 + wdSpace,
 								   (yTop + yBottom + wdText) / 2, 90)
 			}
 		}
