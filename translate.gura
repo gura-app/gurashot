@@ -135,6 +135,7 @@ It will not delete the original file.''' => \
 'Frame Size'							=> 'フレームサイズ'
 'Height'								=> '高さ'
 'Width'									=> '幅'
+'%d pixels'								=> '%d ピクセル'
 'Setting by Proportion'					=> '比率による設定'
 'Setting by Length'						=> '長さによる設定'
 'Allocation of Upper Margin and Face Part' => '上マージンと顔部分の配分'

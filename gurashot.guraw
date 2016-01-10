@@ -1272,6 +1272,14 @@ ExtractImage(imgPhoto:image, layoutFrame:LayoutFrame, wdEdgeMgn:number, htEdgeMg
 	imgSrc.crop(xCrop, yCrop, wdCrop, htCrop)
 }
 
+CalcCropSize(imgPhoto:image, layoutFrame:LayoutFrame,
+			 wdEdgeMgn:number, htEdgeMgn:number) = {
+	f = g.imgInfoCur.CalcFrameCoord(
+			wx.Rect(0, 0, imgPhoto.width, imgPhoto.height), layoutFrame)
+	[wdDotMgn, htDotMgn] = f.height * [wdEdgeMgn, htEdgeMgn] / layoutFrame.htFrame
+	[f.width + wdDotMgn * 2, f.height + htDotMgn * 2]
+}
+
 //-----------------------------------------------------------------------------
 // ProductViewer
 //-----------------------------------------------------------------------------
@@ -1280,6 +1288,8 @@ ProductViewer = class(wx.Panel) {
 	__init__(parent:wx.Windowm, style:number) = {|parent, style => (style | wx.HSCROLL | wx.VSCROLL)|
 		this.bmpScreen = nil
 		this.brushBg = wx.Brush(wx.Colour(240, 240, 240), wx.BRUSHSTYLE_SOLID)
+		this.font = wx.Font(14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL,
+							wx.FONTWEIGHT_NORMAL)
 		// bind event handlers
 		this.Bind(wx.EVT_ERASE_BACKGROUND) { /* nothing to do */ }
 		this.Bind(wx.EVT_SIZE) {|event| this.OnSize(event)}
@@ -1321,6 +1331,30 @@ ProductViewer = class(wx.Panel) {
 			dc.Clear()
 			[x, y] = [(wdScreen - img.width) / 2, (htScreen - img.height) / 2]
 			dc.DrawBitmap(img, x, y, false)
+			if (paperSize.outputDest == `File) {
+				[wdCrop, htCrop] = CalcCropSize(g.imgInfoCur.imgPhotoHighRes,
+									   g.composerCur.GetLayoutFrame(), 0, 0)
+				wdGuide = 14, wdSpace = 6
+				xLeft = x, xRight = x + img.width
+				yTop = y, yBottom = y + img.height
+				dc.DrawLine(xLeft, yTop - (wdSpace + wdGuide / 2),
+							xRight, yTop - (wdSpace + wdGuide / 2))
+				dc.DrawLine([xLeft, xRight], yTop - wdSpace,
+							[xLeft, xRight], yTop - (wdSpace + wdGuide))
+				dc.DrawLine(xRight + (wdSpace + wdGuide / 2), yTop,
+							xRight + (wdSpace + wdGuide / 2), yBottom)
+				dc.DrawLine(xRight + wdSpace, [yTop, yBottom],
+							xRight + wdSpace + wdGuide, [yTop, yBottom])
+				dc.SetFont(this.font)
+				text = format('%d pixels'$, wdCrop)
+				[wdText, htText] = dc.GetTextExtent(text)
+				dc.DrawText(text, (xLeft + xRight - wdText) / 2,
+							yTop - (wdSpace + wdGuide / 2) - 20)
+				text = format('%d pixels'$, htCrop)
+				[wdText, htText] = dc.GetTextExtent(text)
+				dc.DrawRotatedText(text, xRight + wdSpace + wdGuide / 2 + 2,
+								   (yTop + yBottom + wdText) / 2, 90)
+			}
 		}
 		x = this.GetScrollPos(wx.HORIZONTAL)
 		y = this.GetScrollPos(wx.VERTICAL)
@@ -2216,7 +2250,8 @@ MainWindow = class(wx.Frame) {
 	}
 	OnMenu_CopyImageFile(event:wx.CommandEvent) = {
 		wx.BusyCursor {
-			imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes, g.composerCur.GetLayoutFrame(), 0, 0)
+			imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes,
+									  g.composerCur.GetLayoutFrame(), 0, 0)
 			if (wx.TheClipboard.Open()) {
 				wx.TheClipboard.SetData(wx.BitmapDataObject(imgExtract))
 				wx.TheClipboard.Close()
@@ -2231,7 +2266,8 @@ MainWindow = class(wx.Frame) {
 			fileName = dlg.GetPath()
 			try {
 				wx.BusyCursor {
-					imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes, g.composerCur.GetLayoutFrame(), 0, 0)
+					imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes,
+											  g.composerCur.GetLayoutFrame(), 0, 0)
 					imgExtract.write(fileName)
 				}
 			} catch {
