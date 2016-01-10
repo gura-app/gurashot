@@ -540,8 +540,6 @@ ComposerCustom = class(Composer) {
 			}
 			cr.show_text(text)
 		}
-		//imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-		//		this.layoutFrame, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box)
 		imgExtract = this.Extract(imgPhoto, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			[nx, ny] = this.layoutFrame.CalcImageGrid(wdCanvas, htCanvas, g.wdEdgeMgn, g.htEdgeMgn)
