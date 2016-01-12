@@ -28,7 +28,7 @@ Version = '1.4.0'
 	ID_CB_PaperSize,
 	ID_OutputPDF, ID_LaunchPDFViewer, ID_PrintService,
 	ID_RotateL, ID_RotateR, ID_ColorAdjust, ID_TiltAdj,
-	ID_FrostFrame, ID_CenterGuide, ID_CopyImageFile, ID_SaveImageFile,
+	ID_FrostFrame, ID_CenterGuide, ID_CopyTrimmedImageToClipboard, ID_SaveTrimmedImage,
 	ID_Label, ID_Remove, ID_RenameLabel,
 	ID_OutputOption,
 	ID_Adjust,
@@ -164,7 +164,7 @@ PaperSize = struct(name:string, longSide:number, shortSide:number, outputDest:sy
 		}
 	}
 	MakeMenuString() = {
-		if (this.outputDest == `File) {
+		if (this.outputDest == `ImageTrimming) {
 			format('%s', this.name)
 		} else {
 			format('%s (%d x %dmm)', this.name, this.shortSide, this.longSide)
@@ -910,15 +910,15 @@ g = module {
 		paperSize_Yotsugiri:public
 		paperSize_ImageFile:public
 	] = @(PaperSize) {
-		{ 'L'$,				127,  89, `PrinterAndPrintService	}
-		{ 'KG'$,			152, 102, `Printer					}
-		{ '2L'$,			178, 127, `Printer					}
-		{ 'A4'$,			297, 210, `Printer					}
-		{ 'A3'$,			420, 297, `Printer					}
-		{ 'Hagaki'$,		148, 100, `Printer					}
-		{ 'Mutsugiri'$,		254, 203, `Printer					}
-		{ 'Yotsugiri'$,		305, 254, `Printer					}
-		{ 'Image File'$,	100, 100, `File						}
+		{ 'L'$,					127,  89, `PrinterAndPrintService	}
+		{ 'KG'$,				152, 102, `Printer					}
+		{ '2L'$,				178, 127, `Printer					}
+		{ 'A4'$,				297, 210, `Printer					}
+		{ 'A3'$,				420, 297, `Printer					}
+		{ 'Hagaki'$,			148, 100, `Printer					}
+		{ 'Mutsugiri'$,			254, 203, `Printer					}
+		{ 'Yotsugiri'$,			305, 254, `Printer					}
+		{ 'Image Trimming'$,	100, 100, `ImageTrimming			}
 	}
 	cfg:public						= %{}
 	mainWindow:public				= nil
@@ -1303,7 +1303,7 @@ ProductViewer = class(wx.Panel) {
 		orientation = g.composerCur.GetOrientation()
 		paperSize = g.composerCur.GetPaperSize()
 		htGuideSpace = 0
-		if (paperSize.outputDest == `File) {
+		if (paperSize.outputDest == `ImageTrimming) {
 			wdImage = g.composerCur.GetLayoutFrame().wdFrame / 30 * 200
 			img = g.composerCur.Extract(g.imgInfoCur.imgPhotoLowRes, 0, 0).resize(wdImage)
 			htGuideSpace = 80
@@ -1333,7 +1333,7 @@ ProductViewer = class(wx.Panel) {
 			dc.Clear()
 			[x, y] = [(wdScreen - img.width) / 2, (htScreen - img.height) / 2]
 			dc.DrawBitmap(img, x, y, false)
-			if (paperSize.outputDest == `File) {
+			if (paperSize.outputDest == `ImageTrimming) {
 				[wdCrop, htCrop] = CalcCropSize(g.imgInfoCur.imgPhotoHighRes,
 												g.composerCur.GetLayoutFrame(), 0, 0)
 				wdGuide = 14, wdSpace = 6
@@ -1865,8 +1865,10 @@ MainWindow = class(wx.Frame) {
 		this.Bind(wx.EVT_MENU, ID_FrostFrame)		{|event| this.OnMenu_FrostFrame(event)}
 		this.Bind(wx.EVT_MENU, ID_CenterGuide)		{|event| this.OnMenu_CenterGuide(event)}
 		this.Bind(wx.EVT_MENU, ID_OutputOption)		{|event| this.OnMenu_OutputOption(event)}
-		this.Bind(wx.EVT_MENU, ID_CopyImageFile)	{|event| this.OnMenu_CopyImageFile(event)}
-		this.Bind(wx.EVT_MENU, ID_SaveImageFile)	{|event| this.OnMenu_SaveImageFile(event)}
+		this.Bind(wx.EVT_MENU, ID_CopyTrimmedImageToClipboard) \
+													{|event| this.OnMenu_CopyTrimmedImageToClipboard(event)}
+		this.Bind(wx.EVT_MENU, ID_SaveTrimmedImage) \
+													{|event| this.OnMenu_SaveTrimmedImage(event)}
 		this.Bind(wx.EVT_MENU, wx.ID_ABOUT)			{|event| this.OnMenu_About(event)}
 		this.Bind(wx.EVT_SIZE) {|event|
 			wx.LayoutAlgorithm().LayoutWindow(this, this.productViewer)
@@ -1929,14 +1931,14 @@ MainWindow = class(wx.Frame) {
 			event.Check(g.centerGuideFlag)
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_OutputPDF) {|event|
-			event.Enable(g.composerCur.GetPaperSize().outputDest != `File)
+			event.Enable(g.composerCur.GetPaperSize().outputDest != `ImageTrimming)
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_LaunchPDFViewer) {|event|
-			event.Enable(g.composerCur.GetPaperSize().outputDest != `File)
+			event.Enable(g.composerCur.GetPaperSize().outputDest != `ImageTrimming)
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_OutputOption) {|event|
 			event.Check(this.dlgOutputOption.IsShown())
-			event.Enable(g.composerCur.GetPaperSize().outputDest != `File)
+			event.Enable(g.composerCur.GetPaperSize().outputDest != `ImageTimming)
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_PrintService) {|event|
 			event.Enable(g.composerCur.GetPaperSize().outputDest == `PrinterAndPrintService)
@@ -1944,11 +1946,11 @@ MainWindow = class(wx.Frame) {
 		this.Bind(wx.EVT_UPDATE_UI,	ID_CB_PaperSize) {|event|
 			event.Enable(this.noteBook.GetSelection() == PAGEIDX_LayoutFrameList)
 		}
-		this.Bind(wx.EVT_UPDATE_UI,	ID_CopyImageFile) {|event|
-			event.Enable(g.composerCur.GetPaperSize().outputDest == `File)
+		this.Bind(wx.EVT_UPDATE_UI,	ID_CopyTrimmedImageToClipboard) {|event|
+			event.Enable(g.composerCur.GetPaperSize().outputDest == `ImageTrimming)
 		}
-		this.Bind(wx.EVT_UPDATE_UI,	ID_SaveImageFile) {|event|
-			event.Enable(g.composerCur.GetPaperSize().outputDest == `File)
+		this.Bind(wx.EVT_UPDATE_UI,	ID_SaveTrimmedImage) {|event|
+			event.Enable(g.composerCur.GetPaperSize().outputDest == `ImageTrimming)
 		}
 	}
 	UpdateSizePosInfo() = {
@@ -1997,8 +1999,9 @@ MainWindow = class(wx.Frame) {
 		m.AppendSeparator()
 		m.AppendEx(ID_PrintService,			'&Print Service...'$,		g.imgPrintService)
 		m.AppendSeparator()
-		m.Append(ID_CopyImageFile,			'&Copy Image File\tCtrl-C'$)
-		m.Append(ID_SaveImageFile,			'&Save Image File...'$)
+		m.Append(ID_CopyTrimmedImageToClipboard,
+				 							'&Copy Trimmed Image to Clipboard\tCtrl-C'$)
+		m.Append(ID_SaveTrimmedImage,		'&Save Trimmed Image...'$)
 	}
 	OnDropFiles(event:wx.DropFilesEvent) = {
 		fileNames = event.GetFiles()
@@ -2251,7 +2254,7 @@ MainWindow = class(wx.Frame) {
 		g.centerGuideFlag = event.IsChecked()
 		this.extractor.Refresh()
 	}
-	OnMenu_CopyImageFile(event:wx.CommandEvent) = {
+	OnMenu_CopyTrimmedImageToClipboard(event:wx.CommandEvent) = {
 		wx.BusyCursor {
 			imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes,
 									  g.composerCur.GetLayoutFrame(), 0, 0)
@@ -2261,10 +2264,13 @@ MainWindow = class(wx.Frame) {
 			}
 		}
 	}
-	OnMenu_SaveImageFile(event:wx.CommandEvent) = {
+	OnMenu_SaveTrimmedImage(event:wx.CommandEvent) = {
+		fileName = g.imgInfoCur.label
+		fileName += '-trim.jpg'
+		fileName = fileName.EscapeFileName()
 		filter = 'JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif'$
 		dlg = wx.FileDialog(this, 'Specify an image file to save'$,
-							'', '', filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+							'', fileName, filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileName = dlg.GetPath()
 			try {
