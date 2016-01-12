@@ -1288,7 +1288,7 @@ ProductViewer = class(wx.Panel) {
 	__init__(parent:wx.Windowm, style:number) = {|parent, style => (style | wx.HSCROLL | wx.VSCROLL)|
 		this.bmpScreen = nil
 		this.brushBg = wx.Brush(wx.Colour(240, 240, 240), wx.BRUSHSTYLE_SOLID)
-		this.font = wx.Font(14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL,
+		this.font = wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL,
 							wx.FONTWEIGHT_NORMAL)
 		// bind event handlers
 		this.Bind(wx.EVT_ERASE_BACKGROUND) { /* nothing to do */ }
