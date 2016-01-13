@@ -332,8 +332,8 @@ transDicts = %{
 'Copy files to the directory:'			=> 'ファイルを以下のディレクトリにコピーする:'
 'Create a desktop icon'					=> 'デスクトップアイコンを作成する'
 'Clean old configuration files etc.'	=> '古いコンフィグレーションファイルなどを消去する'
-'Create a start menu icon (Gura\\Application\\%s)' => \
-	'スタートメニューアイコンを作成する (Gura\\Application\\%s)'
+'Create a start menu icon (Gura\\Application\\%s)' \
+										=> 'スタートメニューアイコンを作成する (Gura\\Application\\%s)'
 'Setup has been done successfully.'		=> 'セットアップを完了しました'
 'Setup'									=> 'セットアップ'
 'Cancel'								=> 'キャンセル'
@@ -341,12 +341,12 @@ transDicts = %{
 'Create &DMG file'						=> 'DMG ファイル作成'
 'ZIP file %s was created.'				=> 'ZIP ファイル %s を作成しました'
 'DMG file %s was created.'				=> 'DMG ファイル %s を作成しました'
- R'''
+R'''
 Gura %d.%d.%d or later is required.
 Latest version is available at the official site http://www.gura-lang.org/.
 ''' => R'''
 Gura %d.%d.%d またはそれ以降のバージョンが必要です。
-最新版はオフィシャルサイト http://www.gura-lang.org/ で入手できます。 
+最新版はオフィシャルサイト http://www.gura-lang.org/ で入手できます。
 '''
 }
 }
