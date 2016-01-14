@@ -1,5 +1,127 @@
 #!/usr/bin/env gura
+import(cairo)
 import(png)
 import(msico)
+import(show)
 
-msico.content().addimage('_0047_ID.png').write('gurashot.ico')
+curve_rectangle(cr:cairo.context, x:number, y:number,
+				rect_width:number, rect_height:number, radius:number) = {
+    if (rect_width == 0 || rect_height == 0) {
+        return
+    }
+    [x0, y0] = [x, y]
+    [x1, y1] = [x + rect_width, y0 + rect_height]
+    if (rect_width / 2 < radius) {
+        if (rect_height / 2 < radius) {
+            cr.move_to(x0, (y0 + y1) / 2)
+            cr.curve_to(x0, y0, x0, y0, (x0 + x1) / 2, y0)
+            cr.curve_to(x1, y0, x1, y0, x1, (y0 + y1) / 2)
+            cr.curve_to(x1, y1, x1, y1, (x1 + x0) / 2, y1)
+            cr.curve_to(x0, y1, x0, y1, x0, (y0 + y1) / 2)
+        } else {
+            cr.move_to(x0, y0 + radius)
+            cr.curve_to(x0, y0, x0, y0, (x0 + x1) / 2, y0)
+            cr.curve_to(x1, y0, x1, y0, x1, y0 + radius)
+            cr.line_to(x1, y1 - radius)
+            cr.curve_to(x1, y1, x1, y1, (x1 + x0) / 2, y1)
+            cr.curve_to(x0, y1, x0, y1, x0, y1 - radius)
+        }
+    } else {
+        if (rect_height / 2 < radius) {
+            cr.move_to(x0, (y0 + y1) / 2)
+            cr.curve_to(x0, y0, x0, y0, x0 + radius, y0)
+            cr.line_to(x1 - radius, y0)
+            cr.curve_to(x1, y0, x1, y0, x1, (y0 + y1) / 2)
+            cr.curve_to(x1, y1, x1, y1, x1 - radius, y1)
+            cr.line_to(x0 + radius, y1)
+            cr.curve_to(x0, y1, x0, y1, x0, (y0 + y1) / 2)
+        } else {
+            cr.move_to(x0, y0 + radius)
+            cr.curve_to(x0, y0, x0, y0, x0 + radius, y0)
+            cr.line_to(x1 - radius, y0)
+            cr.curve_to(x1, y0, x1, y0, x1, y0 + radius)
+            cr.line_to(x1, y1 - radius)
+            cr.curve_to(x1, y1, x1, y1, x1 - radius, y1)
+            cr.line_to(x0 + radius, y1)
+            cr.curve_to(x0, y1, x0, y1, x0, y1 - radius)
+        }
+    }
+    cr.close_path()
+}
+CreateImage(width:number, height:number):map = {
+	img = image(`rgba, width, height, `white)
+	img.setalpha(0)
+	cr = img.cairo()
+	cr.scale(width / 100, height / 100)
+	scope { // card
+		curve_rectangle(cr, 5, 15, 90, 75, 20)
+		cr.set_source_rgb(.8, .8, .3)
+		cr.fill()
+	}
+	scope { // clip
+		curve_rectangle(cr, 42, 2, 16, 19, 6)
+		cr.set_source_rgb(.5, .5, .5)
+		cr.fill()
+	}
+	/*
+	scope { // photo-area
+		cr.rectangle(10, 24, 45, 60)
+		cr.set_source_rgb(1, 1, 1)
+		cr.set_line_width(1)
+		cr.stroke()
+	}
+	*/
+	scope { // face
+		cr.arc(33, 43, 14)
+		cr.set_source_rgb(.3, .3, .3)
+		cr.fill()
+	}
+	scope { // body
+		cr.arc(33, 80, 22, -math.pi, 0)
+		cr.set_source_rgb(.3, .3, .3)
+		cr.fill()
+	}
+	scope { // lines
+		repeat(4) {|i|
+			cr.move_to(60, i * 10 + 37)
+			cr.rel_line_to(28, 0)
+		}
+		cr.set_source_rgb(.5, .5, .5)
+		cr.set_line_width(5)
+		cr.stroke()
+	}
+	img
+}
+
+MakeIconForMS() = {
+	image64 = CreateImage(64, 64)
+	image32 = CreateImage(32, 32)
+	image16 = CreateImage(16, 16)
+	msico.content().addimage([image64, image32, image16]).write('../gurashot.ico')
+	println('gurashot.ico was created')
+}
+
+MakeIconForMac() = {
+	Entry = struct(size:number, fileName:string)
+	dirName = 'gurashot.iconset'
+	!path.exists(dirName) && fs.mkdir(dirName)
+	entries = @(Entry) {
+		[16,	'icon_16x16.png'		]
+		[32,	'icon_16x16@2x.png'		]
+		[32,	'icon_32x32.png'		]
+		[64,	'icon_32x32@2x.png'		]
+		[128,	'icon_128x128.png'		]
+		[256,	'icon_128x128@2x.png'	]
+		[256,	'icon_256x256.png'		]
+		[512,	'icon_256x256@2x.png'	]
+		[512,	'icon_512x512.png'		]
+		[1024,	'icon_512x512@2x.png'	]
+	}
+	CreateImage(entries:*size, entries:*size):& \
+		write(path.join(dirName, entries:*fileName)):void
+	os.exec('iconutil', '-c', 'icns', '-o', '../gurashot.icns', 'gurashot.iconset')
+	println('gurashot.icns was created')
+}
+
+MakeIconForMS()
+MakeIconForMac()
