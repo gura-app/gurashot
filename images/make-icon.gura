@@ -123,5 +123,11 @@ MakeIconForMac() = {
 	println('gurashot.icns was created')
 }
 
+MakePNG() = {
+	CreateImage(32, 32).write('gurashot-ico.png')
+	println('gurashot-ico.png was created')
+}
+
 MakeIconForMS()
 MakeIconForMac()
+MakePNG()
