@@ -1,3 +1,6 @@
-/*.zip
+*.zip
+*.dmg
 *~
 .DS_Store
+helper_setup_work/
+images/gurashot.iconset/
