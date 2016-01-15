@@ -152,10 +152,10 @@ Dialog = class(wx.Dialog) {
 	}
 	GetFileNamesToCopy(package:symbol) = {
 		fileNamesToCopy = [fileNameScript]
-		if (package in [`zip, `all]) {
+		if (package == `zip) {
 			fileNameIcon && fileNamesToCopy.append(fileNameIcon)
 		}
-		if (package in [`dmg, `all]) {
+		if (package == `dmg) {
 			fileNameMacIcon && fileNamesToCopy.append(fileNameMacIcon)
 		}
 		fileNamesToCopy.append(fileNamesExtra)
@@ -173,16 +173,14 @@ Dialog = class(wx.Dialog) {
 		dlg = nil
 		try {
 			fs.mkdir(dirNameDst):tree
-			fileNamesToCopy = this.GetFileNamesToCopy(`all)
+			fileNamesToCopy = this.GetFileNamesToCopy(`zip)
 			if (this.chkboxCopyFiles.GetValue()) {
 				pathNamesSrc = path.join(sys.maindir, fileNamesToCopy)
-				if (path.exists(pathNamesSrc)) {
-					pathNamesDst = path.join(dirNameDst, fileNamesToCopy)
-					stream.copy(pathNamesSrc, pathNamesDst):finalize
-					pathNamesExecutable = pathNamesDst.filter(
-							(pathNamesDst:*endswith(['.gura', '.guraw']):icase):*or())
-					fs.chmod('a+x', pathNamesExecutable)
-				}
+				pathNamesDst = path.join(dirNameDst, fileNamesToCopy)
+				stream.copy(pathNamesSrc, pathNamesDst):finalize
+				pathNamesExecutable = pathNamesDst.filter(
+						(pathNamesDst:*endswith(['.gura', '.guraw']):icase):*or())
+				fs.chmod('a+x', pathNamesExecutable)
 			} else {
 				dirNameDst = fs.getcwd()
 			}
