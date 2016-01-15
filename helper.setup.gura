@@ -150,10 +150,14 @@ Dialog = class(wx.Dialog) {
 			this.chkboxCleanFiles.GetValue() || \
 			this.chkboxStartMenuIcon.GetValue())
 	}
-	GetFileNamesToCopy() = {
+	GetFileNamesToCopy(package:symbol) = {
 		fileNamesToCopy = [fileNameScript]
-		fileNameIcon && fileNamesToCopy.append(fileNameIcon)
-		fileNameMacIcon && fileNamesToCopy.append(fileNameMacIcon)
+		if (package in [`zip, `all]) {
+			fileNameIcon && fileNamesToCopy.append(fileNameIcon)
+		}
+		if (package in [`dmg, `all]) {
+			fileNameMacIcon && fileNamesToCopy.append(fileNameMacIcon)
+		}
 		fileNamesToCopy.append(fileNamesExtra)
 		fileNamesToCopy
 	}
@@ -169,14 +173,16 @@ Dialog = class(wx.Dialog) {
 		dlg = nil
 		try {
 			fs.mkdir(dirNameDst):tree
-			fileNamesToCopy = this.GetFileNamesToCopy()
+			fileNamesToCopy = this.GetFileNamesToCopy(`all)
 			if (this.chkboxCopyFiles.GetValue()) {
 				pathNamesSrc = path.join(sys.maindir, fileNamesToCopy)
-				pathNamesDst = path.join(dirNameDst, fileNamesToCopy)
-				stream.copy(pathNamesSrc, pathNamesDst):finalize
-				pathNamesExecutable = pathNamesDst.filter(
-						(pathNamesDst:*endswith(['.gura', '.guraw']):icase):*or())
-				fs.chmod('a+x', pathNamesExecutable)
+				if (path.exists(pathNamesSrc)) {
+					pathNamesDst = path.join(dirNameDst, fileNamesToCopy)
+					stream.copy(pathNamesSrc, pathNamesDst):finalize
+					pathNamesExecutable = pathNamesDst.filter(
+							(pathNamesDst:*endswith(['.gura', '.guraw']):icase):*or())
+					fs.chmod('a+x', pathNamesExecutable)
+				}
 			} else {
 				dirNameDst = fs.getcwd()
 			}
@@ -200,7 +206,7 @@ Dialog = class(wx.Dialog) {
 	OnMenu_CreateZIP(event:wx.CommandEvent) = {
 		baseName = format('%s-%s', shortName, version)
 		fileNameZIP = baseName + '.zip'
-		fileNamesToCopy = this.GetFileNamesToCopy()
+		fileNamesToCopy = this.GetFileNamesToCopy(`zip)
 		fileNamesToCopy.append(path.filename(sys.argv[0]))
 		writer = zip.writer(fileNameZIP)
 		writer.add(fileNamesToCopy, baseName + '\\' + fileNamesToCopy):void
@@ -212,8 +218,7 @@ Dialog = class(wx.Dialog) {
 	OnMenu_CreateDMG(event:wx.CommandEvent) = {
 		baseName = format('%s-%s', shortName, version)
 		fileNameDMG = baseName + '.dmg'
-		fileNamesToCopy = this.GetFileNamesToCopy()
-		//dirNameWork = path.join(sys.workdir, 'helper_setup_work')
+		fileNamesToCopy = this.GetFileNamesToCopy(`dmg)
 		dirNameWork = 'helper_setup_work'
 		path.exists(dirNameWork) && fs.rmdir(dirNameWork):tree
 		fs.mkdir(dirNameWork)
