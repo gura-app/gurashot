@@ -55,22 +55,24 @@ CreateImage(width:number, height:number):map = {
 	cr.scale(width / 100, height / 100)
 	scope { // card
 		curve_rectangle(cr, 5, 15, 90, 75, 20)
-		cr.set_source_rgb(.8, .8, .3)
+		cairo.pattern.create_radial(50, 50, 20, 50, 50, 50) {|pat|
+			pat.add_color_stop_rgb(0, 1, 1, .8)
+			pat.add_color_stop_rgb(1, .8, .8, .3)
+			cr.set_source(pat)
+		}
+		//cr.set_source_rgb(.8, .8, .3)
 		cr.fill()
 	}
 	scope { // clip
 		curve_rectangle(cr, 42, 2, 16, 19, 6)
-		cr.set_source_rgb(.5, .5, .5)
+		cairo.pattern.create_linear(50, 0, 50, 20) {|pat|
+			pat.add_color_stop_rgb(0, .5, .5, .5)
+			pat.add_color_stop_rgb(1, .7, .7, .7)
+			cr.set_source(pat)
+		}
+		//cr.set_source_rgb(.5, .5, .5)
 		cr.fill()
 	}
-	/*
-	scope { // photo-area
-		cr.rectangle(10, 24, 45, 60)
-		cr.set_source_rgb(1, 1, 1)
-		cr.set_line_width(1)
-		cr.stroke()
-	}
-	*/
 	scope { // face
 		cr.arc(33, 43, 14)
 		cr.set_source_rgb(.3, .3, .3)
@@ -127,6 +129,8 @@ MakePNG() = {
 	CreateImage(32, 32).write('gurashot-ico.png')
 	println('gurashot-ico.png was created')
 }
+
+CreateImage(100, 100).show()
 
 MakeIconForMS()
 MakeIconForMac()
