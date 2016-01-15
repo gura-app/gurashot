@@ -25,9 +25,8 @@ transDicts = %{
 '&Tilt Adjust&t\tCtrl-T'				=> '傾き調整(&T)\tCtrl-T'
 '&Frost Frame'							=> 'フレーム表示(&F)'
 'C&enter Guide'							=> '中心ガイド(&E)'
-'&Copy Trimmed Image to Clipboard\tCtrl-C' \
-										=> '切り取り画像をクリップボードにコピー(&C)\tCtrl-C'
-'&Save Trimmed Image...'				=> '切り取り画像をセーブ(&S)...'
+'&Copy Trimmed Image\tCtrl-C'			=> '切り取り画像をコピー(&C)\tCtrl-C'
+'&Save Trimmed Image...'				=> '切り取り画像を保存(&S)...'
 '&Output'								=> '出力(&O)'
 '&Output Option...'						=> '出力設定(&O)...'
 'O&utput PDF...'						=> 'PDF出力(&U)...'

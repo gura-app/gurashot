@@ -1,7 +1,7 @@
 #!/usr/bin/env gura
 //=============================================================================
 // gurashot
-// Copyright (C) 2014 ypsitau
+// Copyright (C) 2014-2016 ypsitau
 //=============================================================================
 import(wx)
 import(wx.utils)
@@ -28,7 +28,7 @@ Version = '1.4.0'
 	ID_CB_PaperSize,
 	ID_OutputPDF, ID_LaunchPDFViewer, ID_PrintService,
 	ID_RotateL, ID_RotateR, ID_ColorAdjust, ID_TiltAdj,
-	ID_FrostFrame, ID_CenterGuide, ID_CopyTrimmedImageToClipboard, ID_SaveTrimmedImage,
+	ID_FrostFrame, ID_CenterGuide, ID_CopyTrimmedImage, ID_SaveTrimmedImage,
 	ID_Label, ID_Remove, ID_RenameLabel,
 	ID_OutputOption,
 	ID_Adjust,
@@ -1865,10 +1865,8 @@ MainWindow = class(wx.Frame) {
 		this.Bind(wx.EVT_MENU, ID_FrostFrame)		{|event| this.OnMenu_FrostFrame(event)}
 		this.Bind(wx.EVT_MENU, ID_CenterGuide)		{|event| this.OnMenu_CenterGuide(event)}
 		this.Bind(wx.EVT_MENU, ID_OutputOption)		{|event| this.OnMenu_OutputOption(event)}
-		this.Bind(wx.EVT_MENU, ID_CopyTrimmedImageToClipboard) \
-													{|event| this.OnMenu_CopyTrimmedImageToClipboard(event)}
-		this.Bind(wx.EVT_MENU, ID_SaveTrimmedImage) \
-													{|event| this.OnMenu_SaveTrimmedImage(event)}
+		this.Bind(wx.EVT_MENU, ID_CopyTrimmedImage)	{|event| this.OnMenu_CopyTrimmedImage(event)}
+		this.Bind(wx.EVT_MENU, ID_SaveTrimmedImage)	{|event| this.OnMenu_SaveTrimmedImage(event)}
 		this.Bind(wx.EVT_MENU, wx.ID_ABOUT)			{|event| this.OnMenu_About(event)}
 		this.Bind(wx.EVT_SIZE) {|event|
 			wx.LayoutAlgorithm().LayoutWindow(this, this.productViewer)
@@ -1946,7 +1944,7 @@ MainWindow = class(wx.Frame) {
 		this.Bind(wx.EVT_UPDATE_UI,	ID_CB_PaperSize) {|event|
 			event.Enable(this.noteBook.GetSelection() == PAGEIDX_LayoutFrameList)
 		}
-		this.Bind(wx.EVT_UPDATE_UI,	ID_CopyTrimmedImageToClipboard) {|event|
+		this.Bind(wx.EVT_UPDATE_UI,	ID_CopyTrimmedImage) {|event|
 			event.Enable(g.composerCur.GetPaperSize().outputDest == `ImageTrimming)
 		}
 		this.Bind(wx.EVT_UPDATE_UI,	ID_SaveTrimmedImage) {|event|
@@ -1999,8 +1997,7 @@ MainWindow = class(wx.Frame) {
 		m.AppendSeparator()
 		m.AppendEx(ID_PrintService,			'&Print Service...'$,		g.imgPrintService)
 		m.AppendSeparator()
-		m.Append(ID_CopyTrimmedImageToClipboard,
-				 							'&Copy Trimmed Image to Clipboard\tCtrl-C'$)
+		m.Append(ID_CopyTrimmedImage,		'&Copy Trimmed Image\tCtrl-C'$)
 		m.Append(ID_SaveTrimmedImage,		'&Save Trimmed Image...'$)
 	}
 	OnDropFiles(event:wx.DropFilesEvent) = {
@@ -2254,7 +2251,7 @@ MainWindow = class(wx.Frame) {
 		g.centerGuideFlag = event.IsChecked()
 		this.extractor.Refresh()
 	}
-	OnMenu_CopyTrimmedImageToClipboard(event:wx.CommandEvent) = {
+	OnMenu_CopyTrimmedImage(event:wx.CommandEvent) = {
 		wx.BusyCursor {
 			imgExtract = ExtractImage(g.imgInfoCur.imgPhotoHighRes,
 									  g.composerCur.GetLayoutFrame(), 0, 0)
@@ -3684,7 +3681,7 @@ AboutDialog = class(wx.Dialog) {
 		outerBox = wx.BoxSizer(wx.VERTICAL)
 		outerBox.AddSpacer(16)
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 32))
+		outerBox.Add(vbox, wx.SizerFlags(1).Expand().Border(wx.LEFT | wx.RIGHT, 48))
 		wx.BoxSizer(wx.HORIZONTAL) {|hbox|
 			vbox.Add(hbox, wx.SizerFlags().Centre())
 			wx.StaticBitmap(this, wx.ID_ANY, wx.NullBitmap) {|ctrl|
@@ -3707,7 +3704,7 @@ AboutDialog = class(wx.Dialog) {
 			}
 		}
 		vbox.AddSpacer(8)
-		wx.StaticText(this, wx.ID_ANY, 'Copyright (C) 2014 ypsitau') {|ctrl|
+		wx.StaticText(this, wx.ID_ANY, 'Copyright (C) 2014-2016 ypsitau') {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Centre())
 		}
 		vbox.AddSpacer(16)
