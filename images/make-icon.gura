@@ -64,8 +64,8 @@ CreateImage(width:number, height:number):map = {
 		cr.fill()
 	}
 	scope { // clip
-		curve_rectangle(cr, 42, 2, 16, 19, 6)
-		cairo.pattern.create_linear(50, 0, 50, 20) {|pat|
+		curve_rectangle(cr, 30, 5, 40, 15, 6)
+		cairo.pattern.create_linear(50, 0, 50, 15) {|pat|
 			pat.add_color_stop_rgb(0, .5, .5, .5)
 			pat.add_color_stop_rgb(1, .7, .7, .7)
 			cr.set_source(pat)
