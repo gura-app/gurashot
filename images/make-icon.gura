@@ -98,10 +98,10 @@ CreateImage(width:number, height:number):map = {
 MakeIconForMS() = {
 	image256 = CreateImage(256, 256)
 	image128 = CreateImage(128, 128)
-	image64 = CreateImage(64, 64)
+	image56 = CreateImage(56, 56)
 	image32 = CreateImage(32, 32)
 	image16 = CreateImage(16, 16)
-	msico.content().addimage([image256, image128, image64, image32, image16]).write('../gurashot.ico')
+	msico.content().addimage([image256, image128, image56, image32, image16]).write('../gurashot.ico')
 	println('gurashot.ico was created')
 }
 
