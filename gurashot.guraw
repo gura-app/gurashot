@@ -80,7 +80,7 @@ LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 		cr.line_to(x + wdFrameEx - wdEdgeMgn, yTrimB)
 		cr.stroke()
 	}
-	DrawFaceImage(cr:cairo.contet, xSlot:number, ySlot:number,
+	DrawFaceImage(cr:cairo.context, xSlot:number, ySlot:number,
 			pattern:cairo.pattern, wdImage:number, htImage:number,
 			wdEdgeMgn:number, htEdgeMgn:number) = {
 		rotateFlag = (this.wdFrame < this.htFrame && wdImage > htImage) || \
@@ -99,7 +99,7 @@ LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 			cr.paint()
 		}
 	}
-	DrawSlot(cr:cairo.contet, xSlot:number, ySlot:number,
+	DrawSlot(cr:cairo.context, xSlot:number, ySlot:number,
 			pattern:cairo.pattern, wdImage:number, htImage:number,
 			wdEdgeMgn:number, htEdgeMgn:number,
 			trimMark:symbol, wdTrimMark:number, htTrimMark:number) = {
@@ -1285,7 +1285,7 @@ CalcCropSize(imgPhoto:image, layoutFrame:LayoutFrame,
 //-----------------------------------------------------------------------------
 ProductViewer = class(wx.Panel) {
 	// constructor
-	__init__(parent:wx.Windowm, style:number) = {|parent, style => (style | wx.HSCROLL | wx.VSCROLL)|
+	__init__(parent:wx.Window, style:number) = {|parent, style => (style | wx.HSCROLL | wx.VSCROLL)|
 		this.bmpScreen = nil
 		this.brushBg = wx.Brush(wx.Colour(240, 240, 240), wx.BRUSHSTYLE_SOLID)
 		this.font = wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL,
@@ -1561,7 +1561,7 @@ Extractor = class(wx.Panel) {
 			}
 		}
 	}
-	OnMouseCaptureLost(event:wx.MouseCaptureLost) = {
+	OnMouseCaptureLost(event:wx.MouseCaptureLostEvent) = {
 		if (this.grabTgt) {
 			this.grabTgt = nil
 		}
@@ -2047,7 +2047,7 @@ MainWindow = class(wx.Frame) {
 			this.PopupMenu(m)
 		}
 	}
-	OnNotebookPageChanged(event:wx.BookCtrlEvent) = {
+	OnNotebookPageChanged(event:wx.BookCtrlBaseEvent) = {
 		pageIdx = event.GetSelection()
 		if (pageIdx == PAGEIDX_LayoutFrameList) {
 			g.composerCur = g.composerCustom
