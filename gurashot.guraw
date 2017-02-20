@@ -391,18 +391,30 @@ Composer = class {
 	GetPaperSize() = this.paperSize
 	GetLayoutFrame() = this.layoutFrame
 	GetOrientation() = this.orientation
-	ComposeProductPDF(fileName:string, imgPhoto:image) = {
-		cairo.create(cairo.pdf_surface.create(fileName,
-				units.mm$pt(this.paperSize.GetWidth(this.orientation)),
-				units.mm$pt(this.paperSize.GetHeight(this.orientation)))) {|cr|
-			scale = 72 / 25.4
-			cr.scale(scale, scale)
-			cr.translate(this.paperSize.margin, this.paperSize.margin)
-			this.ComposeProduct(cr, imgPhoto)
-			cr.show_page()
+	ComposeProductPDF(parent:wx.Window, fileName:string, imgPhoto:image) = {
+		try {
+			wx.BusyCursor {
+				cairo.create(cairo.pdf_surface.create(
+						fileName,
+						units.mm$pt(this.paperSize.GetWidth(this.orientation)),
+						units.mm$pt(this.paperSize.GetHeight(this.orientation)))) {|cr|
+					scale = 72 / 25.4
+					cr.scale(scale, scale)
+					cr.translate(this.paperSize.margin, this.paperSize.margin)
+					this.ComposeProduct(cr, imgPhoto)
+					cr.show_page()
+				}
+			}
+		} catch {
+			wx.MessageDialog(parent, 'Failed to save a PDF file'$,
+							 'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
+				dlg.ShowModal()
+			}
+			return(false)
 		}
+		true
 	}
-	ComposeProductForPrintService(fileName:string, imgPhoto:image,
+	ComposeProductForPrintService(parent:wx.Window, fileName:string, imgPhoto:image,
 			dpi:number, printServiceName:string, nAdjLinesDrawn:number,
 			nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
 		nAdjLinesLongSide = nAdjLines_c + nAdjLines_d
@@ -423,18 +435,28 @@ Composer = class {
 			[wdInner, htInner] = [shortSideInner, longSideInner]
 			[wdCanvas, htCanvas] = [shortSideCanvas, longSideCanvas]
 		}
-		
-		img = image(`rgba, wdOuter, htOuter, `white)
-		this.DrawAdjustLines(img, nAdjLinesDrawn, printServiceName,
-					nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
-		img.cairo {|cr|
-			cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
-			scale = wdInner / wdOuter * dpi / 25.4
-			cr.scale(scale, scale)
-			this.ComposeProduct(cr, imgPhoto)
-			cr.show_page()
+		try {
+			wx.BusyCursor {
+				img = image(`rgba, wdOuter, htOuter, `white)
+				this.DrawAdjustLines(img, nAdjLinesDrawn, printServiceName,
+									 nAdjLines_a, nAdjLines_b, nAdjLines_c, nAdjLines_d)
+				img.cairo {|cr|
+					cr.translate((wdOuter - wdCanvas) / 2, (htOuter - htCanvas) / 2)
+					scale = wdInner / wdOuter * dpi / 25.4
+					cr.scale(scale, scale)
+					this.ComposeProduct(cr, imgPhoto)
+					cr.show_page()
+				}
+				img.write(fileName)
+			}
+		} catch {
+			wx.MessageDialog(parent, 'Failed to save an image file'$,
+							 'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
+				dlg.ShowModal()
+			}
+			return(false)
 		}
-		img.write(fileName)
+		true
 	}
 	DrawAdjustLines(img:image, nAdjLinesDrawn:number, printServiceName:string,
 			nAdjLines_a:number, nAdjLines_b:number, nAdjLines_c:number, nAdjLines_d:number) = {
@@ -2159,11 +2181,11 @@ MainWindow = class(wx.Frame) {
 					dirName, fileName, filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		if (dlg.ShowModal() == wx.ID_OK) {
 			fileNamePDF = dlg.GetPath()
-			g.composerCur.ComposeProductPDF(fileNamePDF, g.imgInfoCur.imgPhotoHighRes)
+			g.composerCur.ComposeProductPDF(this, fileNamePDF, g.imgInfoCur.imgPhotoHighRes)
 		}
 	}
 	OnMenu_LaunchPDFViewer(event:wx.CommandEvent) = {
-		g.composerCur.ComposeProductPDF(g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes)
+		!g.composerCur.ComposeProductPDF(this, g.fileNameTmpPDF, g.imgInfoCur.imgPhotoHighRes) && return
 		if (!LaunchPDFViewer(g.fileNameTmpPDF)) {
 			wx.MessageDialog(this, 'Failed to launch PDF viewer'$,
 							'Error'$, wx.OK | wx.ICON_ERROR | wx.CENTRE) {|dlg|
@@ -2199,11 +2221,10 @@ MainWindow = class(wx.Frame) {
 					dirName, fileName, filter, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		(dlg.ShowModal() != wx.ID_OK) && return
 		fileName = dlg.GetPath()
-		wx.BusyCursor {
-			g.composerCur.ComposeProductForPrintService(fileName, g.imgInfoCur.imgPhotoHighRes, dpi,
-						g.printServiceName, nAdjLinesDrawn,
-						g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
-		}
+		g.composerCur.ComposeProductForPrintService(
+				this, fileName, g.imgInfoCur.imgPhotoHighRes, dpi,
+				g.printServiceName, nAdjLinesDrawn,
+				g.nAdjLines_a, g.nAdjLines_b, g.nAdjLines_c, g.nAdjLines_d)
 	}
 	OnMenu_RenameLabel(event:wx.CommandEvent) = {
 		dlg = RenameLabelDialog(this, g.imgInfoCur)
