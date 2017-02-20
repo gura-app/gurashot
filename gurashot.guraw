@@ -1693,8 +1693,8 @@ MainWindow = class(wx.Frame) {
 		wx.Menu {|m|
 			menuBar.Append(m, '&File'$)
 			m.AppendEx(ID_Open,			'&Open Image...\tCtrl-O'$,		g.imgOpen)
-			m.AppendEx(ID_Close,		'&Close Image\tCtrl-L'$,		g.imgClose)
-			m.AppendEx(ID_ShowList,		'&Show Image List...\tCtrl-S'$,	g.imgShowList)
+			m.AppendEx(ID_Close,		'&Close Image'$,				g.imgClose)
+			m.AppendEx(ID_ShowList,		'Show Image &List...'$,			g.imgShowList)
 			m.AppendEx(ID_Prev,			'&Previous\tLeft'$,				g.imgPrev)
 			m.AppendEx(ID_Next,			'&Next\tRight'$,				g.imgNext)
 			m.AppendSeparator()
@@ -2003,11 +2003,11 @@ MainWindow = class(wx.Frame) {
 	}
 	PrepareMenu_Image(m:wx.Menu) = {
 		m.AppendEx(ID_RenameLabel,			'&Rename Label...'$,		g.imgRenameLabel)
-		m.AppendEx(ID_RotateL,				'Rotate &Left\tCtrl-L'$,	g.imgRotateL)
-		m.AppendEx(ID_RotateR,				'Rotate R&ight\tCtrl-I'$,	g.imgRotateR)
+		m.AppendEx(ID_RotateL,				'Rotate &Left'$,			g.imgRotateL)
+		m.AppendEx(ID_RotateR,				'Rotate &Right'$,			g.imgRotateR)
 		m.AppendEx(ID_ColorAdjust,			'Color &Adjustment...'$,	g.imgColorAdjust)
 		m.AppendSeparator()
-		m.AppendCheckItem(ID_TiltAdj,		'&Tilt Adjust&t\tCtrl-T'$)
+		m.AppendCheckItem(ID_TiltAdj,		'&Tilt Adjust'$)
 		m.AppendCheckItem(ID_FrostFrame,	'&Frost Frame'$)
 		m.AppendCheckItem(ID_CenterGuide,	'C&enter Guide'$)
 	}
