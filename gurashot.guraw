@@ -2213,7 +2213,9 @@ MainWindow = class(wx.Frame) {
 		if (!g.imgInfoCur.label.isempty()) {
 			fileName += g.imgInfoCur.label
 		}
-		if (!g.printServiceName.isempty()) {
+		if (g.printServiceName.isempty()) {
+			fileName += '@print'
+		} else {
 			fields = g.printServiceName.split('|'):list
 			fileName += '@'
 			fileName += fields[0].strip()
