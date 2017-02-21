@@ -1284,13 +1284,10 @@ ExtractImage(imgPhoto:image, layoutFrame:LayoutFrame, wdEdgeMgn:number, htEdgeMg
 		[xCenter, yCenter] = [imgSrc.width / 2, imgSrc.height / 2]
 		imgSrc = imgSrc.rotate(angleAdj, `gray)
 		[xPivot, yPivot] = [f.xTop - xCenter, -f.yTop + yCenter]
-		matrix.rotation(angleAdj):deg {|m|
-			[yPivot, xPivot] = [
-				m[0][0] * yPivot + m[0][1] * xPivot,
-				m[1][0] * yPivot + m[1][1] * xPivot
-			]
-			//[yPivot, xPivot] = matrix.rotation(angleAdj):deg * [yPivot, xPivot]
-		}
+		cos = math.cos(angleAdj):deg
+		sin = math.sin(angleAdj):deg
+		[yPivot, xPivot] = [cos * yPivot - sin * xPivot, sin * yPivot + cos * xPivot]
+		//[yPivot, xPivot] = matrix.rotation(angleAdj):deg * [yPivot, xPivot]
 		[xPivot, yPivot] = [xPivot + imgSrc.width / 2, -yPivot + imgSrc.height / 2]
 	} else {
 		[xPivot, yPivot] = [f.xTop, f.yTop]
