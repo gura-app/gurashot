@@ -2022,7 +2022,7 @@ MainWindow = class(wx.Frame) {
 		m.AppendSeparator()
 		m.AppendEx(ID_PrintService,			'&Print Service...'$,		g.imgPrintService)
 		m.AppendSeparator()
-		m.Append(ID_CopyTrimmedImage,		'&Copy Trimmed Image\tCtrl-C'$)
+		m.Append(ID_CopyTrimmedImage,		'&Copy Trimmed Image'$)
 		m.Append(ID_SaveTrimmedImage,		'&Save Trimmed Image...'$)
 	}
 	OnDropFiles(event:wx.DropFilesEvent) = {
