@@ -2005,7 +2005,7 @@ MainWindow = class(wx.Frame) {
 		this.productViewer.UpdateContent(false)
 	}
 	PrepareMenu_Image(m:wx.Menu) = {
-		m.AppendEx(ID_RenameLabel,			'&Rename Label...'$,		g.imgRenameLabel)
+		m.AppendEx(ID_RenameLabel,			'Re&name Label...'$,		g.imgRenameLabel)
 		m.AppendEx(ID_RotateL,				'Rotate &Left'$,			g.imgRotateL)
 		m.AppendEx(ID_RotateR,				'Rotate &Right'$,			g.imgRotateR)
 		m.AppendEx(ID_ColorAdjust,			'Color &Adjustment...'$,	g.imgColorAdjust)
