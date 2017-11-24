@@ -18,7 +18,7 @@ import(resource)
 import(units)
 import(translate) {_}
 
-Version = '1.4.2a'
+Version = '1.4.3'
 
 //-----------------------------------------------------------------------------
 // Control ID
@@ -882,13 +882,13 @@ g = module {
 	imgColorTone:public		= I(resource.color_swatch_png)
 	imgPrintServiceAdjust:public = I(resource.print_service_adjust_png)
 	printServiceInfoTbl:public = @(PrintServiceInfo) {
-		{ 'Circle K Sunkus'$ +			' | SHARP MX-4500DS',		11, 10,  7, 10 }
-		{ 'Three F'$ +					' | SHARP MX-4500DS',		11, 10,  8,  8 }
-		{ 'Seven-Eleven Japan'$ +		' | Fuji Xerox',			10,  7,  7,  6 }
-		{ 'FamilyMart'$ +				' | SHARP MX-3610DS',		13, 12, 13, 12 }
-		{ 'LAWSON'$ +					' | SHARP MX-3610DS',		13, 12, 13, 12 }
-		{ 'FOTOLUSIO PrintRush'$ +		' | DNP',					13, 14, 12, 13 }
-		{ 'Mitsubishi Color Print'$ +	' | Mitsubishi Mikupuri',	11, 10,  7, 10 }
+		{ 'Circle K Sunkus'$ +				' | SHARP MX-4500DS',		11, 11,  8,  9 }
+		{ 'Three F (2017)'$ +				' | SHARP MX-4500DS',		11, 11,  8,  9 }
+		{ 'Seven-Eleven Japan (2017)'$ +	' | Fuji Xerox',			10, 11,  9, 10 }
+		{ 'FamilyMart (2017)'$ +			' | SHARP MX-3610DS',		13, 13, 13, 12 }
+		{ 'LAWSON (2017)'$ +				' | SHARP MX-3610DS',		13, 13, 13, 12 }
+		{ 'FOTOLUSIO PrintRush'$ +			' | DNP',					13, 14, 12, 13 }
+		{ 'Mitsubishi Color Print'$ +		' | Mitsubishi Mikupuri',	11, 10,  7, 10 }
 	}
 	layoutFrameTbl:public = [
 		layoutFrame_30x24:public
