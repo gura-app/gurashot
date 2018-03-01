@@ -1,7 +1,7 @@
 #!/usr/bin/env gura
 //=============================================================================
 // gurashot
-// Copyright (C) 2014-2017 ypsitau
+// Copyright (C) 2014-2018 ypsitau
 //=============================================================================
 import(wx)
 import(wx.utils)
@@ -70,14 +70,10 @@ LayoutFrame = struct(purpose:string, htFrame:number, wdFrame:number,
 		xTrimR = x + wdFrameEx + wdTrimMark
 		yTrimT = y - htTrimMark
 		yTrimB = y + htFrameEx + htTrimMark
-		cr.move_to(xTrimL, y + htEdgeMgn)
-		cr.line_to(xTrimR, y + htEdgeMgn)
-		cr.move_to(xTrimL, y + htFrameEx - htEdgeMgn)
-		cr.line_to(xTrimR, y + htFrameEx - htEdgeMgn)
-		cr.move_to(x + wdEdgeMgn, yTrimT)
-		cr.line_to(x + wdEdgeMgn, yTrimB)
-		cr.move_to(x + wdFrameEx - wdEdgeMgn, yTrimT)
-		cr.line_to(x + wdFrameEx - wdEdgeMgn, yTrimB)
+		cr.move_to(xTrimL, y + htEdgeMgn).line_to(xTrimR, y + htEdgeMgn)
+		cr.move_to(xTrimL, y + htFrameEx - htEdgeMgn).line_to(xTrimR, y + htFrameEx - htEdgeMgn)
+		cr.move_to(x + wdEdgeMgn, yTrimT).line_to(x + wdEdgeMgn, yTrimB)
+		cr.move_to(x + wdFrameEx - wdEdgeMgn, yTrimT).line_to(x + wdFrameEx - wdEdgeMgn, yTrimB)
 		cr.stroke()
 	}
 	DrawFaceImage(cr:cairo.context, xSlot:number, ySlot:number,
@@ -305,8 +301,7 @@ ImageInfo = class {
 		yBtm = rcImg.y + rcImg.height * (this.yrateBtm + yrateDiff * htBtm / layoutFrame.htFacePart)
 		height = math.sqrt((xBtm - xTop) ** 2 + (yBtm - yTop) ** 2)
 		width = height * layoutFrame.wdFrame / layoutFrame.htFrame
-		FrameCoord(xMarkTop, xMarkBtm, yMarkTop, yMarkBtm,
-										xTop, xBtm, yTop, yBtm, width, height)
+		FrameCoord(xMarkTop, xMarkBtm, yMarkTop, yMarkBtm, xTop, xBtm, yTop, yBtm, width, height)
 	}
 	MakeImageLabel() = {
 		if (this.fileName.isempty()) {
