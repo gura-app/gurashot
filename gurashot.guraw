@@ -557,7 +557,8 @@ ComposerCustom = class(Composer) {
 			}
 			cr.show_text(text)
 		}
-		imgExtract = this.Extract(imgPhoto, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box
+		//imgExtract = this.Extract(imgPhoto, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box
+		imgExtract = this.Extract(imgPhoto, g.wdEdgeMgn, g.htEdgeMgn)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			[nx, ny] = this.layoutFrame.CalcImageGrid(wdCanvas, htCanvas, g.wdEdgeMgn, g.htEdgeMgn)
 			wdSlot = wdCanvas / nx
@@ -617,8 +618,10 @@ Composer_40x30_30x30 = class(ComposerDesigned) {
 		wdCanvas = this.paperSize.GetCanvasWidth(this.orientation)
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - 1, true)
-		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		//imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+		//		this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn))
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			this.layoutFrame.DrawSlot(cr, 18, 23, pattern,
 					imgExtract.width, imgExtract.height,
@@ -630,8 +633,10 @@ Composer_40x30_30x30 = class(ComposerDesigned) {
 					imgExtract.width, imgExtract.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
-		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
-				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box))
+		//imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+		//		this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box))
+		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrameSub, wdEdgeMgn, htEdgeMgn))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 18, 61, pattern,
 					imgExtractSub.width, imgExtractSub.height,
@@ -659,8 +664,10 @@ Composer_40x30_30x24 = class(ComposerDesigned) {
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false)
-		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		//imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+		//		this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn))
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			this.layoutFrame.DrawSlot(cr, 18, 23, pattern,
 					imgExtract.width, imgExtract.height,
@@ -672,8 +679,10 @@ Composer_40x30_30x24 = class(ComposerDesigned) {
 					imgExtract.width, imgExtract.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
-		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
-				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		//imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+		//		this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).rotate(270))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 18, 61, pattern,
 					imgExtractSub.width, imgExtractSub.height,
@@ -700,8 +709,10 @@ Composer_40x30_30x25 = class(ComposerDesigned) {
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		this.DrawDesignedTitle(cr, 0, 47.5, false)
-		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		//imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+		//		this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn))
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			this.layoutFrame.DrawSlot(cr, 18, 22.5, pattern,
 					imgExtract.width, imgExtract.height,
@@ -713,8 +724,10 @@ Composer_40x30_30x25 = class(ComposerDesigned) {
 					imgExtract.width, imgExtract.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
-		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
-				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		//imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+		//		this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).rotate(270))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 18, 63.5, pattern,
 					imgExtractSub.width, imgExtractSub.height,
@@ -723,8 +736,10 @@ Composer_40x30_30x25 = class(ComposerDesigned) {
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
-		imgExtract = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
-				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		//imgExtract = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+		//		this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn).rotate(270))
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			this.layoutFrame.DrawSlot(cr, 94, 61, pattern,
 					imgExtract.width, imgExtract.height,
@@ -747,8 +762,10 @@ Composer_45x35_30x24 = class(ComposerDesigned) {
 		wdCanvas = this.paperSize.GetCanvasWidth(this.orientation)
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - 1, true)
-		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		//imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+		//		this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn))
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			this.layoutFrame.DrawSlot(cr, 20.5, 25.5, pattern,
 					imgExtract.width, imgExtract.height,
@@ -757,8 +774,10 @@ Composer_45x35_30x24 = class(ComposerDesigned) {
 					imgExtract.width, imgExtract.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
-		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		//imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+		//		this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrameSub, wdEdgeMgn, htEdgeMgn))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 97, 18, pattern,
 					imgExtractSub.width, imgExtractSub.height,
@@ -767,8 +786,10 @@ Composer_45x35_30x24 = class(ComposerDesigned) {
 					imgExtractSub.width, imgExtractSub.height,
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
-		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
-				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		//imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+		//		this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box).rotate(270))
+		imgExtractSub = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).rotate(270))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 18, 64, pattern,
 					imgExtractSub.width, imgExtractSub.height,
@@ -793,8 +814,10 @@ Composer_Aone = class(ComposerDesigned) {
 		wdCanvas = this.paperSize.GetCanvasWidth(this.orientation)
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - .5, true, false)
-		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		//imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+		//		this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn))
 		cross(ix in range(3), iy in range(2)) {
 			xSlot = 24 + 30 / 2 + (30 + 5) * ix - this.paperSize.margin
 			ySlot = 7.5 + 40 / 2 + (40 + 5) * iy - this.paperSize.margin
@@ -818,8 +841,10 @@ Composer_Hisago_CJx66 = class(ComposerDesigned) {
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false, false)
-		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		//imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+		//		this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn))
 		cross(ix in range(2), iy in range(3)) {
 			xSlot = 16 + 30 / 2 + (30 + 8) * ix - this.paperSize.margin
 			ySlot = 6 + 40 / 2 + (40 + 3) * iy - this.paperSize.margin
@@ -843,8 +868,10 @@ Composer_Hisago_CJ883 = class(ComposerDesigned) {
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false, false)
-		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
-				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		//imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+		//		this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(
+				imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn))
 		cross(ix in range(3), iy in range(3)) {
 			xSlot = 7.5 + 25 / 2 + (25 + 5) * ix - this.paperSize.margin
 			ySlot = 24 + 30 / 2 + (30 + 5) * iy - this.paperSize.margin
