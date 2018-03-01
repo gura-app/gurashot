@@ -903,7 +903,7 @@ g = module {
 	] = @(LayoutFrame) {
 		{ 'Driver\'s License, etc.'$,				30, 24, 2, 23, false }
 		{ 'Unemployment Insurance, etc.'$,			30, 25, 2, 23, false }
-		{ 'Qualifications'$,						30, 30, 2, 23, false }
+		{ 'Qualifications'$,						30, 30, 2, 26, false }
 		{ 'Qualifications'$,						35, 24, 2, 26, false }
 		{ 'Qualifications'$,						36, 24, 2, 27, false }
 		{ 'Qualifications'$,						36, 25, 2, 27, false }
