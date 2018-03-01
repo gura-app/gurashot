@@ -604,12 +604,13 @@ ComposerDesigned = class(Composer) {
 }
 
 //-----------------------------------------------------------------------------
-// Composer_ResumeAndDriversLicense
+// Composer_40x30_30x24
 //-----------------------------------------------------------------------------
-Composer_ResumeAndDriversLicense = class(ComposerDesigned) {
+Composer_40x30_30x24 = class(ComposerDesigned) {
 	wdEdgeMgn = 1
 	htEdgeMgn = 1
-	__init__() = {|'Resume and Driver\'s License'$, g.paperSize_L, g.layoutFrame_40x30, `horizontal|
+	__init__() = {|'[40 x 30mm] & [30 x 24mm]'$,
+				   g.paperSize_L, g.layoutFrame_40x30, `horizontal|
 		this.layoutFrameSub = g.layoutFrame_30x24
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
@@ -645,12 +646,13 @@ Composer_ResumeAndDriversLicense = class(ComposerDesigned) {
 }
 
 //-----------------------------------------------------------------------------
-// Composer_ResumeAndUnemploymentInsurance
+// Composer_40x30_30x25
 //-----------------------------------------------------------------------------
-Composer_ResumeAndUnemploymentInsurance = class(ComposerDesigned) {
+Composer_40x30_30x25 = class(ComposerDesigned) {
 	wdEdgeMgn = .5
 	htEdgeMgn = .5
-	__init__() = {|'Resume and Unemployment Insutance'$, g.paperSize_L, g.layoutFrame_40x30, `horizontal|
+	__init__() = {|'[40 x 30mm] & [30 x 25mm]'$,
+				   g.paperSize_L, g.layoutFrame_40x30, `horizontal|
 		this.layoutFrameSub = g.layoutFrame_30x25
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
@@ -689,12 +691,13 @@ Composer_ResumeAndUnemploymentInsurance = class(ComposerDesigned) {
 }
 
 //-----------------------------------------------------------------------------
-// Composer_PassportAndDriversLicense
+// Composer_45x35_30x24
 //-----------------------------------------------------------------------------
-Composer_PassportAndDriversLicense = class(ComposerDesigned) {
+Composer_45x35_30x24 = class(ComposerDesigned) {
 	wdEdgeMgn = 1
 	htEdgeMgn = 1
-	__init__() = {|'Passport and Driver\'s License'$, g.paperSize_L, g.layoutFrame_45x35, `horizontal|
+	__init__() = {|'[45 x 35mm] & [30 x 24mm]'$,
+				   g.paperSize_L, g.layoutFrame_45x35, `horizontal|
 		this.layoutFrameSub = g.layoutFrame_30x24
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
@@ -993,9 +996,9 @@ g = module {
 g.composerCustom = ComposerCustom(g.paperSizeTbl[0], g.layoutFrameTbl[0], `auto)
 g.composerCur = g.composerCustom
 g.composerTbl = [
-	Composer_ResumeAndDriversLicense()
-	Composer_ResumeAndUnemploymentInsurance()
-	Composer_PassportAndDriversLicense()
+	Composer_40x30_30x24()
+	Composer_40x30_30x25()
+	Composer_45x35_30x24()
 	Composer_Aone()
 	Composer_Hisago_CJx66()
 	Composer_Hisago_CJ883()
