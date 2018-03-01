@@ -604,6 +604,49 @@ ComposerDesigned = class(Composer) {
 }
 
 //-----------------------------------------------------------------------------
+// Composer_40x30_30x30
+//-----------------------------------------------------------------------------
+Composer_40x30_30x30 = class(ComposerDesigned) {
+	wdEdgeMgn = 1
+	htEdgeMgn = 1
+	__init__() = {|'[40 x 30mm] & [30 x 30mm]'$,
+				   g.paperSize_L, g.layoutFrame_40x30, `horizontal|
+		this.layoutFrameSub = g.layoutFrame_30x30
+	}
+	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
+		wdCanvas = this.paperSize.GetCanvasWidth(this.orientation)
+		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
+		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - 1, true)
+		imgExtract = g.imgInfoCur.AdjustColor(ExtractImage(imgPhoto,
+				this.layoutFrame, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box)
+		cairo.pattern.create_for_surface(imgExtract) {|pattern|
+			this.layoutFrame.DrawSlot(cr, 18, 23, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrame.DrawSlot(cr, 18 + 38, 23, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrame.DrawSlot(cr, 18 + 38 * 2, 23, pattern,
+					imgExtract.width, imgExtract.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+		}
+		imgExtractSub = g.imgInfoCur.AdjustColor((ExtractImage(imgPhoto,
+				this.layoutFrameSub, wdEdgeMgn, htEdgeMgn).thumbnail(1000):box))
+		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
+			this.layoutFrameSub.DrawSlot(cr, 18, 61, pattern,
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrameSub.DrawSlot(cr, 18 + 38, 61, pattern,
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+			this.layoutFrameSub.DrawSlot(cr, 18 + 38 * 2, 61, pattern,
+					imgExtractSub.width, imgExtractSub.height,
+					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
 // Composer_40x30_30x24
 //-----------------------------------------------------------------------------
 Composer_40x30_30x24 = class(ComposerDesigned) {
@@ -996,6 +1039,7 @@ g = module {
 g.composerCustom = ComposerCustom(g.paperSizeTbl[0], g.layoutFrameTbl[0], `auto)
 g.composerCur = g.composerCustom
 g.composerTbl = [
+	Composer_40x30_30x30()
 	Composer_40x30_30x24()
 	Composer_40x30_30x25()
 	Composer_45x35_30x24()
