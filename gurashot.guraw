@@ -589,7 +589,11 @@ ComposerDesigned = class(Composer) {
 	DrawDesignedTitle(cr:cairo.context, x:number, y:number,
 						rotateFlag:boolean, purposeFlag:boolean => true) = {
 		cr.save {
-			text = this.name
+			if (this.name.startswith('[')) {
+				text = this.name
+			} else {
+				text = '[' + this.name + ']'
+			}
 			if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
 				text += ' '
 				text += g.imgInfoCur.label
@@ -794,7 +798,7 @@ Composer_45x35_30x24 = class(ComposerDesigned) {
 Composer_Aone = class(ComposerDesigned) {
 	wdEdgeMgn = 5 / 2
 	htEdgeMgn = 5 / 2
-	__init__() = {|'A-one Printer Label'$ + ' 29603/29613',
+	__init__() = {|'A-one'$ + ' 29603/29613',
 					g.paperSize_Hagaki, g.layoutFrame_40x30, `horizontal|
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
@@ -821,7 +825,7 @@ Composer_Aone = class(ComposerDesigned) {
 Composer_Hisago_CJx66 = class(ComposerDesigned) {
 	wdEdgeMgn = 1
 	htEdgeMgn = 1
-	__init__() = {|'Hisago ID-Picture-Sized Sticker'$ + ' CJ766S/CJ866NS',
+	__init__() = {|'Hisago'$ + ' CJ766S/CJ866NS',
 					g.paperSize_Hagaki, g.layoutFrame_40x30, `vertical|
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
@@ -847,7 +851,7 @@ Composer_Hisago_CJx66 = class(ComposerDesigned) {
 Composer_Hisago_CJ883 = class(ComposerDesigned) {
 	wdEdgeMgn = 2
 	htEdgeMgn = 2
-	__init__() = {|'Hisago Stamp Sticker'$ + ' CJ883S',
+	__init__() = {|'Hisago'$ + ' CJ883S',
 					g.paperSize_Hagaki, g.layoutFrame_30x25, `vertical|
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
