@@ -545,15 +545,18 @@ ComposerCustom = class(Composer) {
 			cr.move_to(0, htCanvas - 1)
 			text = ''
 			if (g.titleDispFlag_Size) {
-				text += format('[%d x %dmm]', this.layoutFrame.htFrame, this.layoutFrame.wdFrame)
+				text += format('%d x %dmm', this.layoutFrame.htFrame, this.layoutFrame.wdFrame)
+			}
+			if (g.titleDispFlag_Purpose && !this.layoutFrame.purpose.isempty()) {
+				if (!text.isempty()) { text += ' ' }
+				text += this.layoutFrame.purpose
+			}
+			if (!text.isempty()) {
+				text = '[' + text + ']'
 			}
 			if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
 				if (!text.isempty()) { text += ' ' }
 				text += g.imgInfoCur.label
-			}
-			if (g.titleDispFlag_Purpose && !this.layoutFrame.purpose.isempty()) {
-				if (!text.isempty()) { text += ' ' }
-				text += format('for %s', this.layoutFrame.purpose)
 			}
 			cr.show_text(text)
 		}
@@ -586,13 +589,10 @@ ComposerDesigned = class(Composer) {
 	DrawDesignedTitle(cr:cairo.context, x:number, y:number,
 						rotateFlag:boolean, purposeFlag:boolean => true) = {
 		cr.save {
-			text = ''
+			text = this.name
 			if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
+				text += ' '
 				text += g.imgInfoCur.label
-			}
-			if (purposeFlag && g.titleDispFlag_Purpose && !this.layoutFrame.purpose.isempty()) {
-				if (!text.isempty()) { text += ' ' }
-				text += format('for %s', this.name)
 			}
 			cr.translate(x, y)
 			rotateFlag && cr.rotate(-math.pi / 2)
