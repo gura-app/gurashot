@@ -586,18 +586,22 @@ ComposerCustom = class(Composer) {
 // ComposerDesigned
 //-----------------------------------------------------------------------------
 ComposerDesigned = class(Composer) {
-	DrawDesignedTitle(cr:cairo.context, x:number, y:number,
-						rotateFlag:boolean, purposeFlag:boolean => true) = {
-		cr.save {
-			if (this.name.startswith('[')) {
+	DrawDesignedTitle(cr:cairo.context, x:number, y:number, rotateFlag:boolean) = {
+		text = ''
+		if (this.name.startswith('[')) {
+			if (g.titleDispFlag_Size) {
 				text = this.name
-			} else {
+			}
+		} else {
+			if (g.titleDispFlag_Purpose) {
 				text = '[' + this.name + ']'
 			}
-			if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
-				text += ' '
-				text += g.imgInfoCur.label
-			}
+		}
+		if (g.titleDispFlag_ImageLabel && !g.imgInfoCur.label.isempty()) {
+			if (!text.isempty()) { text += ' ' }
+			text += g.imgInfoCur.label
+		}
+		cr.save {
 			cr.translate(x, y)
 			rotateFlag && cr.rotate(-math.pi / 2)
 			cr.select_font_face(g.fontName, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
@@ -804,7 +808,7 @@ Composer_Aone = class(ComposerDesigned) {
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		wdCanvas = this.paperSize.GetCanvasWidth(this.orientation)
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
-		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - .5, true, false)
+		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - .5, true)
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
 		//imgExtract = imgExtract.thumbnail(1000):box
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
@@ -830,7 +834,7 @@ Composer_Hisago_CJx66 = class(ComposerDesigned) {
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
-		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false, false)
+		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false)
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
 		//imgExtract = imgExtract.thumbnail(1000):box
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
@@ -856,7 +860,7 @@ Composer_Hisago_CJ883 = class(ComposerDesigned) {
 	}
 	ComposeProduct(cr:cairo.context, imgPhoto:image) = {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
-		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false, false)
+		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false)
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
 		//imgExtract = imgExtract.thumbnail(1000):box
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
@@ -3325,19 +3329,19 @@ OutputOptionDialog = class(wx.Dialog) {
 						this.UpdateProductViewer()
 					}
 				}
-				wx.CheckBox(stb, wx.ID_ANY, 'Image Label'$) {|ctrl|
-					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
-					this.chkTitle_ImageLabel = ctrl
-					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
-						g.titleDispFlag_ImageLabel = event.IsChecked()
-						this.UpdateProductViewer()
-					}
-				}
 				wx.CheckBox(stb, wx.ID_ANY, 'Purpose'$) {|ctrl|
 					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
 					this.chkTitle_Purpose = ctrl
 					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
 						g.titleDispFlag_Purpose = event.IsChecked()
+						this.UpdateProductViewer()
+					}
+				}
+				wx.CheckBox(stb, wx.ID_ANY, 'Image Label'$) {|ctrl|
+					hbox.Add(ctrl, wx.SizerFlags().Centre().Border(wx.LEFT, 20))
+					this.chkTitle_ImageLabel = ctrl
+					ctrl.Bind(wx.EVT_CHECKBOX) {|event|
+						g.titleDispFlag_ImageLabel = event.IsChecked()
 						this.UpdateProductViewer()
 					}
 				}
