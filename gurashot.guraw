@@ -3786,7 +3786,7 @@ AboutDialog = class(wx.Dialog) {
 			}
 		}
 		vbox.AddSpacer(8)
-		wx.StaticText(this, wx.ID_ANY, 'Copyright (C) 2014-2017 ypsitau') {|ctrl|
+		wx.StaticText(this, wx.ID_ANY, 'Copyright (C) 2014-2018 ypsitau') {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Centre())
 		}
 		vbox.AddSpacer(16)

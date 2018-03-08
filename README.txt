@@ -23,7 +23,7 @@ Gura Shot は、デジカメの画像から必要なサイズの証明写真をカンタンに作れる
 
 * **Windows** &hellip; Windows 7, Windows 8.1, Windows 10
 * **Linux** &hellip; Ubuntu 13.10, Ubuntu 14.04, Xubuntu 14.04, Lubuntu 14.04
-* **Mac OS X** &hellip; OS X 10.9 Mavericks
+* **Mac OS X** &hellip; 10.9 Mavericks, 10.12 Sierra
 
 
 ## インストール方法・使い方
@@ -39,4 +39,4 @@ Gura Shot はフリーウェアです。このソフトを使って生じたいかなる損害に対しても
 
 ## 連絡先
 
-ypsitau@nifty.com
+ypsitau@gmail.com
