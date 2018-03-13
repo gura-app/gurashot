@@ -560,8 +560,8 @@ ComposerCustom = class(Composer) {
 			}
 			cr.show_text(text)
 		}
-		//imgExtract = this.Extract(imgPhoto, g.wdEdgeMgn, g.htEdgeMgn).thumbnail(1000):box
 		imgExtract = this.Extract(imgPhoto, g.wdEdgeMgn, g.htEdgeMgn)
+		if (g.imgSizeMax) { imgExtract = imgExtract.thumbnail(g.imgSizeMax):box }
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			[nx, ny] = this.layoutFrame.CalcImageGrid(wdCanvas, htCanvas, g.wdEdgeMgn, g.htEdgeMgn)
 			wdSlot = wdCanvas / nx
@@ -577,7 +577,7 @@ ComposerCustom = class(Composer) {
 	}
 	Extract(imgPhoto:image, wdEdgeMgn:number, htEdgeMgn:number) = {
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
-		//imgExtract = imgExtract.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtract = imgExtract.thumbnail(g.imgSizeMax):box }
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
 	}
 }
@@ -628,7 +628,7 @@ Composer_40x30_30x30 = class(ComposerDesigned) {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - 1, true)
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
-		//imgExtract = imgExtract.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtract = imgExtract.thumbnail(g.imgSizeMax):box }
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			this.layoutFrame.DrawSlot(cr, 18, 23, pattern,
@@ -642,7 +642,7 @@ Composer_40x30_30x30 = class(ComposerDesigned) {
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
 		imgExtractSub = ExtractImage(imgPhoto, this.layoutFrameSub, wdEdgeMgn, htEdgeMgn)
-		//imgExtractSub = imgExtractSub.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtractSub = imgExtractSub.thumbnail(g.imgSizeMax):box }
 		imgExtractSub = g.imgInfoCur.AdjustColor(imgExtractSub)
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 18, 61, pattern,
@@ -672,7 +672,7 @@ Composer_40x30_30x24 = class(ComposerDesigned) {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false)
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
-		//imgExtract = imgExtract.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtract = imgExtract.thumbnail(g.imgSizeMax):box }
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			this.layoutFrame.DrawSlot(cr, 18, 23, pattern,
@@ -686,7 +686,7 @@ Composer_40x30_30x24 = class(ComposerDesigned) {
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
 		imgExtractSub = ExtractImage(imgPhoto, this.layoutFrameSub, wdEdgeMgn, htEdgeMgn)
-		//imgExtractSub = imgExtractSub.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtractSub = imgExtractSub.thumbnail(g.imgSizeMax):box }
 		imgExtractSub = g.imgInfoCur.AdjustColor(imgExtractSub.rotate(270))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 18, 61, pattern,
@@ -716,7 +716,7 @@ Composer_40x30_30x25 = class(ComposerDesigned) {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false)
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
-		//imgExtract = imgExtract.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtract = imgExtract.thumbnail(g.imgSizeMax):box }
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			this.layoutFrame.DrawSlot(cr, 18, 23, pattern,
@@ -730,7 +730,7 @@ Composer_40x30_30x25 = class(ComposerDesigned) {
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
 		imgExtractSub = ExtractImage(imgPhoto, this.layoutFrameSub, wdEdgeMgn, htEdgeMgn)
-		//imgExtractSub = imgExtractSub.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtractSub = imgExtractSub.thumbnail(g.imgSizeMax):box }
 		imgExtractSub = g.imgInfoCur.AdjustColor(imgExtractSub.rotate(270))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 18, 61, pattern,
@@ -761,7 +761,7 @@ Composer_45x35_30x24 = class(ComposerDesigned) {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - 1, true)
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
-		//imgExtract = imgExtract.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtract = imgExtract.thumbnail(g.imgSizeMax):box }
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
 		cairo.pattern.create_for_surface(imgExtract) {|pattern|
 			this.layoutFrame.DrawSlot(cr, 20.5, 25.5, pattern,
@@ -772,7 +772,7 @@ Composer_45x35_30x24 = class(ComposerDesigned) {
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
 		imgExtractSub = ExtractImage(imgPhoto, this.layoutFrameSub, wdEdgeMgn, htEdgeMgn)
-		//imgExtractSub = imgExtractSub.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtractSub = imgExtractSub.thumbnail(g.imgSizeMax):box }
 		imgExtractSub = g.imgInfoCur.AdjustColor(imgExtractSub)
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 97, 18, pattern,
@@ -783,7 +783,7 @@ Composer_45x35_30x24 = class(ComposerDesigned) {
 					wdEdgeMgn, htEdgeMgn, g.trimMark, g.wdTrimMark, g.htTrimMark)
 		}
 		imgExtractSub = ExtractImage(imgPhoto, this.layoutFrameSub, wdEdgeMgn, htEdgeMgn)
-		//imgExtractSub = imgExtractSub.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtractSub = imgExtractSub.thumbnail(g.imgSizeMax):box }
 		imgExtractSub = g.imgInfoCur.AdjustColor(imgExtractSub.rotate(270))
 		cairo.pattern.create_for_surface(imgExtractSub) {|pattern|
 			this.layoutFrameSub.DrawSlot(cr, 18, 64, pattern,
@@ -810,7 +810,7 @@ Composer_Aone = class(ComposerDesigned) {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, wdCanvas - 1, htCanvas - .5, true)
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
-		//imgExtract = imgExtract.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtract = imgExtract.thumbnail(g.imgSizeMax):box }
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
 		cross(ix in range(3), iy in range(2)) {
 			xSlot = 24 + 30 / 2 + (30 + 5) * ix - this.paperSize.margin
@@ -836,7 +836,7 @@ Composer_Hisago_CJx66 = class(ComposerDesigned) {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false)
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
-		//imgExtract = imgExtract.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtract = imgExtract.thumbnail(g.imgSizeMax):box }
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
 		cross(ix in range(2), iy in range(3)) {
 			xSlot = 16 + 30 / 2 + (30 + 8) * ix - this.paperSize.margin
@@ -862,7 +862,7 @@ Composer_Hisago_CJ883 = class(ComposerDesigned) {
 		htCanvas = this.paperSize.GetCanvasHeight(this.orientation)
 		this.DrawDesignedTitle(cr, 0, htCanvas - .5, false)
 		imgExtract = ExtractImage(imgPhoto, this.layoutFrame, wdEdgeMgn, htEdgeMgn)
-		//imgExtract = imgExtract.thumbnail(1000):box
+		if (g.imgSizeMax) { imgExtract = imgExtract.thumbnail(g.imgSizeMax):box }
 		imgExtract = g.imgInfoCur.AdjustColor(imgExtract)
 		cross(ix in range(3), iy in range(3)) {
 			xSlot = 7.5 + 25 / 2 + (25 + 5) * ix - this.paperSize.margin
@@ -1053,6 +1053,7 @@ g = module {
 	composerCustom:public			= nil
 	composerTbl:public				= []
 	composerCur:public				= nil
+	imgSizeMax:public				= 1500
 }
 
 g.composerCustom = ComposerCustom(g.paperSizeTbl[0], g.layoutFrameTbl[0], `auto)
