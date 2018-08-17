@@ -950,20 +950,20 @@ g = module {
 		layoutFrame_55x45:public
 		layoutFrame_60x45:public
 	] = @(LayoutFrame) {
-		{ 'Driver\'s License, etc.'$,				30, 24, 2, 23, false }
-		{ 'Unemployment Insurance, etc.'$,			30, 25, 2, 23, false }
-		{ 'Qualifications'$,						30, 30, 2, 26, false }
-		{ 'Qualifications'$,						35, 24, 2, 26, false }
-		{ 'Qualifications'$,						36, 24, 2, 27, false }
-		{ 'Qualifications'$,						36, 25, 2, 27, false }
-		{ 'Resume, etc.'$,							40, 30, 2, 30, false }
-		{ 'Qualifications'$,						40, 40, 3, 31, false }
+		{ 'Driver\'s License, etc.'$,				30, 24, 3, 21, false }
+		{ 'Unemployment Insurance, etc.'$,			30, 25, 3, 21, false }
+		{ 'Qualifications'$,						30, 30, 3, 24, false }
+		{ 'Qualifications'$,						35, 24, 3, 25, false }
+		{ 'Qualifications'$,						36, 24, 3, 26, false }
+		{ 'Qualifications'$,						36, 25, 3, 26, false }
+		{ 'Resume, etc.'$,							40, 30, 3, 29, false }
+		{ 'Qualifications'$,						40, 40, 3, 29, false }
 		{ 'Passport, Individual Number Card, etc.'$,45, 35, 4, 34, false }
 		{ 'International Driver\'s License, etc.'$,	50, 40, 4, 38, false }
 		{ 'Visa, etc.'$,							50, 50, 4, 35, false }
-		{ 'Qualifications'$,						55, 40, 2, 41, false }
-		{ 'Qualifications'$,						55, 45, 2, 41, false }
-		{ 'Qualifications'$,						60, 45, 2, 45, false }
+		{ 'Qualifications'$,						55, 40, 3, 40, false }
+		{ 'Qualifications'$,						55, 45, 3, 40, false }
+		{ 'Qualifications'$,						60, 45, 3, 44, false }
 	}
 	paperSizeTbl:public = [
 		paperSize_L:public
