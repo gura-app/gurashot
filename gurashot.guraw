@@ -950,20 +950,22 @@ g = module {
 		layoutFrame_55x45:public
 		layoutFrame_60x45:public
 	] = @(LayoutFrame) {
-		{ 'Driver\'s License, etc.'$,				30, 24, 3, 21, false }
-		{ 'Unemployment Insurance, etc.'$,			30, 25, 3, 21, false }
-		{ 'Qualifications'$,						30, 30, 3, 24, false }
-		{ 'Qualifications'$,						35, 24, 3, 25, false }
-		{ 'Qualifications'$,						36, 24, 3, 26, false }
-		{ 'Qualifications'$,						36, 25, 3, 26, false }
-		{ 'Resume, etc.'$,							40, 30, 3, 29, false }
-		{ 'Qualifications'$,						40, 40, 3, 29, false }
+		{ 'Driver\'s License, etc.'$,				30, 24, 2.5, 30 * .62, false }
+		{ 'Unemployment Insurance, etc.'$,			30, 25, 2.5, 30 * .62, false }
+		{ 'Qualifications'$,						30, 30, 2.5, 30 * .62, false }
+		{ 'Qualifications'$,						35, 24, 3, 35 * .62, false }
+		{ 'Qualifications'$,						36, 24, 3, 36 * .62, false }
+		{ 'Qualifications'$,						36, 25, 3, 36 * .62, false }
+		{ 'Resume, etc.'$,							40, 30, 3, 40 * .62, false }
+		{ 'Qualifications'$,						40, 40, 3, 40 * .62, false }
+		// https://www.mofa.go.jp/mofaj/toko/passport/ic_photo.html
 		{ 'Passport, Individual Number Card, etc.'$,45, 35, 4, 34, false }
-		{ 'International Driver\'s License, etc.'$,	50, 40, 4, 38, false }
-		{ 'Visa, etc.'$,							50, 50, 4, 35, false }
-		{ 'Qualifications'$,						55, 40, 3, 40, false }
-		{ 'Qualifications'$,						55, 45, 3, 40, false }
-		{ 'Qualifications'$,						60, 45, 3, 44, false }
+		// http://www.police.pref.okinawa.jp
+		{ 'International Driver\'s License, etc.'$,	50, 40, 7, 31, false }
+		{ 'Visa, etc.'$,							50, 50, 7, 31, false }
+		{ 'Qualifications'$,						55, 40, 7, 55 * .62, false }
+		{ 'Qualifications'$,						55, 45, 7, 55 * .62, false }
+		{ 'Qualifications'$,						60, 45, 7, 60 * .62, false }
 	}
 	paperSizeTbl:public = [
 		paperSize_L:public
