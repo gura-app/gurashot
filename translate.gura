@@ -165,5 +165,6 @@ It will not delete the original file.''' => \
 }
 }
 
-(transDict = transDicts.get(sys.langcode)) && string.translator {|x| transDict.get(x, x)}
+//(transDict = transDicts.get(sys.langcode)) && string.translator {|x| transDict.get(x, x)}
+(transDict = transDicts.get(`ja)) && string.translator {|x| transDict.get(x, x)}
 _(x:string) = if (transDict) { transDict.get(x, x) } else { x }
