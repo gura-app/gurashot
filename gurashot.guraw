@@ -1,7 +1,7 @@
 #!/usr/bin/env gura
 //=============================================================================
 // gurashot
-// Copyright (C) 2014-2018 ypsitau
+// Copyright (C) 2014-2025 ypsitau
 //=============================================================================
 import(wx)
 import(wx.utils)
@@ -18,7 +18,7 @@ import(resource)
 import(units)
 import(translate) {_}
 
-Version = '1.4.4'
+Version = '1.4.5'
 
 //-----------------------------------------------------------------------------
 // Control ID
@@ -3773,7 +3773,7 @@ AboutDialog = class(wx.Dialog) {
 			}
 		}
 		vbox.AddSpacer(8)
-		wx.StaticText(this, wx.ID_ANY, 'Copyright (C) 2014-2018 ypsitau') {|ctrl|
+		wx.StaticText(this, wx.ID_ANY, 'Copyright (C) 2014-2025 ypsitau') {|ctrl|
 			vbox.Add(ctrl, wx.SizerFlags().Centre())
 		}
 		vbox.AddSpacer(16)
